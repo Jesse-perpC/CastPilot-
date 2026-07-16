@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-primary: #3b82f6; /* Blue 500 */
+  --color-brand-accent: #f43f5e;  /* Rose 500 */
+  --color-brand-success: #10b981; /* Emerald 500 */
+  --color-brand-dark: #0f172a;    /* Slate 900 */
+
+  /* Map sky colors to professional blues to align with the design theme */
+  --color-sky-50: #eff6ff;
+  --color-sky-100: #dbeafe;
+  --color-sky-200: #bfdbfe;
+  --color-sky-300: #93c5fd;
+  --color-sky-400: #60a5fa;
+  --color-sky-500: #3b82f6;
+  --color-sky-600: #2563eb;
+  --color-sky-700: #1d4ed8;
+  --color-sky-850: #1e293b;
+  --color-sky-900: #1e3a8a;
+  --color-sky-950: #172554;
+
+  /* Polished slate colors matching the design HTML precisely */
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  /* Custom Animations and Keyframes */
+  --animate-marquee: marquee 20s linear infinite;
+  --animate-marquee-slow: marquee 40s linear infinite;
+  --animate-marquee-fast: marquee 10s linear infinite;
+  --animate-fadeIn: fadeIn 0.25s ease-out forwards;
+  --animate-slideIn: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes marquee {
+    from { transform: translateX(0%); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideIn {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+}
+
+/* Custom visual styling matching Professional Polish */
+.dark-panel {
+  background-color: #020617;
+  border: 1px solid #1e293b;
+}
+
+.glowing-border {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "CastPilot",
+  "description": "The Next-Generation Automated Broadcast Management System with AI-driven scheduling, resource management, automated playout, and AI MAM asset tagging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

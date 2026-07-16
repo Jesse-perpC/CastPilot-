@@ -1,0 +1,12 @@
+{
+  "appId": "com.castpilot.studio",
+  "appName": "CastPilot Live Studio",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
