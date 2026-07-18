@@ -117,6 +117,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
 
   // Local controls auto chat simulator
   const [isAutoChatActive, setIsAutoChatActive] = useState(true);
+  const [serverActive, setServerActive] = useState(false);
   const [mainStudioTab, setMainStudioTab] = useState<'overlays' | 'chat' | 'guests' | 'recorder'>('overlays');
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -130,8 +131,12 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
         if (data.settings) setSettings(data.settings);
         if (data.poll) setPoll(data.poll);
         if (data.chatLog) setChatLog(data.chatLog);
+        setServerActive(true);
+      } else {
+        setServerActive(false);
       }
     } catch (err) {
+      setServerActive(false);
       console.warn('Unable to reach engagement state endpoint (will retry):', err);
     }
   };
@@ -170,7 +175,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
 
   // Simulate active chat influx
   useEffect(() => {
-    if (!isAutoChatActive) return;
+    if (!isAutoChatActive || !serverActive) return;
 
     const fanUsers = ['StreamKing', 'NeonHorizon', 'DellaFox', 'ByteCoder', 'PixelPioneer', 'EchoExplorer', 'CastPilotFan', 'AuraGlow'];
     const fanComments = [
@@ -207,7 +212,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
           isSuperChat: isSuper,
           superChatAmount: superAmount
         })
-      }).catch(err => console.error('Auto chat inject failed:', err));
+      }).catch(err => console.warn('Auto chat inject warning:', err));
 
       // Increment poll votes occasionally if poll is active
       if (poll.isActive && Math.random() > 0.4) {
@@ -216,7 +221,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ optionIndex: choice })
-        }).catch(err => console.error('Auto poll vote failed:', err));
+        }).catch(err => console.warn('Auto poll vote warning:', err));
       }
 
       // Simulate occasional follow or sub alerts on the screen overlay
@@ -244,7 +249,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
     }, 4500);
 
     return () => clearInterval(chatInterval);
-  }, [isAutoChatActive, poll.isActive, poll.options?.length]);
+  }, [isAutoChatActive, serverActive, poll.isActive, poll.options?.length]);
 
   const triggerAlert = async (alert: AlertEvent) => {
     // Show locally
