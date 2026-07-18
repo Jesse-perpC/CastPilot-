@@ -665,8 +665,8 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
               {/* Urgent Announcement Preview Banner */}
               {settings.urgentAnnouncementActive && settings.urgentAnnouncementText && (
                 <div className="absolute top-16 left-4 right-4 z-35 animate-fadeIn pointer-events-none">
-                  <div className={`p-2.5 rounded-lg border shadow-xl flex items-center gap-3 bg-slate-950/95 border-rose-500/40`}>
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase font-mono text-white ${
+                  <div className="p-3.5 rounded-xl border border-rose-500/50 shadow-2xl flex items-center gap-3 bg-slate-950/95">
+                    <span className={`px-2.5 py-1 rounded text-[10px] font-black tracking-wide uppercase font-mono text-white shrink-0 ${
                       settings.urgentAnnouncementStyle === 'urgent_alert' ? 'bg-orange-600' :
                       settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'bg-blue-600' :
                       'bg-red-600 animate-pulse'
@@ -675,7 +675,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
                        settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'TECH' :
                        'BREAKING'}
                     </span>
-                    <p className="text-[11px] font-bold text-white truncate flex-1">
+                    <p className="text-xs sm:text-[13px] font-extrabold text-white truncate flex-1 leading-normal">
                       {settings.urgentAnnouncementText}
                     </p>
                   </div>

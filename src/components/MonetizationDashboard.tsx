@@ -488,346 +488,376 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
       </div>
 
       {/* SCTE-35 Splicer & Playout Automation Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 my-8">
-        {/* Left Side: Ad Placement Toggles & Core Config (7 Columns) */}
-        <div className="lg:col-span-7 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-900 mb-5">
-              <div className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-rose-500 animate-spin-slow" />
-                <div>
-                  <h3 className="font-display text-sm font-semibold text-white">SCTE-35 Splicer Ad Insertion Policy</h3>
-                  <p className="text-[11px] text-slate-500">Configure pre-roll, mid-roll, and post-roll programmatic triggers</p>
-                </div>
+      <div className="space-y-6 my-8">
+        {/* Full-width Stream Segment Map and Auto-Splicer Timeline */}
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-900">
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-sky-400" />
+              <div>
+                <h4 className="font-display text-xs font-bold text-white uppercase tracking-wider">Active Stream Timeline & Auto-Splicer Map</h4>
+                <p className="text-[11px] text-slate-500">Full-width live broadcast timeline mapping armed SCTE-35 segments with high readability</p>
               </div>
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
-                <span className={`h-2 w-2 rounded-full ${scteState.adTriggered ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                  {scteState.adTriggered ? "Splicing Active" : "Splicer Armed"}
+            </div>
+            
+            {/* Live Status indicator */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Playout Splicer Status:</span>
+              <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+                {scteState.scteStatus}
+              </span>
+            </div>
+          </div>
+
+          {/* Graphic Timeline Visualization */}
+          <div className="bg-slate-900/40 rounded-xl p-5 border border-slate-900">
+            <div className="text-[10px] font-mono text-slate-400 uppercase mb-3.5 flex items-center justify-between font-bold">
+              <span className="flex items-center gap-1.5"><Database className="h-4 w-4 text-sky-400" /> Stream Segment Map</span>
+              <span className="tracking-wide">Program Block Lifecycle</span>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-stretch gap-2.5 min-h-[5rem] bg-slate-950 rounded-xl p-2.5 border border-slate-900 overflow-hidden shadow-inner">
+              {/* Pre-Roll Segment */}
+              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+                scteState.preRollEnabled 
+                  ? 'bg-amber-500/10 border-2 border-amber-500/30 text-amber-400 shadow-md shadow-amber-500/5' 
+                  : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
+              }`}>
+                <span className="font-mono text-xs font-black tracking-wide">PRE-ROLL AD</span>
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                  {scteState.preRollEnabled ? `${scteState.preRollDuration}s Armed` : 'Disabled'}
+                </span>
+              </div>
+
+              {/* Main Program Segment 1 */}
+              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-3 text-sky-400 shadow-md shadow-sky-500/5">
+                <span className="font-mono text-xs font-black tracking-wide">PRIMARY PROGRAM (PT. 1)</span>
+                <span className="text-[10px] font-mono text-slate-400 mt-1">Live Feed Payload</span>
+              </div>
+
+              {/* Mid-Roll Segment */}
+              <div className={`relative flex-[1.5] rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+                scteState.midRollEnabled 
+                  ? 'bg-sky-500/10 border-2 border-sky-500/30 text-sky-400 shadow-md shadow-sky-500/5' 
+                  : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
+              }`}>
+                <span className="font-mono text-xs font-black tracking-wide">MID-ROLL AD</span>
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                  {scteState.midRollEnabled ? `${scteState.midRollDuration}s Armed` : 'Disabled'}
+                </span>
+              </div>
+
+              {/* Main Program Segment 2 */}
+              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-3 text-sky-400 shadow-md shadow-sky-500/5">
+                <span className="font-mono text-xs font-black tracking-wide">PRIMARY PROGRAM (PT. 2)</span>
+                <span className="text-[10px] font-mono text-slate-400 mt-1">Live Feed Payload</span>
+              </div>
+
+              {/* Post-Roll Segment */}
+              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+                scteState.postRollEnabled 
+                  ? 'bg-rose-500/10 border-2 border-rose-500/30 text-rose-400 shadow-md shadow-rose-500/5' 
+                  : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
+              }`}>
+                <span className="font-mono text-xs font-black tracking-wide">POST-ROLL AD</span>
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                  {scteState.postRollEnabled ? `${scteState.postRollDuration}s Armed` : 'Disabled'}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              {/* Pre-Roll Card */}
-              <div className={`p-4 rounded-xl border transition-colors ${scteState.preRollEnabled ? 'bg-slate-900/40 border-amber-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.preRollEnabled ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-900 text-slate-500'}`}>
-                      PRE
-                    </span>
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-200">Pre-Roll Ad Slot Trigger</h4>
-                      <p className="text-[10px] text-slate-500">Automate commercial break insertion before stream playback begins</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => updateScteConfig({ preRollEnabled: !scteState.preRollEnabled })}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.preRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.preRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                    </button>
-                  </div>
+            {/* Progress pointer if simulation is running */}
+            {simRunning && (
+              <div className="mt-5 space-y-2">
+                <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-900 shadow-inner">
+                  <div 
+                    className="h-full bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all duration-200"
+                    style={{ width: `${simProgress}%` }}
+                  />
                 </div>
-
-                {scteState.preRollEnabled && (
-                  <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
-                      <select
-                        value={scteState.preRollDuration}
-                        onChange={(e) => updateScteConfig({ preRollDuration: Number(e.target.value) })}
-                        className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-amber-500"
-                      >
-                        <option value={15}>15 Seconds</option>
-                        <option value={30}>30 Seconds</option>
-                        <option value={45}>45 Seconds</option>
-                        <option value={60}>60 Seconds</option>
-                      </select>
-                    </div>
-
-                    <button
-                      onClick={() => triggerDirectSplice("pre-roll")}
-                      disabled={scteState.adTriggered}
-                      className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-amber-400 transition font-bold"
-                    >
-                      Manual Inject [0xFC]
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Mid-Roll Card */}
-              <div className={`p-4 rounded-xl border transition-colors ${scteState.midRollEnabled ? 'bg-slate-900/40 border-sky-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.midRollEnabled ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-900 text-slate-500'}`}>
-                      MID
-                    </span>
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-200">Mid-Roll Ad Slot Trigger</h4>
-                      <p className="text-[10px] text-slate-500">Splice programmatic ad break at the calculated program midpoints</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => updateScteConfig({ midRollEnabled: !scteState.midRollEnabled })}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.midRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.midRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                    </button>
-                  </div>
+                <div className="flex justify-between items-center text-xs font-mono text-slate-400 font-bold">
+                  <span>PLAYOUT ELAPSED: {Math.round(simProgress * 0.6)}s / 60.0s</span>
+                  <span className="text-emerald-400 animate-pulse flex items-center gap-1.5 uppercase font-black">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                    Simulation Processing Playout Feed
+                  </span>
                 </div>
-
-                {scteState.midRollEnabled && (
-                  <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
-                      <select
-                        value={scteState.midRollDuration}
-                        onChange={(e) => updateScteConfig({ midRollDuration: Number(e.target.value) })}
-                        className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-sky-500"
-                      >
-                        <option value={30}>30 Seconds</option>
-                        <option value={60}>60 Seconds</option>
-                        <option value={90}>90 Seconds</option>
-                        <option value={120}>120 Seconds</option>
-                      </select>
-                    </div>
-
-                    <button
-                      onClick={() => triggerDirectSplice("mid-roll")}
-                      disabled={scteState.adTriggered}
-                      className="px-2.5 py-1 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-sky-400 transition font-bold"
-                    >
-                      Manual Inject [0xFC]
-                    </button>
-                  </div>
-                )}
               </div>
-
-              {/* Post-Roll Card */}
-              <div className={`p-4 rounded-xl border transition-colors ${scteState.postRollEnabled ? 'bg-slate-900/40 border-rose-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.postRollEnabled ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-900 text-slate-500'}`}>
-                      POST
-                    </span>
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-200">Post-Roll Ad Slot Trigger</h4>
-                      <p className="text-[10px] text-slate-500">Inject SCTE markers immediately upon program playback ending</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => updateScteConfig({ postRollEnabled: !scteState.postRollEnabled })}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.postRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.postRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {scteState.postRollEnabled && (
-                  <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
-                      <select
-                        value={scteState.postRollDuration}
-                        onChange={(e) => updateScteConfig({ postRollDuration: Number(e.target.value) })}
-                        className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-rose-500"
-                      >
-                        <option value={15}>15 Seconds</option>
-                        <option value={30}>30 Seconds</option>
-                        <option value={45}>45 Seconds</option>
-                        <option value={60}>60 Seconds</option>
-                      </select>
-                    </div>
-
-                    <button
-                      onClick={() => triggerDirectSplice("post-roll")}
-                      disabled={scteState.adTriggered}
-                      className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-rose-400 transition font-bold"
-                    >
-                      Manual Inject [0xFC]
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* General Splicer Parameters */}
-            <div className="mt-5 grid grid-cols-2 gap-4 pt-4 border-t border-slate-900">
-              <div>
-                <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1.5 font-bold">Targeting Profile</label>
-                <select
-                  value={scteState.targetingProfile}
-                  onChange={(e) => updateScteConfig({ targetingProfile: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-mono"
-                >
-                  <option value="programmatic">Programmatic OpenRTB Bidding</option>
-                  <option value="direct-sold">Direct-Sold Guaranteed</option>
-                  <option value="hybrid">Hybrid Waterfall Allocation</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1.5 font-bold">Primary SSP Provider</label>
-                <select
-                  value={scteState.provider}
-                  onChange={(e) => updateScteConfig({ provider: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-mono"
-                >
-                  <option value="Google Ad Manager">Google Ad Manager 360</option>
-                  <option value="OpenX">OpenX Ad Exchange</option>
-                  <option value="SpotX">SpotX / Magnite FAST</option>
-                  <option value="FreeWheel">FreeWheel MRM</option>
-                </select>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Right Side: Visual Stream Timeline & Auto Playout Simulation (5 Columns) */}
-        <div className="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-3.5 pb-3 border-b border-slate-900">
-              <Activity className="h-4.5 w-4.5 text-sky-400" />
-              <div>
-                <h4 className="font-display text-xs font-bold text-white uppercase tracking-wider">Active Stream Timeline & Auto-Splicer</h4>
-                <p className="text-[10px] text-slate-500">Live feed preview mapping armed SCTE blocks</p>
-              </div>
-            </div>
-
-            {/* Graphic Timeline Visualization */}
-            <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-900 mb-5">
-              <div className="text-[9px] font-mono text-slate-500 uppercase mb-3 flex items-center justify-between font-bold">
-                <span>Stream Segment Map</span>
-                <span>Program Block Lifecycle</span>
-              </div>
-
-              <div className="flex items-stretch gap-1.5 h-14 bg-slate-950 rounded-lg p-1.5 border border-slate-900 overflow-hidden">
-                {/* Pre-Roll Segment */}
-                <div className={`relative flex-1 rounded flex flex-col items-center justify-center transition-all ${
-                  scteState.preRollEnabled 
-                    ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' 
-                    : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-40'
-                }`}>
-                  <span className="font-mono text-[9px] font-bold">PRE-ROLL</span>
-                  <span className="text-[7px] font-mono tracking-tighter mt-0.5">
-                    {scteState.preRollEnabled ? `${scteState.preRollDuration}s Armed` : 'Bypassed'}
-                  </span>
-                </div>
-
-                {/* Main Program Segment 1 */}
-                <div className="flex-[2.5] bg-sky-950/20 border border-sky-500/20 rounded text-sky-400 flex flex-col items-center justify-center">
-                  <span className="font-mono text-[9px] font-bold">PROGRAM PT. 1</span>
-                  <span className="text-[7px] font-mono text-slate-500 mt-0.5">Stream Payload</span>
-                </div>
-
-                {/* Mid-Roll Segment */}
-                <div className={`relative flex-[1.5] rounded flex flex-col items-center justify-center transition-all ${
-                  scteState.midRollEnabled 
-                    ? 'bg-sky-500/10 border border-sky-500/30 text-sky-400' 
-                    : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-40'
-                }`}>
-                  <span className="font-mono text-[9px] font-bold">MID-ROLL</span>
-                  <span className="text-[7px] font-mono tracking-tighter mt-0.5">
-                    {scteState.midRollEnabled ? `${scteState.midRollDuration}s Armed` : 'Bypassed'}
-                  </span>
-                </div>
-
-                {/* Main Program Segment 2 */}
-                <div className="flex-[2.5] bg-sky-950/20 border border-sky-500/20 rounded text-sky-400 flex flex-col items-center justify-center">
-                  <span className="font-mono text-[9px] font-bold">PROGRAM PT. 2</span>
-                  <span className="text-[7px] font-mono text-slate-500 mt-0.5">Stream Payload</span>
-                </div>
-
-                {/* Post-Roll Segment */}
-                <div className={`relative flex-1 rounded flex flex-col items-center justify-center transition-all ${
-                  scteState.postRollEnabled 
-                    ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400' 
-                    : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-40'
-                }`}>
-                  <span className="font-mono text-[9px] font-bold">POST-ROLL</span>
-                  <span className="text-[7px] font-mono tracking-tighter mt-0.5">
-                    {scteState.postRollEnabled ? `${scteState.postRollDuration}s Armed` : 'Bypassed'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress pointer if simulation is running */}
-              {simRunning && (
-                <div className="mt-3.5 space-y-2">
-                  <div className="h-1 bg-slate-950 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-500 transition-all duration-200"
-                      style={{ width: `${simProgress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center text-[9px] font-mono text-slate-500 font-bold">
-                    <span>PLAYOUT ELAPSED: {Math.round(simProgress * 0.6)}s</span>
-                    <span className="text-emerald-400 animate-pulse">SIMULATION PLAYING</span>
+        {/* Two-column control & diagnostics workspace */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Side: Ad Placement Toggles & Core Config (7 Columns) */}
+          <div className="lg:col-span-7 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-900 mb-5">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-rose-500 animate-spin-slow" />
+                  <div>
+                    <h3 className="font-display text-sm font-semibold text-white">SCTE-35 Splicer Ad Insertion Policy</h3>
+                    <p className="text-[11px] text-slate-500">Configure pre-roll, mid-roll, and post-roll programmatic triggers</p>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Real-time Technical logs console */}
-            <div className="bg-black rounded-xl p-4 border border-slate-900">
-              <div className="text-[9px] font-mono text-slate-500 uppercase mb-2 flex items-center justify-between font-bold">
-                <span>Splicer Core Diagnostics Logs</span>
-                <span className="text-rose-500 font-bold">Live Status: {scteState.scteStatus}</span>
+                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                  <span className={`h-2 w-2 rounded-full ${scteState.adTriggered ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+                    {scteState.adTriggered ? "Splicing Active" : "Splicer Armed"}
+                  </span>
+                </div>
               </div>
-              <div className="h-[105px] overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1.5 select-text no-scrollbar">
-                {simLogs.map((log, index) => (
-                  <div 
-                    key={index} 
-                    className={`leading-relaxed border-l-2 pl-2 ${
-                      log.includes('🚀') ? 'text-amber-400 border-amber-500' : 
-                      log.includes('🎬') ? 'text-sky-400 border-sky-500' :
-                      log.includes('✅') ? 'text-emerald-400 border-emerald-500' :
-                      log.includes('[SCTE-35]') ? 'text-rose-400 border-rose-500 font-bold' : 'text-slate-500 border-slate-800'
-                    }`}
+
+              <div className="space-y-4">
+                {/* Pre-Roll Card */}
+                <div className={`p-4 rounded-xl border transition-colors ${scteState.preRollEnabled ? 'bg-slate-900/40 border-amber-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.preRollEnabled ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                        PRE
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-200">Pre-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500">Automate commercial break insertion before stream playback begins</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => updateScteConfig({ preRollEnabled: !scteState.preRollEnabled })}
+                        className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.preRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.preRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {scteState.preRollEnabled && (
+                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
+                        <select
+                          value={scteState.preRollDuration}
+                          onChange={(e) => updateScteConfig({ preRollDuration: Number(e.target.value) })}
+                          className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-amber-500"
+                        >
+                          <option value={15}>15 Seconds</option>
+                          <option value={30}>30 Seconds</option>
+                          <option value={45}>45 Seconds</option>
+                          <option value={60}>60 Seconds</option>
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={() => triggerDirectSplice("pre-roll")}
+                        disabled={scteState.adTriggered}
+                        className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-amber-400 transition font-bold"
+                      >
+                        Manual Inject [0xFC]
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mid-Roll Card */}
+                <div className={`p-4 rounded-xl border transition-colors ${scteState.midRollEnabled ? 'bg-slate-900/40 border-sky-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.midRollEnabled ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                        MID
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-200">Mid-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500">Splice programmatic ad break at the calculated program midpoints</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => updateScteConfig({ midRollEnabled: !scteState.midRollEnabled })}
+                        className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.midRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.midRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {scteState.midRollEnabled && (
+                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
+                        <select
+                          value={scteState.midRollDuration}
+                          onChange={(e) => updateScteConfig({ midRollDuration: Number(e.target.value) })}
+                          className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-sky-500"
+                        >
+                          <option value={30}>30 Seconds</option>
+                          <option value={60}>60 Seconds</option>
+                          <option value={90}>90 Seconds</option>
+                          <option value={120}>120 Seconds</option>
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={() => triggerDirectSplice("mid-roll")}
+                        disabled={scteState.adTriggered}
+                        className="px-2.5 py-1 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-sky-400 transition font-bold"
+                      >
+                        Manual Inject [0xFC]
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Post-Roll Card */}
+                <div className={`p-4 rounded-xl border transition-colors ${scteState.postRollEnabled ? 'bg-slate-900/40 border-rose-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.postRollEnabled ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                        POST
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-200">Post-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500">Inject SCTE markers immediately upon program playback ending</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => updateScteConfig({ postRollEnabled: !scteState.postRollEnabled })}
+                        className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${scteState.postRollEnabled ? 'bg-emerald-600' : 'bg-slate-800'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${scteState.postRollEnabled ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {scteState.postRollEnabled && (
+                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
+                        <select
+                          value={scteState.postRollDuration}
+                          onChange={(e) => updateScteConfig({ postRollDuration: Number(e.target.value) })}
+                          className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-300 font-mono focus:outline-none focus:border-rose-500"
+                        >
+                          <option value={15}>15 Seconds</option>
+                          <option value={30}>30 Seconds</option>
+                          <option value={45}>45 Seconds</option>
+                          <option value={60}>60 Seconds</option>
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={() => triggerDirectSplice("post-roll")}
+                        disabled={scteState.adTriggered}
+                        className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-slate-800 rounded text-[10px] font-mono text-rose-400 transition font-bold"
+                      >
+                        Manual Inject [0xFC]
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* General Splicer Parameters */}
+              <div className="mt-5 grid grid-cols-2 gap-4 pt-4 border-t border-slate-900 font-sans">
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1.5 font-bold">Targeting Profile</label>
+                  <select
+                    value={scteState.targetingProfile}
+                    onChange={(e) => updateScteConfig({ targetingProfile: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-mono"
                   >
-                    {log}
-                  </div>
-                ))}
+                    <option value="programmatic">Programmatic OpenRTB Bidding</option>
+                    <option value="direct-sold">Direct-Sold Guaranteed</option>
+                    <option value="hybrid">Hybrid Waterfall Allocation</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1.5 font-bold">Primary SSP Provider</label>
+                  <select
+                    value={scteState.provider}
+                    onChange={(e) => updateScteConfig({ provider: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500 font-mono"
+                  >
+                    <option value="Google Ad Manager">Google Ad Manager 360</option>
+                    <option value="OpenX">OpenX Ad Exchange</option>
+                    <option value="SpotX">SpotX / Magnite FAST</option>
+                    <option value="FreeWheel">FreeWheel MRM</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-2">
-            {!simRunning ? (
-              <button
-                onClick={() => {
-                  setSimRunning(true);
-                  setSimProgress(0);
-                }}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-emerald-500 flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <Play className="h-4 w-4" />
-                Run Live Playout Ad Test
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setSimRunning(false);
-                  addLog("🛑 Playout test aborted manually.");
-                }}
-                className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-rose-500 flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <Square className="h-4 w-4" />
-                Abort Broadcast Test
-              </button>
-            )}
+          {/* Right Side: Diagnostics Logs & Test Controls (5 Columns) */}
+          <div className="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-900">
+                <Activity className="h-4.5 w-4.5 text-rose-500 animate-pulse" />
+                <div>
+                  <h4 className="font-display text-xs font-bold text-white uppercase tracking-wider">Splicer Core Diagnostics</h4>
+                  <p className="text-[10px] text-slate-500">Real-time SCTE-35 broadcast event stream logs</p>
+                </div>
+              </div>
+
+              {/* Real-time Technical logs console */}
+              <div className="bg-black rounded-xl p-4 border border-slate-900">
+                <div className="text-[9px] font-mono text-slate-500 uppercase mb-3 flex items-center justify-between font-bold">
+                  <span>Core Event Stream</span>
+                  <span className="text-emerald-400 font-bold animate-pulse flex items-center gap-1 uppercase">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    System Ready
+                  </span>
+                </div>
+                <div className="h-[185px] overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1.5 select-text no-scrollbar">
+                  {simLogs.map((log, index) => (
+                    <div 
+                      key={index} 
+                      className={`leading-relaxed border-l-2 pl-2 ${
+                        log.includes('🚀') ? 'text-amber-400 border-amber-500' : 
+                        log.includes('🎬') ? 'text-sky-400 border-sky-500' :
+                        log.includes('✅') ? 'text-emerald-400 border-emerald-500' :
+                        log.includes('[SCTE-35]') ? 'text-rose-400 border-rose-500 font-bold' : 'text-slate-500 border-slate-800'
+                      }`}
+                    >
+                      {log}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-2">
+              {!simRunning ? (
+                <button
+                  onClick={() => {
+                    setSimRunning(true);
+                    setSimProgress(0);
+                  }}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-emerald-500 flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <Play className="h-4 w-4" />
+                  Run Live Playout Ad Test
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSimRunning(false);
+                    addLog("🛑 Playout test aborted manually.");
+                  }}
+                  className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-rose-500 flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <Square className="h-4 w-4" />
+                  Abort Broadcast Test
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

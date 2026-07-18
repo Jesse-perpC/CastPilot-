@@ -989,7 +989,7 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
         const annX = 50;
         const annY = 105;
         const annW = W - 100; // 1180
-        const annH = 50;
+        const annH = 65; // Taller banner height for readability
         
         // Colors & labels based on style
         let mainColor = '#dc2626'; // crimson red
@@ -1008,50 +1008,50 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
         }
         
         // Draw primary box glass-morphic backing
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
         ctx.beginPath();
-        ctx.roundRect(annX, annY, annW, annH, 6);
+        ctx.roundRect(annX, annY, annW, annH, 8);
         ctx.fill();
         
         // Draw style highlight block
         ctx.fillStyle = mainColor;
         ctx.beginPath();
-        ctx.roundRect(annX, annY, 210, annH, { tl: 6, bl: 6, tr: 0, br: 0 });
+        ctx.roundRect(annX, annY, 260, annH, { tl: 8, bl: 8, tr: 0, br: 0 });
         ctx.fill();
         
         // Outline
         ctx.strokeStyle = outlineColor;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(annX, annY, annW, annH, 6);
+        ctx.roundRect(annX, annY, annW, annH, 8);
         ctx.stroke();
         
         // Blinking alert dot
         const isBlinkFast = Math.floor(Date.now() / 250) % 2 === 0;
         ctx.fillStyle = isBlinkFast ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
         ctx.beginPath();
-        ctx.arc(annX + 22, annY + 25, 5, 0, Math.PI * 2);
+        ctx.arc(annX + 26, annY + (annH / 2), 6, 0, Math.PI * 2);
         ctx.fill();
         
-        // Badge text label
+        // Badge text label (Highly readable)
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px monospace';
+        ctx.font = 'bold 15px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(badgeText, annX + 36, annY + 29);
+        ctx.fillText(badgeText, annX + 44, annY + (annH / 2) + 5);
         
-        // Draw Announcement Message copy text
+        // Draw Announcement Message copy text (Highly readable and elegant)
         ctx.fillStyle = textColor;
-        ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(annText, annX + 230, annY + 29);
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(annText, annX + 285, annY + (annH / 2) + 6);
         
         // Little audio wave visualizer indicator on the right side of announcement
         ctx.strokeStyle = outlineColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
         for (let i = 0; i < 5; i++) {
-          const barH = 10 + Math.sin(angle * 10 + i) * 6;
+          const barH = 16 + Math.sin(angle * 10 + i) * 10;
           ctx.beginPath();
-          ctx.moveTo(annX + annW - 35 + i * 5, annY + 25 - barH / 2);
-          ctx.lineTo(annX + annW - 35 + i * 5, annY + 25 + barH / 2);
+          ctx.moveTo(annX + annW - 40 + i * 6, annY + (annH / 2) - barH / 2);
+          ctx.lineTo(annX + annW - 40 + i * 6, annY + (annH / 2) + barH / 2);
           ctx.stroke();
         }
       }

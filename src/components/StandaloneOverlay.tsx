@@ -233,28 +233,28 @@ export default function StandaloneOverlay() {
       {/* URGENT ANNOUNCEMENT OVERLAY */}
       {settings.urgentAnnouncementActive && settings.urgentAnnouncementText && (
         <div className="w-full mt-2 mb-4 animate-fadeIn pointer-events-none z-40">
-          <div className={`rounded-xl border shadow-2xl overflow-hidden flex items-center p-3.5 gap-4 backdrop-blur-md ${activeTheme.bg} ${activeTheme.border}`}>
-            <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 flex items-center gap-2 font-mono ${
+          <div className={`rounded-xl border shadow-2xl overflow-hidden flex items-center p-4 gap-4 backdrop-blur-md ${activeTheme.bg} ${activeTheme.border}`}>
+            <div className={`px-4 py-2 rounded-lg text-xs md:text-sm font-black uppercase tracking-wider shrink-0 flex items-center gap-2 font-mono ${
               settings.urgentAnnouncementStyle === 'urgent_alert' ? 'bg-orange-600 text-white' :
               settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'bg-blue-600 text-white' :
               'bg-red-600 text-white animate-pulse'
             }`}>
-              <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+              <span className="h-2 w-2 rounded-full bg-white animate-ping" />
               {settings.urgentAnnouncementStyle === 'urgent_alert' ? 'URGENT ALERT' :
                settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'TECHNICAL UPDATE' :
                'BREAKING NEWS'}
             </div>
-            <p className={`text-sm font-bold truncate ${activeTheme.textPrimary}`}>
+            <p className={`text-base md:text-lg font-extrabold truncate flex-1 tracking-wide ${activeTheme.textPrimary}`}>
               {settings.urgentAnnouncementText}
             </p>
             
             {/* Audio waveform / pulsing visualizer */}
-            <div className="ml-auto flex items-end gap-0.5 h-4 shrink-0 pr-2">
-              <span className="w-0.5 bg-red-500 animate-pulse h-3" style={{ animationDelay: '0.1s' }} />
-              <span className="w-0.5 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.3s' }} />
-              <span className="w-0.5 bg-red-500 animate-pulse h-2" style={{ animationDelay: '0.2s' }} />
-              <span className="w-0.5 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.5s' }} />
-              <span className="w-0.5 bg-red-500 animate-pulse h-3" style={{ animationDelay: '0.4s' }} />
+            <div className="ml-auto flex items-end gap-0.5 h-5 shrink-0 pr-2">
+              <span className="w-1 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.1s' }} />
+              <span className="w-1 bg-red-500 animate-pulse h-5" style={{ animationDelay: '0.3s' }} />
+              <span className="w-1 bg-red-500 animate-pulse h-3" style={{ animationDelay: '0.2s' }} />
+              <span className="w-1 bg-red-500 animate-pulse h-5" style={{ animationDelay: '0.5s' }} />
+              <span className="w-1 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.4s' }} />
             </div>
           </div>
         </div>
