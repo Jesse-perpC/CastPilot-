@@ -504,30 +504,30 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
       </div>
 
       {/* Workspace Sub-Tabs - Addressing missing FAST system features */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-px gap-4">
-        <div className="flex overflow-x-auto no-scrollbar gap-2 w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 gap-4">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 w-full sm:w-auto -mb-px pb-1 sm:pb-0 scroll-smooth">
           <button
             onClick={() => setActiveSubTab('delivery')}
-            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2.5 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
               activeSubTab === 'delivery' 
-                ? 'border-sky-500 text-white' 
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sky-500 text-white font-bold' 
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
             }`}
           >
             <Globe className="h-4 w-4" />
-            Stream Targets & VOD Archive
+            <span>Stream Targets & VOD Archive</span>
           </button>
           
           <button
             onClick={() => setActiveSubTab('scte')}
-            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 relative ${
+            className={`px-4 py-2.5 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 relative ${
               activeSubTab === 'scte' 
-                ? 'border-sky-500 text-white' 
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sky-500 text-white font-bold' 
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
             }`}
           >
             <Radio className="h-4 w-4" />
-            SCTE-35 Cue Debugger & QoS
+            <span>SCTE-35 Cue Debugger & QoS</span>
             {activeAdBreakRemaining !== null && (
               <span className="h-2 w-2 rounded-full bg-rose-500 absolute top-2.5 right-1 animate-pulse" />
             )}
@@ -535,29 +535,29 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
 
           <button
             onClick={() => setActiveSubTab('epg')}
-            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2.5 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
               activeSubTab === 'epg' 
-                ? 'border-sky-500 text-white' 
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sky-500 text-white font-bold' 
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
             }`}
           >
             <FileText className="h-4 w-4" />
-            EPG Compliance Auditor
+            <span>EPG Compliance Auditor</span>
             {auditResult.score < 90 ? (
-              <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full px-1.5 font-mono">
+              <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full px-1.5 font-mono font-bold">
                 {auditResult.score}
               </span>
             ) : (
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full px-1.5 font-mono">
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full px-1.5 font-mono font-bold">
                 PASS
               </span>
             )}
           </button>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg self-start sm:self-auto">
+        <div className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg self-start sm:self-auto mb-2 sm:mb-0">
           <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse animate-duration-[2000ms]" />
-          <span>System Latency: <strong className="text-white">142ms</strong></span>
+          <span>System Latency: <strong className="text-emerald-400 font-bold">142ms</strong></span>
         </div>
       </div>
 

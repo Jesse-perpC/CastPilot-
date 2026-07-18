@@ -25,8 +25,13 @@ import {
   Monitor,
   Layout,
   Settings,
-  Globe
+  Globe,
+  Disc
 } from 'lucide-react';
+
+import PlatformChatAggregator from './PlatformChatAggregator';
+import LiveGuestStage from './LiveGuestStage';
+import LiveStreamRecorder from './LiveStreamRecorder';
 
 interface EngagementStudioProps {
   channelName: string;
@@ -53,6 +58,9 @@ interface OverlaySettings {
   tickerText: string;
   activeAlert: any | null;
   pinnedMessageId: string | null;
+  urgentAnnouncementActive?: boolean;
+  urgentAnnouncementText?: string;
+  urgentAnnouncementStyle?: string;
 }
 
 interface LivePoll {
@@ -94,11 +102,14 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
     tickerVisible: true,
     tickerText: "🚨 BREAKING: Dynamic Linear Channel Launch powered by CastPilot Scheduling Engines • Stay Tuned for EcoQuest premiere 🚨",
     activeAlert: null,
-    pinnedMessageId: null
+    pinnedMessageId: null,
+    urgentAnnouncementActive: false,
+    urgentAnnouncementText: "⚠️ ATTENTION VIEWERS: High-priority broadcast warning. Incoming playout segment changes scheduled shortly.",
+    urgentAnnouncementStyle: "breaking_news"
   });
 
   const [newMessage, setNewMessage] = useState('');
-  const [activeOverlayTab, setActiveOverlayTab] = useState<'ticker' | 'poll' | 'alerts' | 'themes'>('themes');
+  const [activeOverlayTab, setActiveOverlayTab] = useState<'ticker' | 'poll' | 'alerts' | 'themes' | 'urgent'>('themes');
 
   const [pollQuestionInput, setPollQuestionInput] = useState('');
   const [pollOption1Input, setPollOption1Input] = useState('');
@@ -106,6 +117,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
 
   // Local controls auto chat simulator
   const [isAutoChatActive, setIsAutoChatActive] = useState(true);
+  const [mainStudioTab, setMainStudioTab] = useState<'overlays' | 'chat' | 'guests' | 'recorder'>('overlays');
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -275,6 +287,29 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
       if (res.ok) {
         setNewMessage('');
         addToast("Broadcast moderator remark published to feed.", "success");
+        fetchServerState();
+      }
+    } catch (err) {
+      console.error('Error posting manual comment:', err);
+    }
+  };
+
+  const handleSendMessageWithPlatform = async (text: string, platform?: string) => {
+    try {
+      const res = await fetch('/api/engagement/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: platform === 'website' ? 'Jesse Lepota (Executive Producer)' : 'Broadcaster Hub',
+          text: text,
+          color: platform === 'youtube' ? '#ef4444' : platform === 'twitch' ? '#a855f7' : '#0ea5e9',
+          badge: 'admin',
+          platform: platform || 'website'
+        })
+      });
+
+      if (res.ok) {
+        addToast("Broadcast remark published.", "success");
         fetchServerState();
       }
     } catch (err) {
@@ -567,8 +602,35 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
         </div>
       </div>
 
-      {/* Main split grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Feature Navigation Tabs */}
+      <div className="flex border-b border-slate-800 gap-1 overflow-x-auto no-scrollbar shrink-0">
+        {[
+          { id: 'overlays', label: 'Overlays & Themes', icon: <Tv className="h-4 w-4" />, desc: 'Simulate and manage graphic crawlers & tickers' },
+          { id: 'chat', label: 'Multiplatform Comments', icon: <MessageSquare className="h-4 w-4" />, desc: 'Show comments from YouTube, Twitch, Facebook' },
+          { id: 'guests', label: 'Live Guest Studio', icon: <Users className="h-4 w-4 animate-pulse" />, desc: 'Invite multiple guests & customize overlays' },
+          { id: 'recorder', label: 'Live Stream Recorder', icon: <Disc className="h-4 w-4 animate-spin" style={{ animationDuration: '6s' }} />, desc: 'Capture streams for playout & repurposing' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setMainStudioTab(tab.id as any)}
+            className={`px-5 py-3 text-xs font-bold transition flex items-center gap-2 border-b-2 shrink-0 text-left ${
+              mainStudioTab === tab.id 
+                ? 'border-sky-500 text-sky-400 bg-sky-950/10' 
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
+            }`}
+          >
+            {tab.icon}
+            <div>
+              <span className="block leading-none font-bold">{tab.label}</span>
+              <span className="block text-[8px] font-medium text-slate-500 mt-0.5 font-sans lowercase hidden sm:inline">{tab.desc}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {mainStudioTab === 'overlays' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left hand: Playout overlay monitor preview (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
@@ -599,6 +661,26 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
                   UTC: {new Date().toISOString().slice(11, 19)}
                 </div>
               </div>
+
+              {/* Urgent Announcement Preview Banner */}
+              {settings.urgentAnnouncementActive && settings.urgentAnnouncementText && (
+                <div className="absolute top-16 left-4 right-4 z-35 animate-fadeIn pointer-events-none">
+                  <div className={`p-2.5 rounded-lg border shadow-xl flex items-center gap-3 bg-slate-950/95 border-rose-500/40`}>
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase font-mono text-white ${
+                      settings.urgentAnnouncementStyle === 'urgent_alert' ? 'bg-orange-600' :
+                      settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'bg-blue-600' :
+                      'bg-red-600 animate-pulse'
+                    }`}>
+                      {settings.urgentAnnouncementStyle === 'urgent_alert' ? 'URGENT' :
+                       settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'TECH' :
+                       'BREAKING'}
+                    </span>
+                    <p className="text-[11px] font-bold text-white truncate flex-1">
+                      {settings.urgentAnnouncementText}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Middle Layer: Live Floating Alert Box */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
@@ -667,11 +749,12 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
           <div className="rounded-xl border border-slate-800 bg-slate-950 p-5 shadow-lg">
             
             {/* Customizer Tabs */}
-            <div className="flex border-b border-slate-900 pb-3 gap-4 mb-4">
+            <div className="flex border-b border-slate-900 pb-3 gap-4 mb-4 overflow-x-auto no-scrollbar">
               {[
                 { id: 'themes', label: 'Graphic Themes & Style' },
                 { id: 'ticker', label: 'News Ticker Tape' },
                 { id: 'poll', label: 'Live Engagement Poll' },
+                { id: 'urgent', label: '🚨 Urgent Bulletins' },
                 { id: 'alerts', label: 'Simulator Alerts Triggers' }
               ].map(t => (
                 <button
@@ -849,6 +932,116 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
                     Launch Interactive Poll
                   </button>
                 </form>
+              </div>
+            )}
+
+            {/* Tab: Urgent Bulletins */}
+            {activeOverlayTab === 'urgent' && (
+              <div className="space-y-4 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-display">
+                    <ShieldAlert className="h-4 w-4 text-rose-500 animate-pulse" />
+                    On-Air Broadcast Bulletins
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updatedActive = !settings.urgentAnnouncementActive;
+                      updateSettings({ urgentAnnouncementActive: updatedActive });
+                      addToast(
+                        updatedActive 
+                          ? "🚨 Urgent broadcast announcement is now LIVE on playout monitor!" 
+                          : "Urgent broadcast announcement cleared.", 
+                        updatedActive ? "error" : "info"
+                      );
+                    }}
+                    className={`text-[10px] font-bold px-3 py-1 rounded border uppercase tracking-wide transition ${
+                      settings.urgentAnnouncementActive 
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse font-extrabold' 
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    {settings.urgentAnnouncementActive ? '● ON-AIR ACTIVE' : '○ PUSH TO ON-AIR'}
+                  </button>
+                </div>
+
+                <div className="space-y-3 bg-slate-900/40 p-4 rounded-lg border border-slate-850">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 font-mono">Bulletin Message Text</label>
+                    <textarea
+                      rows={2}
+                      value={settings.urgentAnnouncementText}
+                      onChange={(e) => updateSettings({ urgentAnnouncementText: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:ring-1 focus:ring-rose-500 focus:outline-none leading-relaxed font-sans"
+                      placeholder="Type urgent announcement text here (e.g. severe weather updates, program delay notifications, breaking developments...)"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Alert Graphic Style</label>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      {[
+                        { id: 'breaking_news', name: 'Breaking News', color: 'border-red-600/40 hover:bg-red-950/20 text-red-400' },
+                        { id: 'urgent_alert', name: 'Urgent Alert', color: 'border-orange-500/40 hover:bg-orange-950/20 text-orange-400' },
+                        { id: 'technical_bulletin', name: 'Tech Bulletin', color: 'border-blue-500/40 hover:bg-blue-950/20 text-blue-400' }
+                      ].map(st => (
+                        <button
+                          key={st.id}
+                          type="button"
+                          onClick={() => {
+                            updateSettings({ urgentAnnouncementStyle: st.id });
+                            addToast(`Bulletin style changed to: ${st.name}`, "success");
+                          }}
+                          className={`py-1.5 px-2 rounded-md border text-[10px] font-semibold text-center transition ${
+                            settings.urgentAnnouncementStyle === st.id
+                              ? 'bg-slate-800 border-slate-400 text-white font-bold shadow-md'
+                              : `bg-slate-950 border-slate-850 ${st.color}`
+                          }`}
+                        >
+                          {st.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(settings.urgentAnnouncementText || "");
+                        utterance.rate = 1.0;
+                        utterance.pitch = 0.95;
+                        window.speechSynthesis.speak(utterance);
+                        addToast("Synthesized linear TTS announcement played locally.", "success");
+                      } else {
+                        addToast("Speech Synthesis is not supported in this frame context.", "error");
+                      }
+                    }}
+                    className="flex-1 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-750 text-[11px] text-slate-300 font-bold rounded-lg transition flex items-center justify-center gap-1.5"
+                  >
+                    <Volume2 className="h-4 w-4 text-rose-400 animate-pulse" />
+                    Trigger Voice Warning (TTS)
+                  </button>
+                  
+                  {settings.urgentAnnouncementActive && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSettings({ urgentAnnouncementActive: false });
+                        addToast("Announcement taken off-air.", "info");
+                      }}
+                      className="px-4 py-2 bg-rose-950/30 hover:bg-rose-950/50 border border-rose-900/40 text-[11px] text-rose-400 font-bold rounded-lg transition"
+                    >
+                      Take Off-Air
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-[10px] text-slate-500 font-mono leading-normal">
+                  ⚠️ <strong>Broadcaster Tip:</strong> Active urgent bulletins immediately render on the primary playout monitor and any live OBS browser overlays, providing viewers real-time alerts.
+                </p>
               </div>
             )}
 
@@ -1044,6 +1237,34 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
         </div>
 
       </div>
+      )}
+
+      {mainStudioTab === 'chat' && (
+        <div className="animate-fadeIn h-[650px]">
+          <PlatformChatAggregator 
+            chatLog={chatLog}
+            pinnedMessageId={settings.pinnedMessageId}
+            onPinMessage={handlePinMessage}
+            onClearChat={handleClearChatLogs}
+            onSendMessage={handleSendMessageWithPlatform}
+            isAutoChatActive={isAutoChatActive}
+            onToggleAutoChat={() => setIsAutoChatActive(!isAutoChatActive)}
+            addToast={addToast}
+          />
+        </div>
+      )}
+
+      {mainStudioTab === 'guests' && (
+        <div className="animate-fadeIn">
+          <LiveGuestStage addToast={addToast} />
+        </div>
+      )}
+
+      {mainStudioTab === 'recorder' && (
+        <div className="animate-fadeIn">
+          <LiveStreamRecorder addToast={addToast} />
+        </div>
+      )}
 
     </div>
   );

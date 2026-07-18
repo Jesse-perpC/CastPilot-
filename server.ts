@@ -314,6 +314,42 @@ let liveStreams: LiveStreamDestination[] = [
     fps: 0,
     resolution: "720p",
     health: "offline"
+  },
+  {
+    id: "stream-website",
+    platform: "website" as any,
+    name: "Direct Website Embed (HLS Feed)",
+    rtmpUrl: "https://edge-hls.castpilot.live/live/stream.m3u8",
+    streamKey: "CP-WEB-7739-EMBED-TOKEN",
+    isLive: true,
+    bitrateKbps: 4500,
+    fps: 60,
+    resolution: "1080p (60fps)",
+    health: "excellent"
+  },
+  {
+    id: "stream-ott",
+    platform: "website" as any,
+    name: "OTT Distribution (Roku, AppleTV, FireTV)",
+    rtmpUrl: "rtmp://ott.castpilot.live/feed/ott-syndicate",
+    streamKey: "CP-OTT-MASTER-882-CJS",
+    isLive: false,
+    bitrateKbps: 0,
+    fps: 0,
+    resolution: "1080p",
+    health: "offline"
+  },
+  {
+    id: "stream-multicast",
+    platform: "twitch" as any,
+    name: "Multi-Cast Multiplexer (30+ Social Channels)",
+    rtmpUrl: "rtmp://multi.castpilot.live/multiplex/syndicate-all",
+    streamKey: "CP-MULTI-30-X-TIKTOK-TROVO",
+    isLive: false,
+    bitrateKbps: 0,
+    fps: 0,
+    resolution: "1080p",
+    health: "offline"
   }
 ];
 
@@ -1251,6 +1287,72 @@ app.post("/api/conflicts/clear-resolved", (req, res) => {
 });
 
 
+// ==========================================
+// --- SCTE-35 Splicer & Ad Injection API ---
+// ==========================================
+
+let scteAdState = {
+  adTriggered: false,
+  scteStatus: "Idle / Monitoring",
+  preRollEnabled: true,
+  midRollEnabled: true,
+  postRollEnabled: false,
+  preRollDuration: 30, // seconds
+  midRollDuration: 60, // seconds
+  postRollDuration: 30, // seconds
+  autoTrigger: true,
+  targetingProfile: "programmatic", // "programmatic" | "direct-sold" | "hybrid"
+  provider: "Google Ad Manager"
+};
+
+app.get("/api/scte/state", (req, res) => {
+  res.json(scteAdState);
+});
+
+app.post("/api/scte/update-config", (req, res) => {
+  scteAdState = { ...scteAdState, ...req.body };
+  res.json({ success: true, state: scteAdState });
+});
+
+app.post("/api/scte/trigger-splice", (req, res) => {
+  const { slotType } = req.body; // "pre-roll" | "mid-roll" | "post-roll" | "manual"
+  const label = slotType ? slotType.toUpperCase() : "MANUAL";
+  
+  if (scteAdState.adTriggered) {
+    return res.json({ success: false, message: "An ad break is already in progress.", state: scteAdState });
+  }
+
+  scteAdState.adTriggered = true;
+  scteAdState.scteStatus = `SCTE-35 Splice Command Injected (${label})`;
+
+  let duration = 30;
+  if (slotType === "pre-roll") duration = scteAdState.preRollDuration;
+  else if (slotType === "mid-roll") duration = scteAdState.midRollDuration;
+  else if (slotType === "post-roll") duration = scteAdState.postRollDuration;
+
+  alerts.unshift({
+    id: `alert-scte-${Date.now()}`,
+    severity: "medium",
+    type: "schedule",
+    title: `SCTE-35 Ad Cue Injected (${label})`,
+    description: `A programmatic ad break of ${duration} seconds has been successfully injected into the stream payload. Splicer is executing ANSI/SCTE-35 standard command.`,
+    recommendation: "Monitor downstream ad server response and programmatic RTB CPM values.",
+    resolved: false
+  });
+
+  setTimeout(() => {
+    scteAdState.scteStatus = `Ad Insert Active - Splice Segment Running (${duration}s)`;
+  }, 1500);
+
+  setTimeout(() => {
+    scteAdState.adTriggered = false;
+    scteAdState.scteStatus = "Idle / Monitoring";
+  }, duration * 1000);
+
+  res.json({ success: true, state: scteAdState });
+});
+
+
 // --- Monetization API ---
 
 app.get("/api/monetization", (req, res) => {
@@ -1412,7 +1514,10 @@ let overlaySettings = {
   tickerVisible: true,
   tickerText: "🚨 BREAKING: Dynamic Linear Channel Launch powered by CastPilot Scheduling Engines • Stay Tuned for EcoQuest season premiere 🚨",
   activeAlert: null as any,
-  pinnedMessageId: null as string | null
+  pinnedMessageId: null as string | null,
+  urgentAnnouncementActive: false,
+  urgentAnnouncementText: "⚠️ ATTENTION VIEWERS: High-priority broadcast warning. Incoming playout segment changes scheduled shortly.",
+  urgentAnnouncementStyle: "breaking_news" // "breaking_news" | "urgent_alert" | "technical_bulletin"
 };
 
 interface ChatMessage {

@@ -193,6 +193,12 @@ export default function UserManual({ setActiveTab, addToast }: UserManualProps) 
                 <strong className="text-slate-200">Soundboard Alerts:</strong> Use the live soundboard triggers to simulate follower alerts, new subscriber animations, or direct sponsorships, with bouncy animations over the stream view.
               </div>
             </div>
+            <div className="flex gap-3">
+              <span className="h-5 w-5 rounded bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0 font-bold font-mono">4</span>
+              <div>
+                <strong className="text-slate-200">Urgent On-Air Bulletins:</strong> Broadcast critical service messages (e.g., programming interruptions, schedule shifts, technical faults) immediately. Under the <strong>Urgent Bulletins</strong> customizer, compose your text, select an overlay theme (<em>Breaking News</em>, <em>Urgent Alert</em>, or <em>Technical Bulletin</em>), and toggle <strong>ON-AIR ACTIVE</strong>. You can even trigger synthesized voice alarms using browser Text-to-Speech (TTS) technology.
+              </div>
+            </div>
           </div>
         </div>
       )
@@ -302,6 +308,194 @@ npx cap open android`}
       )
     },
     {
+      id: 'website-embed-guide',
+      category: 'advanced',
+      title: 'Direct Website Embed & Web Player Integration',
+      description: 'Deploy the HTML5 video player on your custom blogs, websites, and CMS systems using HLS.',
+      icon: <Tv className="h-5 w-5 text-sky-400 animate-pulse" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            With the <strong>Direct Website Embed (HLS Feed)</strong>, you can stream your live scheduled linear stream directly to any browser, website, or customer-facing portal.
+          </p>
+
+          <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1.5 font-mono text-[11px]">
+            <div className="flex justify-between">
+              <span className="text-slate-400 font-semibold">Active Stream URL:</span>
+              <span className="text-sky-400 font-bold">HLS (.m3u8)</span>
+            </div>
+            <p className="text-white bg-black/40 p-2 rounded break-all select-all">
+              https://edge-hls.castpilot.live/live/stream.m3u8
+            </p>
+            <div className="flex justify-between text-[10px] text-slate-500 pt-1">
+              <span>Token Verification ID: CP-WEB-7739</span>
+              <span>Bitrate: ~4500 Kbps Adaptive</span>
+            </div>
+          </div>
+
+          <h4 className="text-white font-bold text-xs mt-3">Option A: Standard HTML5 Embed (hls.js Web Player)</h4>
+          <p className="text-slate-400">
+            For standard vanilla HTML/CSS sites, copy this production-ready player template. It automatically falls back to native HLS on Safari and iOS devices, and loads the high-performance <code>hls.js</code> engine on Chrome, Edge, and Firefox.
+          </p>
+
+          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px] overflow-x-auto">
+            <button
+              onClick={() => handleCopy(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CastPilot Live Embedded Stream</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+    <style>
+        .player-container { max-width: 800px; margin: 40px auto; background: #020617; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        video { width: 100%; aspect-ratio: 16/9; display: block; outline: none; }
+        .player-bar { padding: 12px 16px; background: #090d16; color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+        .live-tag { background: #ef4444; color: #fff; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <video id="video-feed" controls autoplay muted playsinline></video>
+        <div class="player-bar">
+            <span>🔴 <strong style="color: #38bdf8;">CastPilot Live</strong> Playout Feed</span>
+            <span class="live-tag">Live Broadcast</span>
+        </div>
+    </div>
+    <script>
+        const video = document.getElementById('video-feed');
+        const hlsUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
+        if (Hls.isSupported()) {
+            const hls = new Hls({ lowLatencyMode: true });
+            hls.loadSource(hlsUrl);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = hlsUrl;
+        }
+    </script>
+</body>
+</html>`, "vanilla-embed")}
+              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
+            >
+              {copiedCode === "vanilla-embed" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
+            <pre>
+{`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CastPilot Live Embedded Stream</title>
+    <!-- Include high-performance HLS.js polyfill CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+</head>
+<body>
+    <div class="player-container">
+        <video id="video-feed" controls autoplay muted playsinline></video>
+    </div>
+    <script>
+        const video = document.getElementById('video-feed');
+        const hlsUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
+        
+        if (Hls.isSupported()) {
+            const hls = new Hls({ lowLatencyMode: true });
+            hls.loadSource(hlsUrl);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Native HLS playback for Apple Safari & iOS
+            video.src = hlsUrl;
+        }
+    </script>
+</body>
+</html>`}
+            </pre>
+          </div>
+
+          <h4 className="text-white font-bold text-xs mt-4">Option B: Responsive React Component Wrapper</h4>
+          <p className="text-slate-400">
+            For Next.js, Vite, or Gatsby React setups, use this custom hook-based integration component with dynamic lifecycle destruction to completely prevent connection leaks.
+          </p>
+
+          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px] overflow-x-auto">
+            <button
+              onClick={() => handleCopy(`import React, { useEffect, useRef } from 'react';
+import Hls from 'hls.js';
+
+export default function EmbeddedLivePlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
+
+  useEffect(() => {
+    let hls: Hls | null = null;
+    if (videoRef.current) {
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          lowLatencyMode: true,
+          backBufferLength: 90
+        });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(videoRef.current);
+      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        videoRef.current.src = streamUrl;
+      }
+    }
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
+      <video ref={videoRef} controls autoPlay muted playsInline className="w-full aspect-video block" />
+      <div className="p-4 bg-slate-900/60 flex items-center justify-between text-xs text-slate-300">
+        <span className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+          <strong>CastPilot Stream Embed</strong>
+        </span>
+        <span className="font-mono text-slate-500 text-[10px]">VERIFIED HLS LIVE</span>
+      </div>
+    </div>
+  );
+}`, "react-embed")}
+              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
+            >
+              {copiedCode === "react-embed" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
+            <pre>
+{`import React, { useEffect, useRef } from 'react';
+import Hls from 'hls.js';
+
+export default function EmbeddedLivePlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
+
+  useEffect(() => {
+    let hls: Hls | null = null;
+    if (videoRef.current) {
+      if (Hls.isSupported()) {
+        hls = new Hls({ lowLatencyMode: true });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(videoRef.current);
+      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        videoRef.current.src = streamUrl;
+      }
+    }
+    return () => {
+      if (hls) hls.destroy(); // Prevent memory & connection leaks
+    };
+  }, []);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto rounded-xl overflow-hidden border border-slate-850">
+      <video ref={videoRef} controls autoPlay muted playsInline className="w-full aspect-video" />
+    </div>
+  );
+}`}
+            </pre>
+          </div>
+        </div>
+      )
+    },
+    {
       id: 'success-blueprints',
       category: 'blueprints',
       title: 'Success Blueprints: Maximizing Yield & Reach',
@@ -372,6 +566,12 @@ npx cap open android`}
               <strong className="text-white block font-sans text-xs">Q: What is the purpose of SCTE-35 ad markers?</strong>
               <p className="text-slate-400 text-[11px] mt-0.5">
                 A: SCTE-35 markers are digital cues injected into live streams indicating exact start and end points of commercial spots, prompting OTT players to substitute live localized ads.
+              </p>
+            </div>
+            <div className="border-t border-slate-900 pt-2.5">
+              <strong className="text-white block font-sans text-xs">Q: How do I display an announcement informing viewers that the next program is interrupted or delayed due to technical issues?</strong>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                A: Navigate to the <strong>Viewer Engagement</strong> tab, look for the <strong>Overlay Graphic Studio</strong> card, and select the <strong>🚨 Urgent Bulletins</strong> customizer sub-tab. Here you can write your broadcast message, choose a fitting visual theme (e.g., <em>Technical Bulletin</em> or <em>Urgent Alert</em>), and click <strong>○ PUSH TO ON-AIR</strong> to display it instantly. Toggle it off when regular programming resumes.
               </p>
             </div>
           </div>

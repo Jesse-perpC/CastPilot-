@@ -31,6 +31,9 @@ interface OverlayState {
     tickerText: string;
     activeAlert: any | null;
     pinnedMessageId: string | null;
+    urgentAnnouncementActive?: boolean;
+    urgentAnnouncementText?: string;
+    urgentAnnouncementStyle?: string;
   };
   poll: {
     id: string;
@@ -226,6 +229,36 @@ export default function StandaloneOverlay() {
           </div>
         )}
       </div>
+
+      {/* URGENT ANNOUNCEMENT OVERLAY */}
+      {settings.urgentAnnouncementActive && settings.urgentAnnouncementText && (
+        <div className="w-full mt-2 mb-4 animate-fadeIn pointer-events-none z-40">
+          <div className={`rounded-xl border shadow-2xl overflow-hidden flex items-center p-3.5 gap-4 backdrop-blur-md ${activeTheme.bg} ${activeTheme.border}`}>
+            <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 flex items-center gap-2 font-mono ${
+              settings.urgentAnnouncementStyle === 'urgent_alert' ? 'bg-orange-600 text-white' :
+              settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'bg-blue-600 text-white' :
+              'bg-red-600 text-white animate-pulse'
+            }`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+              {settings.urgentAnnouncementStyle === 'urgent_alert' ? 'URGENT ALERT' :
+               settings.urgentAnnouncementStyle === 'technical_bulletin' ? 'TECHNICAL UPDATE' :
+               'BREAKING NEWS'}
+            </div>
+            <p className={`text-sm font-bold truncate ${activeTheme.textPrimary}`}>
+              {settings.urgentAnnouncementText}
+            </p>
+            
+            {/* Audio waveform / pulsing visualizer */}
+            <div className="ml-auto flex items-end gap-0.5 h-4 shrink-0 pr-2">
+              <span className="w-0.5 bg-red-500 animate-pulse h-3" style={{ animationDelay: '0.1s' }} />
+              <span className="w-0.5 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.3s' }} />
+              <span className="w-0.5 bg-red-500 animate-pulse h-2" style={{ animationDelay: '0.2s' }} />
+              <span className="w-0.5 bg-red-500 animate-pulse h-4" style={{ animationDelay: '0.5s' }} />
+              <span className="w-0.5 bg-red-500 animate-pulse h-3" style={{ animationDelay: '0.4s' }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MIDDLE SECTION: Interactive Poll and Chat Box Overlay (Side-by-side or stacked near bottom) */}
       <div className="flex flex-col md:flex-row items-end justify-between w-full gap-6 mt-auto mb-4 pointer-events-none z-20">

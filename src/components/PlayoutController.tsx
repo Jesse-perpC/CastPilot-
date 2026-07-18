@@ -29,6 +29,9 @@ interface OverlayState {
     tickerText: string;
     activeAlert: any | null;
     pinnedMessageId: string | null;
+    urgentAnnouncementActive?: boolean;
+    urgentAnnouncementText?: string;
+    urgentAnnouncementStyle?: string;
   };
   poll: {
     id: string;
@@ -94,13 +97,14 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Poll engagement overlays and EAS state from server
+  // Poll engagement overlays, EAS state, and SCTE state from server
   useEffect(() => {
     const fetchState = async () => {
       try {
-        const [res, resEas] = await Promise.all([
+        const [res, resEas, resScte] = await Promise.all([
           fetch('/api/engagement/state'),
-          fetch('/api/eas')
+          fetch('/api/eas'),
+          fetch('/api/scte/state')
         ]);
         
         if (res.ok) {
@@ -111,8 +115,13 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
           const easData = await resEas.json();
           setEasState(easData);
         }
+        if (resScte.ok) {
+          const scteData = await resScte.json();
+          setAdTriggered(scteData.adTriggered);
+          setScteStatus(scteData.scteStatus);
+        }
       } catch (err) {
-        console.warn('Unable to reach overlay or EAS state endpoints for playout monitor:', err);
+        console.warn('Unable to reach overlay, EAS or SCTE state endpoints for playout monitor:', err);
       }
     };
 
@@ -972,6 +981,81 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
         ctx.fillText(`${formatDuration(currentElapsedDisplay)} / ${currentlyPlayingLocal.duration}:00`, progressX + progressW, progressY - 14);
       }
 
+      // ---------------- URGENT BROADCAST ANNOUNCEMENT OVERLAY ----------------
+      if (!easStateRef.current?.active && engagementStateRef.current?.settings?.urgentAnnouncementActive) {
+        const annText = engagementStateRef.current.settings.urgentAnnouncementText || "";
+        const annStyle = engagementStateRef.current.settings.urgentAnnouncementStyle || "breaking_news";
+        
+        const annX = 50;
+        const annY = 105;
+        const annW = W - 100; // 1180
+        const annH = 50;
+        
+        // Colors & labels based on style
+        let mainColor = '#dc2626'; // crimson red
+        let outlineColor = '#f59e0b'; // amber gold
+        let badgeText = 'BREAKING NEWS';
+        let textColor = '#ffffff';
+        
+        if (annStyle === 'urgent_alert') {
+          mainColor = '#ea580c'; // orange warning
+          outlineColor = '#ffffff';
+          badgeText = 'URGENT ALERT';
+        } else if (annStyle === 'technical_bulletin') {
+          mainColor = '#1d4ed8'; // cobalt blue
+          outlineColor = '#38bdf8'; // sky blue
+          badgeText = 'TECHNICAL BULLETIN';
+        }
+        
+        // Draw primary box glass-morphic backing
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.beginPath();
+        ctx.roundRect(annX, annY, annW, annH, 6);
+        ctx.fill();
+        
+        // Draw style highlight block
+        ctx.fillStyle = mainColor;
+        ctx.beginPath();
+        ctx.roundRect(annX, annY, 210, annH, { tl: 6, bl: 6, tr: 0, br: 0 });
+        ctx.fill();
+        
+        // Outline
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(annX, annY, annW, annH, 6);
+        ctx.stroke();
+        
+        // Blinking alert dot
+        const isBlinkFast = Math.floor(Date.now() / 250) % 2 === 0;
+        ctx.fillStyle = isBlinkFast ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
+        ctx.beginPath();
+        ctx.arc(annX + 22, annY + 25, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Badge text label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(badgeText, annX + 36, annY + 29);
+        
+        // Draw Announcement Message copy text
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(annText, annX + 230, annY + 29);
+        
+        // Little audio wave visualizer indicator on the right side of announcement
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+          const barH = 10 + Math.sin(angle * 10 + i) * 6;
+          ctx.beginPath();
+          ctx.moveTo(annX + annW - 35 + i * 5, annY + 25 - barH / 2);
+          ctx.lineTo(annX + annW - 35 + i * 5, annY + 25 + barH / 2);
+          ctx.stroke();
+        }
+      }
+
       // ---------------- CORNER GENERAL HUD HUD ----------------
       // Watermark indicator top-left
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
@@ -1028,17 +1112,22 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
     };
   }, []);
 
-  const triggerScteAdBreak = () => {
-    setAdTriggered(true);
-    setScteStatus('SCTE-35 Splice Command Sent [0xFC]');
-    setTimeout(() => {
-      setScteStatus('Ad Insert Active - Splice Segment Running');
-    }, 1500);
-
-    setTimeout(() => {
-      setAdTriggered(false);
-      setScteStatus('Idle / Monitoring');
-    }, 10000); // 10s simulation
+  const triggerScteAdBreak = async () => {
+    try {
+      setScteStatus('Triggering SCTE-35 Command...');
+      const res = await fetch('/api/scte/trigger-splice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slotType: 'manual' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAdTriggered(data.state.adTriggered);
+        setScteStatus(data.state.scteStatus);
+      }
+    } catch (err) {
+      console.warn("Failed to trigger backend SCTE ad break:", err);
+    }
   };
 
   const [loadingEas, setLoadingEas] = useState<boolean>(false);
