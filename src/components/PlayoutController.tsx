@@ -80,19 +80,39 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
   useEffect(() => { progressRef.current = progress; }, [progress]);
   useEffect(() => { flickerTimeRef.current = flickerTime; }, [flickerTime]);
 
+  const [easState, setEasState] = useState<{ active: boolean; text: string }>({ active: false, text: '' });
+  const easStateRef = useRef(easState);
+  useEffect(() => { easStateRef.current = easState; }, [easState]);
+
+  const [easMuted, setEasMuted] = useState<boolean>(true);
+  const easMutedRef = useRef(easMuted);
+  useEffect(() => { easMutedRef.current = easMuted; }, [easMuted]);
+
+  const easOsc1Ref = useRef<any>(null);
+  const easOsc2Ref = useRef<any>(null);
+  const easAudioCtxRef = useRef<any>(null);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Poll engagement overlays from server so the monitor remains perfectly in-sync with active graphics
+  // Poll engagement overlays and EAS state from server
   useEffect(() => {
     const fetchState = async () => {
       try {
-        const res = await fetch('/api/engagement/state');
+        const [res, resEas] = await Promise.all([
+          fetch('/api/engagement/state'),
+          fetch('/api/eas')
+        ]);
+        
         if (res.ok) {
           const data = await res.json();
           setEngagementState(data);
         }
+        if (resEas.ok) {
+          const easData = await resEas.json();
+          setEasState(easData);
+        }
       } catch (err) {
-        console.warn('Unable to reach overlay state endpoint for playout monitor (will retry):', err);
+        console.warn('Unable to reach overlay or EAS state endpoints for playout monitor:', err);
       }
     };
 
@@ -100,6 +120,81 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
     const interval = setInterval(fetchState, 1500);
     return () => clearInterval(interval);
   }, []);
+
+  // Manage FCC dual-tone EAS oscillator sound and TTS warnings
+  useEffect(() => {
+    const startOscillators = () => {
+      if (easMuted || !easState.active) {
+        stopOscillators();
+        return;
+      }
+      if (easAudioCtxRef.current) return; // already playing
+
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContextClass();
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
+
+        const osc1 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(853, ctx.currentTime); // Standard EAS Freq 1
+
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(960, ctx.currentTime); // Standard EAS Freq 2
+
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        osc1.start();
+        osc2.start();
+
+        easAudioCtxRef.current = ctx;
+        easOsc1Ref.current = osc1;
+        easOsc2Ref.current = osc2;
+        
+        // Robotic TTS speech synthesis
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          const speechText = `Emergency Alert System active. A severe space weather watch is in effect for all linear playout sectors. This is not a test. Standby for critical dispatcher bulletins.`;
+          const utterance = new SpeechSynthesisUtterance(speechText);
+          utterance.rate = 1.0;
+          utterance.pitch = 0.85; // slightly deeper robot voice
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch (err) {
+        console.error("Failed to play EAS dual-tone warning oscillator:", err);
+      }
+    };
+
+    const stopOscillators = () => {
+      if (easOsc1Ref.current) {
+        try { easOsc1Ref.current.stop(); } catch (e) {}
+        easOsc1Ref.current.disconnect();
+        easOsc1Ref.current = null;
+      }
+      if (easOsc2Ref.current) {
+        try { easOsc2Ref.current.stop(); } catch (e) {}
+        easOsc2Ref.current.disconnect();
+        easOsc2Ref.current = null;
+      }
+      if (easAudioCtxRef.current) {
+        try { easAudioCtxRef.current.close(); } catch (e) {}
+        easAudioCtxRef.current = null;
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+
+    startOscillators();
+
+    return () => {
+      stopOscillators();
+    };
+  }, [easState.active, easMuted]);
 
   // Trigger brief CRT static on program or fallback switch
   const prevTitleRef = useRef(currentlyPlaying.title);
@@ -186,7 +281,101 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
         setFlickerTime((f) => Math.max(0, f - 1));
       }
 
-      if (!primaryActiveLocal) {
+      if (easStateRef.current?.active) {
+        // FCC REGULATORY EAS OVERRIDE SCREEN
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, W, H);
+
+        const borderThickness = 25;
+        const stripeWidth = 40;
+        
+        // Background stripes border (Caution tape effect)
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(0, 0, W, H);
+        
+        ctx.fillStyle = '#000000';
+        // Top and bottom borders caution tape
+        for (let x = -stripeWidth * 2; x < W + stripeWidth * 2; x += stripeWidth * 2) {
+          const slideOffset = (angle * 40) % (stripeWidth * 2);
+          
+          ctx.beginPath();
+          ctx.moveTo(x + slideOffset, 0);
+          ctx.lineTo(x + stripeWidth + slideOffset, 0);
+          ctx.lineTo(x + stripeWidth - 15 + slideOffset, borderThickness);
+          ctx.lineTo(x - 15 + slideOffset, borderThickness);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(x - slideOffset, H - borderThickness);
+          ctx.lineTo(x + stripeWidth - slideOffset, H - borderThickness);
+          ctx.lineTo(x + stripeWidth - 15 - slideOffset, H);
+          ctx.lineTo(x - 15 - slideOffset, H);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Draw center inner block
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(borderThickness, borderThickness, W - borderThickness * 2, H - borderThickness * 2);
+
+        // Warning sign
+        const isBlink = Math.floor(Date.now() / 350) % 2 === 0;
+        ctx.fillStyle = isBlink ? '#ef4444' : '#7f1d1d';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(W / 2 - 420, 100, 840, 100, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 30px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('EMERGENCY ALERT SYSTEM (EAS) CIVIL DIRECTIVE', W / 2, 160);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('FEDERAL COMMUNICATIONS COMMISSION REGULATORY EMERGENCY', W / 2, 280);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '15px monospace';
+        ctx.fillText('ALL REGULAR SCHEDULED SECTIONS SUSPENDED BY EXECUTIVE ORDER', W / 2, 330);
+        ctx.fillText('LOCAL RTMP TRANSMISSIONS OVERRIDDEN BY CENTRAL BROADCAST DISPATCH', W / 2, 370);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText('ALERT METRIC: SEVERE SPACE WEATHER / GEOMAGNETIC IMPACT 4', W / 2, 440);
+        
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('COGNIZANT SOURCE: NATIONAL CIVIL PLENARY DISPATCH SERVICE', W / 2, 480);
+
+        // Ticker tape box
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(borderThickness + 40, H - 150, W - borderThickness * 2 - 80, 60);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(borderThickness + 40, H - 150, W - borderThickness * 2 - 80, 60);
+
+        // Scrolling text ticker
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.textAlign = 'left';
+        const easText = (easStateRef.current?.text || "EMERGENCY BROADCAST ACTIVE").toUpperCase() + " • STANDBY FOR BULLETINS • ";
+        const textW = ctx.measureText(easText).width;
+        tickerOffset -= 3;
+        if (tickerOffset < borderThickness + 40 - textW) {
+          tickerOffset = W - borderThickness - 40;
+        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(borderThickness + 45, H - 145, W - borderThickness * 2 - 90, 50);
+        ctx.clip();
+        ctx.fillText(easText, tickerOffset, H - 115);
+        ctx.fillText(easText, tickerOffset + textW, H - 115);
+        ctx.restore();
+
+      } else if (!primaryActiveLocal) {
         // DISASTER RECOVERY MODE: SMPTE Color Bars + Glitch
         const bars = ['#e2e8f0', '#f59e0b', '#06b6d4', '#10b981', '#ec4899', '#ef4444', '#3b82f6'];
         const barW = W / 7;
@@ -852,6 +1041,35 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
     }, 10000); // 10s simulation
   };
 
+  const [loadingEas, setLoadingEas] = useState<boolean>(false);
+
+  const toggleEas = async () => {
+    setLoadingEas(true);
+    try {
+      const nextActive = !easState.active;
+      const res = await fetch('/api/eas/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: nextActive })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEasState({ active: data.active, text: data.text });
+        
+        // Auto unmute when triggered so they can hear the FCC dual-frequency alarm!
+        if (data.active) {
+          setEasMuted(false);
+        } else {
+          setEasMuted(true);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to toggle EAS override:", err);
+    } finally {
+      setLoadingEas(false);
+    }
+  };
+
   const formatDuration = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
@@ -1016,6 +1234,74 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
               className="flex-1 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 font-semibold text-xs border border-slate-800 transition"
             >
               Re-sync Streams
+            </button>
+          </div>
+        </div>
+
+        {/* FCC Emergency Alert System Console Card */}
+        <div className={`rounded-xl border p-5 shadow-lg flex flex-col justify-between h-[270px] transition-all duration-300 ${
+          easState.active 
+            ? 'bg-rose-950/20 border-rose-500 shadow-rose-500/10' 
+            : 'bg-slate-950 border-slate-800'
+        }`}>
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${easState.active ? 'bg-red-500 animate-pulse' : 'bg-slate-500'}`} />
+                <h3 className="text-sm font-semibold text-white font-display flex items-center gap-1.5">
+                  🚨 FCC Regulatory EAS Console
+                </h3>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase tracking-wider border ${
+                easState.active 
+                  ? 'bg-red-500/20 text-red-400 border-red-500/40' 
+                  : 'bg-slate-900 text-slate-500 border-slate-800'
+              }`}>
+                {easState.active ? 'EAS ACTIVE' : 'STANDBY'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-400 mb-3.5 leading-relaxed">
+              Regulatory interface for Federal Communications Commission (FCC) Emergency Alert System triggers. Forces live downlinks into override warning cards.
+            </p>
+
+            <div className={`rounded-lg p-3 border transition-colors ${
+              easState.active 
+                ? 'bg-red-950/30 border-red-900 text-red-200' 
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}>
+              <div className="text-[9px] font-mono text-slate-500 uppercase tracking-wider mb-1">Active Alert Tape</div>
+              <p className="font-mono text-[10px] leading-snug line-clamp-2 h-7 italic">
+                "{easState.active ? easState.text : 'No active emergency intercept signal.'}"
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {easState.active && (
+              <button
+                onClick={() => setEasMuted(!easMuted)}
+                className={`px-3 py-2 rounded-lg font-semibold text-xs border flex items-center justify-center gap-1.5 transition ${
+                  !easMuted 
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25' 
+                    : 'bg-slate-850 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+                title={easMuted ? "Unmute Emergency Alarm Tone" : "Mute Emergency Alarm Tone"}
+              >
+                {!easMuted ? '🔊 Sirens Live' : '🔇 Mute Alarm'}
+              </button>
+            )}
+
+            <button
+              onClick={toggleEas}
+              disabled={loadingEas}
+              className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition ${
+                easState.active
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md border border-emerald-500'
+                  : 'bg-red-600 hover:bg-red-500 text-white shadow-lg border border-red-500'
+              }`}
+            >
+              {loadingEas ? 'Connecting...' : easState.active ? 'Clear Regulatory Override' : 'Trigger FCC EAS Override'}
             </button>
           </div>
         </div>

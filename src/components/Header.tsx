@@ -79,39 +79,39 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
   };
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950 px-6 py-4 sticky top-0 z-40">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 sm:px-6 sm:py-4 sticky top-0 z-40">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Logo and Status */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)]">
-            <Radio className="h-5 w-5 animate-pulse" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] shrink-0">
+            <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-lg font-bold tracking-tight text-white">CastPilot</h1>
-              <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-400 border border-slate-700">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-white">CastPilot</h1>
+              <span className="rounded bg-slate-800 px-1 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 border border-slate-700">
                 v1.1-AI
               </span>
             </div>
-            <p className="text-xs text-slate-400">Automated Broadcast Management System</p>
+            <p className="text-[10px] sm:text-xs text-slate-400">Automated Broadcast Management System</p>
           </div>
         </div>
 
-        {/* Live system state counters */}
-        <div className="flex flex-wrap items-center gap-4 text-xs">
+        {/* Live system state counters - Compact and scrollable horizontally on mobile */}
+        <div className="flex overflow-x-auto flex-nowrap items-center gap-2.5 text-xs w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth no-scrollbar select-none" id="header-status-counters">
           {/* Playout Failover Status Toggle */}
-          <div className="flex items-center gap-2 rounded-lg bg-slate-900 p-1.5 border border-slate-800">
-            <span className="px-2 font-medium text-slate-400">Stream Status:</span>
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 p-1 border border-slate-800 shrink-0">
+            <span className="px-1.5 font-medium text-slate-400 text-[10px] sm:text-xs">Stream:</span>
             <button
               onClick={toggleFailover}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+              className={`flex items-center gap-1.5 rounded px-2 py-0.5 sm:py-1 font-semibold text-[10px] sm:text-xs transition-all ${
                 primaryActive
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                   : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
               }`}
               id="failover-toggle-btn"
             >
-              <Server className="h-3.5 w-3.5" />
+              <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               {primaryActive ? 'PRIMARY' : 'BACKUP DR'}
             </button>
             <button
@@ -119,33 +119,33 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
               title="Force Manual Failover"
               className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition"
             >
-              <Power className="h-3.5 w-3.5" />
+              <Power className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           </div>
 
           {/* SCTE-35 & Regulatory compliance markers */}
-          <div className="hidden md:flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 border border-slate-800 text-slate-300">
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 border border-slate-800 text-slate-300 shrink-0 text-[10px] sm:text-xs">
             <ShieldCheck className="h-3.5 w-3.5 text-sky-400" />
-            <span>SCTE-35 Insertion:</span>
-            <span className="font-mono text-emerald-400">READY</span>
+            <span>SCTE-35:</span>
+            <span className="font-mono text-emerald-400 font-semibold">READY</span>
           </div>
 
           {/* Alarm Indicator */}
           {unresolvedAlerts.length > 0 ? (
-            <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-3 py-2 text-rose-400 animate-pulse">
+            <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-rose-400 animate-pulse shrink-0 text-[10px] sm:text-xs">
               <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="font-semibold">{unresolvedAlerts.length} Critical Alerts</span>
+              <span className="font-semibold">{unresolvedAlerts.length} Alerts</span>
             </div>
           ) : (
-            <div className="hidden lg:flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-emerald-400">
+            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Broadcast Safe</span>
             </div>
           )}
 
           {/* Master Clock */}
-          <div className="rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 font-mono text-white text-sm flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+          <div className="rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 font-mono text-white text-[11px] sm:text-sm flex items-center gap-1.5 shrink-0">
+            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500 animate-ping"></span>
             <span>{time || "00:00:00"} UTC</span>
           </div>
         </div>

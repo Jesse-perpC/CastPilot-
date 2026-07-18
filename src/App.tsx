@@ -31,6 +31,7 @@ import ExportHub from './components/ExportHub';
 import UserManual from './components/UserManual';
 import StandaloneOverlay from './components/StandaloneOverlay';
 import StandaloneChatPopout from './components/StandaloneChatPopout';
+import PflCueDeck from './components/PflCueDeck';
 import { ScheduleItem, ContentAsset, ResourceAsset, ConflictAlert, AdPerformance } from './types';
 
 export default function App() {
@@ -65,6 +66,9 @@ export default function App() {
 
   // Toast State for User Feedback
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // Studio Pre-Fade Listen (PFL) Cue Channel State
+  const [cuedMedia, setCuedMedia] = useState<any | null>(null);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
     setToast({ message, type });
@@ -146,6 +150,18 @@ export default function App() {
     }
   };
 
+  const saveSchedulesToServer = async (updatedSchedules: ScheduleItem[]) => {
+    try {
+      await fetch('/api/schedule/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schedules: updatedSchedules })
+      });
+    } catch (err) {
+      console.error("Failed to sync schedules to backend:", err);
+    }
+  };
+
   // Add Manual Schedule Entry
   const handleManualAddSchedule = async (newItem: Omit<ScheduleItem, 'id' | 'status'>) => {
     // Local simulation append
@@ -155,18 +171,22 @@ export default function App() {
       id,
       status: 'queued'
     };
-    setSchedules(prev => [...prev, item]);
+    const updated = [...schedules, item];
+    setSchedules(updated);
+    await saveSchedulesToServer(updated);
     triggerToast(`Added manual block for "${newItem.title}" at ${newItem.startTime}`, "success");
   };
 
   // Delete Schedule block
-  const handleDeleteScheduleItem = (id: string) => {
-    setSchedules(prev => prev.filter(s => s.id !== id));
+  const handleDeleteScheduleItem = async (id: string) => {
+    const updated = schedules.filter(s => s.id !== id);
+    setSchedules(updated);
+    await saveSchedulesToServer(updated);
     triggerToast("Playout block deleted.", "info");
   };
 
   // Fill schedule gaps automatically
-  const handleFillGaps = () => {
+  const handleFillGaps = async () => {
     // Find gaps or just inject filler promos at 10m intervals
     const fillerItem: ScheduleItem = {
       id: `sch-filler-${Date.now()}`,
@@ -180,7 +200,9 @@ export default function App() {
       targetAudience: "Demographic 18-35",
       aiRationale: "Gap filler injected automatically to avoid dead air on FAST feed."
     };
-    setSchedules(prev => [...prev, fillerItem]);
+    const updated = [...schedules, fillerItem];
+    setSchedules(updated);
+    await saveSchedulesToServer(updated);
     triggerToast("Dynamic ad filler promo injected into lineup sequence.", "success");
   };
 
@@ -423,7 +445,7 @@ export default function App() {
       />
 
       {/* Core Body Container */}
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="app-main-container mx-auto max-w-7xl px-4 sm:px-6 md:px-8 py-6 sm:py-8">
         {loadingFetch ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
             <RotateCw className="h-8 w-8 text-sky-400 animate-spin" />
@@ -436,7 +458,7 @@ export default function App() {
             {activeTab === 'dashboard' && (
               <div className="space-y-8">
                 {/* Status KPI Widget row */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Playout Active channel */}
                   <div className="rounded-xl bg-slate-950 border border-slate-850 p-4 flex items-center gap-4 shadow-lg">
                     <span className="text-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 p-2.5 rounded-lg">
@@ -491,7 +513,7 @@ export default function App() {
                 </div>
 
                 {/* Main Split Grid */}
-                <div className="grid gap-6 lg:grid-cols-12">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   {/* Left Column: Brief Playout & Charts */}
                   <div className="lg:col-span-8 flex flex-col gap-6">
                     {/* Compact Playout Monitor */}
@@ -524,6 +546,7 @@ export default function App() {
                       assets={assets}
                       channelName={channelName}
                       addToast={(message, type) => triggerToast(message, type)}
+                      onCueMedia={(item) => setCuedMedia(item)}
                     />
 
                     {/* Integrated Analytics Chart */}
@@ -652,6 +675,10 @@ export default function App() {
                 onManualAdd={handleManualAddSchedule}
                 onDeleteScheduleItem={handleDeleteScheduleItem}
                 onFillGaps={handleFillGaps}
+                onUpdateSchedules={async (updated) => {
+                  setSchedules(updated);
+                  await saveSchedulesToServer(updated);
+                }}
                 schedulingMode={schedulingMode}
                 setSchedulingMode={setSchedulingMode}
                 addToast={triggerToast}
@@ -687,6 +714,7 @@ export default function App() {
                 schedulingMode={schedulingMode}
                 setSchedulingMode={setSchedulingMode}
                 addToast={triggerToast}
+                onCueMedia={(asset) => setCuedMedia(asset)}
               />
             )}
 
@@ -753,6 +781,9 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Studio Pre-Fade Listen Cue Deck */}
+      <PflCueDeck cuedItem={cuedMedia} onClose={() => setCuedMedia(null)} />
     </div>
   );
 }

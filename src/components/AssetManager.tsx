@@ -35,7 +35,8 @@ import {
   Download,
   Activity,
   PlusCircle,
-  HelpCircle
+  HelpCircle,
+  Headphones
 } from 'lucide-react';
 import { ContentAsset } from '../types';
 
@@ -49,6 +50,7 @@ interface AssetManagerProps {
   schedulingMode: 'auto' | 'manual';
   setSchedulingMode: (mode: 'auto' | 'manual') => void;
   addToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+  onCueMedia?: (asset: ContentAsset) => void;
 }
 
 interface UploadingFile {
@@ -71,7 +73,8 @@ export default function AssetManager({
   enrichingAssetId,
   schedulingMode,
   setSchedulingMode,
-  addToast
+  addToast,
+  onCueMedia
 }: AssetManagerProps) {
   // Navigation & Filter States
   const [search, setSearch] = useState<string>('');
@@ -391,9 +394,30 @@ export default function AssetManager({
   const criticalAudioLoudnessCount = assets.filter(a => a.loudnessDb > -21.0).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fadeIn" id="media-manager-section">
+      {/* Intro Header */}
+      <div className="rounded-2xl border border-slate-800 glowing-border relative overflow-hidden bg-slate-900/40 p-6 shadow-xl">
+        <div className="absolute top-0 right-0 p-8 opacity-5">
+          <Film className="h-32 w-32 text-sky-400" />
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse"></span>
+            <span className="text-xs uppercase font-mono tracking-widest text-sky-400 font-semibold bg-sky-950/40 border border-sky-800/30 px-2 py-0.5 rounded">
+              CastPilot Media Asset Management (MAM)
+            </span>
+          </div>
+          <h2 className="font-display text-2xl font-bold text-white tracking-tight">
+            MAM Media Library & Broadcast Vault
+          </h2>
+          <p className="mt-2 text-sm text-slate-400 max-w-3xl leading-relaxed">
+            Manage your broadcast media inventory, monitor audio loudness levels under EBU R128 guidelines, register local playout clips, and audition items using the live Pre-Fade Listen (PFL) cue channel.
+          </p>
+        </div>
+      </div>
+
       {/* 4-Column Bento Statistics Row */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl bg-slate-950 border border-slate-900 p-4 shadow flex items-center gap-3.5">
           <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/10">
             <Film className="h-5 w-5" />
@@ -435,7 +459,7 @@ export default function AssetManager({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Main Vault Content Panel (8 Columns) */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           <div className="rounded-xl bg-slate-950 border border-slate-900 p-6 shadow-lg">
@@ -443,11 +467,11 @@ export default function AssetManager({
             {/* Header section with view toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
-                  <Film className="h-5 w-5 text-sky-400" />
-                  MAM Media Library & Broadcast Vault
+                <h2 className="font-display text-sm font-bold text-white flex items-center gap-2">
+                  <Film className="h-4.5 w-4.5 text-sky-400" />
+                  Vault Asset Catalog
                 </h2>
-                <p className="text-xs text-slate-400">Manage video clips, program guides, mid-roll ad markers, and EBU R128 compliance ratings</p>
+                <p className="text-[11px] text-slate-400">Search, monitor and select registered media programs or ads</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -532,8 +556,8 @@ export default function AssetManager({
                 </div>
                 <div className="max-h-40 overflow-y-auto space-y-2 custom-scrollbar">
                   {uploadingFiles.map((file) => (
-                    <div key={file.id} className="bg-slate-950/80 border border-slate-850 p-2.5 rounded-lg flex items-center justify-between gap-4 text-[11px]">
-                      <div className="flex-1 min-w-0">
+                    <div key={file.id} className="bg-slate-950/80 border border-slate-850 p-2.5 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px]">
+                      <div className="flex-1 min-w-0 w-full">
                         <div className="flex items-center justify-between gap-2 mb-1.5">
                           <span className="font-bold text-slate-200 truncate pr-1" title={file.name}>{file.name}</span>
                           <span className="text-slate-500 shrink-0 font-mono">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
@@ -554,7 +578,7 @@ export default function AssetManager({
                         )}
                       </div>
 
-                      <div className="shrink-0 min-w-[70px] text-right">
+                      <div className="shrink-0 min-w-[70px] text-left sm:text-right self-end sm:self-auto">
                         {file.status === 'completed' ? (
                           <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-950/30 px-2 py-0.5 rounded border border-emerald-500/20">
                             <Check className="h-3 w-3" />
@@ -595,12 +619,12 @@ export default function AssetManager({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                   <span className="text-[10px] font-mono text-slate-500 shrink-0">Sort By</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    className="bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-sky-500 flex-1 md:flex-initial"
                   >
                     <option value="newest">Newest Ingested</option>
                     <option value="title">Alphabetical (A-Z)</option>
@@ -728,14 +752,14 @@ export default function AssetManager({
                         </p>
 
                         {/* Metadata row */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-900 text-[10px]">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-slate-900 text-[10px]">
                           <div className="flex items-center gap-1 text-slate-400">
                             <Volume2 className={`h-3.5 w-3.5 shrink-0 ${asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-500'}`} />
-                            <span className="truncate">Loudness: <strong className={asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-300'}>{asset.loudnessDb} dB</strong></span>
+                            <span>Loudness: <strong className={asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-300'}>{asset.loudnessDb} dB</strong></span>
                           </div>
-                          <div className="flex items-center gap-1 text-slate-400 truncate">
+                          <div className="flex items-center gap-1 text-slate-400">
                             <Eye className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                            <span className="truncate">Rating: <strong className="text-slate-300">{asset.safetyRating}</strong></span>
+                            <span>Rating: <strong className="text-slate-300">{asset.safetyRating}</strong></span>
                           </div>
                         </div>
 
@@ -765,7 +789,7 @@ export default function AssetManager({
                       </div>
 
                       {/* Control buttons */}
-                      <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex items-center justify-between gap-1">
+                      <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex flex-wrap items-center justify-between gap-2">
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => startEditing(asset)}
@@ -792,6 +816,15 @@ export default function AssetManager({
                                 AI Tag
                               </>
                             )}
+                          </button>
+
+                          <button
+                            onClick={() => onCueMedia && onCueMedia(asset)}
+                            className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 hover:text-slate-950 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1.5 shrink-0"
+                            title="Audition via Pre-Fade Listen (PFL)"
+                          >
+                            <Headphones className="h-3.5 w-3.5 text-sky-400 group-hover:text-inherit" />
+                            PFL Cue
                           </button>
                         </div>
 
@@ -826,8 +859,8 @@ export default function AssetManager({
               </div>
             ) : (
               /* List View (Compact Table Rows) */
-              <div className="border border-slate-900 rounded-xl overflow-hidden">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="border border-slate-900 rounded-xl overflow-x-auto no-scrollbar">
+                <table className="w-full min-w-[750px] text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-slate-900/50 text-slate-400 border-b border-slate-900 font-mono">
                       <th className="p-3">Title & Type</th>
@@ -879,6 +912,15 @@ export default function AssetManager({
                                 className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 disabled:opacity-50"
                               >
                                 <Sparkles className="h-3 w-3" />
+                              </button>
+
+                              <button
+                                onClick={() => onCueMedia && onCueMedia(asset)}
+                                className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-slate-950 flex items-center gap-1"
+                                title="PFL Cue Audition"
+                              >
+                                <Headphones className="h-3 w-3 text-sky-400" />
+                                <span className="text-[10px] px-1 font-bold">Cue</span>
                               </button>
                               
                               {showDelete ? (

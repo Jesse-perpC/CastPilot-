@@ -48,7 +48,7 @@ export default function ResourceManager({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Active Resource Allocation Tracking Board (8 Cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6">
         <div className="rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg">

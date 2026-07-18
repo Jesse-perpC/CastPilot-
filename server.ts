@@ -827,6 +827,16 @@ app.get("/api/schedule", (req, res) => {
   res.json({ schedules });
 });
 
+// Update / Sync schedules
+app.post("/api/schedule/update", (req, res) => {
+  const { schedules: newSchedules } = req.body;
+  if (Array.isArray(newSchedules)) {
+    schedules = newSchedules;
+    return res.json({ success: true, schedules });
+  }
+  res.status(400).json({ error: "Schedules must be an array" });
+});
+
 // Generate AI Schedule using Gemini
 app.post("/api/schedule/generate", async (req, res) => {
   const { channelName, targetDate, customInstruction, durationBlocks } = req.body;
@@ -1518,6 +1528,49 @@ app.post("/api/engagement/alert", (req, res) => {
   const { alert } = req.body;
   overlaySettings.activeAlert = alert || null;
   res.json({ success: true, activeAlert: overlaySettings.activeAlert });
+});
+
+// ==========================================
+// --- FCC Emergency Alert System (EAS) API ---
+// ==========================================
+
+let isEasActive = false;
+let easAlertText = "🚨 FCC REGULATORY WARNING: SEVERE GEOMAGNETIC SOLAR FLUSH WATCH IN EFFECT FOR METROPOLITAN SECTORS. SENSITIVE ELECTRONICS STANDBY. SEEK PREPAREDNESS. 🚨";
+
+app.get("/api/eas", (req, res) => {
+  res.json({ active: isEasActive, text: easAlertText });
+});
+
+app.post("/api/eas/toggle", (req, res) => {
+  const { active, text } = req.body;
+  if (typeof active !== "undefined") {
+    isEasActive = active;
+  }
+  if (text) {
+    easAlertText = text;
+  }
+
+  // Inject or resolve FCC EAS Alarm
+  if (isEasActive) {
+    // Check if alarm already exists
+    const exists = alerts.some(a => a.id === "alert-eas-fcc");
+    if (!exists) {
+      alerts.unshift({
+        id: "alert-eas-fcc",
+        severity: "high",
+        type: "resource",
+        title: "🚨 FCC Regulatory EAS Intercept 🚨",
+        description: "Emergency Alert System has been triggered! Playout is forced-spliced to regulatory disaster warning feeds.",
+        recommendation: "Standby for federal release authorization or manually disable the federal override signal in Dashboard Diagnostics.",
+        resolved: false
+      });
+    }
+  } else {
+    // Resolve EAS alarms
+    alerts = alerts.map(a => a.id === "alert-eas-fcc" ? { ...a, resolved: true } : a);
+  }
+
+  res.json({ success: true, active: isEasActive, text: easAlertText });
 });
 
 

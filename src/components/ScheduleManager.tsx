@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Cpu, Sparkles, Plus, RefreshCw, Layers, Clock, AlertTriangle, Users, Trash2, ShieldAlert } from 'lucide-react';
+import { Calendar, Cpu, Sparkles, Plus, RefreshCw, Layers, Clock, AlertTriangle, Users, Trash2, ShieldAlert, GripVertical } from 'lucide-react';
 import { ScheduleItem, ContentAsset } from '../types';
 
 interface ScheduleManagerProps {
@@ -12,6 +12,7 @@ interface ScheduleManagerProps {
   onManualAdd: (newItem: Omit<ScheduleItem, 'id' | 'status'>) => void;
   onDeleteScheduleItem: (id: string) => void;
   onFillGaps: () => void;
+  onUpdateSchedules?: (updated: ScheduleItem[]) => void;
   schedulingMode?: 'auto' | 'manual';
   setSchedulingMode?: (mode: 'auto' | 'manual') => void;
   addToast?: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -27,6 +28,7 @@ export default function ScheduleManager({
   onManualAdd,
   onDeleteScheduleItem,
   onFillGaps,
+  onUpdateSchedules,
   schedulingMode = 'auto',
   setSchedulingMode,
   addToast
@@ -43,6 +45,58 @@ export default function ScheduleManager({
   const [manualAudience, setManualAudience] = useState<string>('General Audience');
 
   const filteredSchedules = schedules.filter((s) => s.channelName === channelName);
+
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const reorderedFiltered = [...filteredSchedules];
+    const [draggedItem] = reorderedFiltered.splice(draggedIndex, 1);
+    reorderedFiltered.splice(targetIndex, 0, draggedItem);
+
+    const retimedFiltered = adjustPlayoutTimes(reorderedFiltered);
+
+    const otherSchedules = schedules.filter(s => s.channelName !== channelName);
+    const updatedSchedules = [...otherSchedules, ...retimedFiltered];
+
+    if (onUpdateSchedules) {
+      onUpdateSchedules(updatedSchedules);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    if (addToast) {
+      addToast("Reordered playout sequence and adjusted timeline start-times.", "success");
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   const handleSubmitManual = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +130,7 @@ export default function ScheduleManager({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left controls sidebar (4 Cols) */}
       <div className="lg:col-span-4 flex flex-col gap-6">
         {/* Channel Selector */}
@@ -84,7 +138,7 @@ export default function ScheduleManager({
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
             Active Broadcast Feed
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {['FAST Entertainment', 'Linear Primetime'].map((name) => (
               <button
                 key={name}
@@ -111,7 +165,7 @@ export default function ScheduleManager({
             <p className="text-xs text-slate-400 mb-4 leading-relaxed">
               Configure how your TV channel lineup is timed and sequenced. Opt for AI automation or manage every block yourself.
             </p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => {
@@ -349,15 +403,15 @@ export default function ScheduleManager({
 
         {/* Schedule Listing View */}
         <div className="rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex-1">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
+              <h2 className="font-display text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <Layers className="h-5 w-5 text-sky-400" />
                 Lineup Sequence Matrix
               </h2>
-              <p className="text-xs text-slate-400">Chronological playout blocks on {channelName}</p>
+              <p className="text-[11px] sm:text-xs text-slate-400">Chronological playout blocks on {channelName}</p>
             </div>
-            <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase">
+            <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase self-start sm:self-auto">
               {filteredSchedules.length} Items Scheduled
             </span>
           </div>
@@ -419,46 +473,70 @@ export default function ScheduleManager({
                   filler: 'bg-slate-800 text-slate-400 border-slate-700'
                 };
 
+                const isDragged = draggedIndex === index;
+                const isDragOver = dragOverIndex === index;
+
                 return (
                   <div
                     key={item.id}
-                    className={`group relative rounded-xl border p-4 transition-all hover:bg-slate-900/60 flex flex-col md:flex-row md:items-start md:justify-between gap-4 ${
-                      item.status === 'playing'
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`group relative rounded-xl border p-4 transition-all hover:bg-slate-900/60 flex flex-col md:flex-row md:items-start md:justify-between gap-4 cursor-grab active:cursor-grabbing ${
+                      isDragged 
+                        ? 'opacity-40 border-dashed border-sky-500/60 bg-slate-950/20 scale-95' 
+                        : isDragOver 
+                        ? 'border-sky-500 bg-sky-500/5 scale-[1.01]' 
+                        : item.status === 'playing'
                         ? 'bg-slate-900 border-sky-500/40 glowing-border'
                         : 'bg-slate-950/40 border-slate-850'
                     }`}
                   >
                     {/* Time & Title info block */}
-                    <div className="flex items-start gap-3.5">
-                      {/* Left time block */}
-                      <div className="flex flex-col items-center justify-center font-mono text-[10px] font-bold text-slate-400 bg-slate-900 rounded-lg border border-slate-800 py-1.5 px-2.5 min-w-[70px] text-center">
+                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                      {/* Vertical Drag Grip Indicator */}
+                      <div className="flex items-center self-stretch pr-1 text-slate-600 group-hover:text-slate-400 transition shrink-0">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
+
+                      {/* Left time block - Stays block on sm+, becomes compact pill row on mobile */}
+                      <div className="hidden sm:flex flex-col items-center justify-center font-mono text-[10px] font-bold text-slate-400 bg-slate-900 rounded-lg border border-slate-800 py-1.5 px-2.5 min-w-[70px] text-center shrink-0">
                         <Clock className="h-3 w-3 mb-1 text-slate-500" />
                         {item.startTime}
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-white tracking-wide">{item.title}</span>
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-semibold uppercase border ${typeColors[item.type]}`}>
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          {/* Compact mobile-only time pill */}
+                          <div className="flex sm:hidden items-center gap-1 font-mono text-[9px] font-bold text-slate-400 bg-slate-900 rounded px-1.5 py-0.5 border border-slate-800 shrink-0">
+                            <Clock className="h-2.5 w-2.5 text-slate-500" />
+                            {item.startTime}
+                          </div>
+
+                          <span className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-full">{item.title}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold uppercase border ${typeColors[item.type]} shrink-0`}>
                             {item.type}
                           </span>
                           {item.status === 'playing' && (
-                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-widest uppercase animate-pulse">
+                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-widest uppercase animate-pulse shrink-0">
                               ON-AIR
                             </span>
                           )}
                         </div>
 
                         {/* Audience and metadata tags */}
-                        <div className="flex items-center gap-4 text-[10px] text-slate-400">
-                          <span className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-slate-400">
+                          <span className="flex items-center gap-1 shrink-0">
                             <Users className="h-3 w-3 text-slate-500" />
                             Audience: <strong className="text-slate-300">{item.targetAudience}</strong>
                           </span>
-                          <span>•</span>
-                          <span>Duration: <strong className="text-slate-300">{item.duration}m</strong></span>
-                          <span>•</span>
-                          <span>Demand Score: <strong className="text-sky-400">{item.demandScore}%</strong></span>
+                          <span className="hidden sm:inline text-slate-700">•</span>
+                          <span className="shrink-0">Duration: <strong className="text-slate-300">{item.duration}m</strong></span>
+                          <span className="hidden sm:inline text-slate-700">•</span>
+                          <span className="shrink-0">Demand: <strong className="text-sky-400">{item.demandScore}%</strong></span>
                         </div>
 
                         {/* AI Rationale dropdown indicator */}
@@ -489,4 +567,54 @@ export default function ScheduleManager({
       </div>
     </div>
   );
+}
+
+// Helper functions for automatic timeline adjustments when reordering playout blocks
+function parseTimeString(timeStr: string): Date {
+  const clean = timeStr.trim().toUpperCase();
+  const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+  const d = new Date();
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3];
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    d.setHours(hours, minutes, 0, 0);
+  } else {
+    const parts = clean.split(' ')[0].split(':');
+    let hours = parseInt(parts[0], 10) || 12;
+    const minutes = parseInt(parts[1], 10) || 0;
+    const ampm = clean.includes('PM') ? 'PM' : 'AM';
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    d.setHours(hours, minutes, 0, 0);
+  }
+  return d;
+}
+
+function formatTimeString(date: Date): string {
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const minStr = String(minutes).padStart(2, '0');
+  const hrStr = String(hours).padStart(2, '0');
+  return `${hrStr}:${minStr} ${ampm}`;
+}
+
+function adjustPlayoutTimes(items: ScheduleItem[]): ScheduleItem[] {
+  if (items.length === 0) return [];
+  const result = [...items];
+  for (let i = 1; i < result.length; i++) {
+    const prevItem = result[i - 1];
+    const prevStart = parseTimeString(prevItem.startTime);
+    const prevEnd = new Date(prevStart.getTime() + prevItem.duration * 60000);
+    result[i] = {
+      ...result[i],
+      startTime: formatTimeString(prevEnd)
+    };
+  }
+  return result;
 }

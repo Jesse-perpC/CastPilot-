@@ -504,11 +504,11 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
       </div>
 
       {/* Workspace Sub-Tabs - Addressing missing FAST system features */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-px gap-4">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-px gap-4">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth">
           <button
             onClick={() => setActiveSubTab('delivery')}
-            className={`px-4 py-2 text-sm font-semibold transition border-b-2 flex items-center gap-2 ${
+            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
               activeSubTab === 'delivery' 
                 ? 'border-sky-500 text-white' 
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -520,7 +520,7 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
           
           <button
             onClick={() => setActiveSubTab('scte')}
-            className={`px-4 py-2 text-sm font-semibold transition border-b-2 flex items-center gap-2 relative ${
+            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 relative ${
               activeSubTab === 'scte' 
                 ? 'border-sky-500 text-white' 
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -535,7 +535,7 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
 
           <button
             onClick={() => setActiveSubTab('epg')}
-            className={`px-4 py-2 text-sm font-semibold transition border-b-2 flex items-center gap-2 ${
+            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition border-b-2 flex items-center gap-2 shrink-0 ${
               activeSubTab === 'epg' 
                 ? 'border-sky-500 text-white' 
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -555,8 +555,8 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
           </button>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg">
-          <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
+        <div className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg self-start sm:self-auto">
+          <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse animate-duration-[2000ms]" />
           <span>System Latency: <strong className="text-white">142ms</strong></span>
         </div>
       </div>
@@ -601,32 +601,32 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
                               : 'bg-slate-900/20 border-slate-800'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             {/* Left: Brand Platform & Details */}
-                            <div className="flex items-start gap-3.5">
-                              <div className={`p-2.5 rounded-xl border ${
+                            <div className="flex items-start gap-3.5 min-w-0">
+                              <div className={`p-2.5 rounded-xl border shrink-0 ${
                                 stream.isLive ? 'bg-sky-500/10 border-sky-500/30' : 'bg-slate-900 border-slate-800'
                               }`}>
                                 {getPlatformIcon(stream.platform)}
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h4 className="text-sm font-bold text-white leading-none">{stream.name}</h4>
-                                  <span className={`text-[10px] uppercase tracking-wider font-mono px-1.5 py-0.5 rounded-full border ${getPlatformBadgeColor(stream.platform)}`}>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-sm font-bold text-white leading-none truncate">{stream.name}</h4>
+                                  <span className={`text-[9px] uppercase tracking-wider font-mono px-1.5 py-0.5 rounded-full border shrink-0 ${getPlatformBadgeColor(stream.platform)}`}>
                                     {stream.platform}
                                   </span>
                                 </div>
                                 
                                 {/* Live stream stats metadata */}
                                 {stream.isLive ? (
-                                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 font-mono text-[11px] text-slate-400">
-                                    <span className="flex items-center gap-1">
+                                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2.5 font-mono text-[11px] text-slate-400">
+                                    <span className="flex items-center gap-1 shrink-0">
                                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                      <span className="text-emerald-400 font-semibold">ONLINE</span>
+                                      <span className="text-emerald-400 font-semibold text-[10px]">ONLINE</span>
                                     </span>
-                                    <span>Bitrate: <strong className="text-white">{telemetry.bitrate} kbps</strong></span>
-                                    <span>FPS: <strong className="text-white">{telemetry.fps}</strong></span>
-                                    <span>Sync Delay: <strong className="text-white">{telemetry.latencyOffsetMs}ms</strong></span>
+                                    <span className="shrink-0">Bit: <strong className="text-white">{telemetry.bitrate}k</strong></span>
+                                    <span className="shrink-0">FPS: <strong className="text-white">{telemetry.fps}</strong></span>
+                                    <span className="shrink-0">Sync: <strong className="text-white">{telemetry.latencyOffsetMs}ms</strong></span>
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-1.5 mt-2.5 font-mono text-[11px] text-slate-500">
@@ -638,11 +638,12 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
                             </div>
 
                             {/* Right: Streaming Controls */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                               <button
                                 onClick={() => handleStartEditStream(stream)}
                                 title="Stream Settings"
                                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 rounded-lg transition"
+                                type="button"
                               >
                                 <Settings className="h-4 w-4" />
                               </button>
@@ -654,6 +655,7 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
                                     ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30'
                                     : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30'
                                 }`}
+                                type="button"
                               >
                                 {stream.isLive ? (
                                   <>
@@ -922,7 +924,7 @@ export default function SyndicationManager({ schedules, addToast }: SyndicationM
               </div>
             ) : (
               <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full border-collapse text-left text-xs">
+                <table className="w-full min-w-[750px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-800 text-slate-400 font-mono tracking-wider uppercase text-[10px]">
                       <th className="py-3 px-4 font-semibold">VOD Title / Program</th>

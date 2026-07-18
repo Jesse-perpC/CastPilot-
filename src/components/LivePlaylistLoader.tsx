@@ -15,7 +15,8 @@ import {
   ListOrdered, 
   Sparkles,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  Headphones
 } from 'lucide-react';
 import { ScheduleItem, ContentAsset } from '../types';
 
@@ -25,6 +26,7 @@ interface LivePlaylistLoaderProps {
   assets: ContentAsset[];
   channelName: string;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  onCueMedia?: (item: any) => void;
 }
 
 export default function LivePlaylistLoader({ 
@@ -32,7 +34,8 @@ export default function LivePlaylistLoader({
   setSchedules, 
   assets, 
   channelName, 
-  addToast 
+  addToast,
+  onCueMedia
 }: LivePlaylistLoaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTypeFilter, setActiveTypeFilter] = useState<string>('all');
@@ -218,23 +221,23 @@ export default function LivePlaylistLoader({
           <div className="space-y-2.5 max-h-[460px] overflow-y-auto no-scrollbar pr-1">
             {/* Display Currently Playing item if active */}
             {currentlyPlaying ? (
-              <div className="p-3.5 rounded-xl bg-sky-500/[0.03] border border-sky-500/30 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(14,165,233,0.05)]">
-                <div className="flex items-center gap-3">
+              <div className="p-3.5 rounded-xl bg-sky-500/[0.03] border border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-[0_0_15px_rgba(14,165,233,0.05)]">
+                <div className="flex items-start gap-3 min-w-0">
                   <div className="h-8 w-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20 shrink-0">
                     <Radio className="h-4 w-4 animate-pulse" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-sky-500 text-slate-950 px-1.5 py-0.5 rounded font-mono">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-sky-500 text-slate-950 px-1.5 py-0.5 rounded font-mono shrink-0">
                         Now Streaming
                       </span>
                       <span className="text-[10px] text-slate-500 font-mono">{currentlyPlaying.startTime}</span>
                     </div>
-                    <h5 className="text-xs font-bold text-white mt-1 leading-snug">{currentlyPlaying.title}</h5>
+                    <h5 className="text-xs font-bold text-white mt-1 leading-snug truncate" title={currentlyPlaying.title}>{currentlyPlaying.title}</h5>
                     <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Duration: {currentlyPlaying.duration}m • {currentlyPlaying.targetAudience}</p>
                   </div>
                 </div>
-                <div className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900/40">
+                <div className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900/40 self-start sm:self-auto shrink-0">
                   LIVE OUT
                 </div>
               </div>
@@ -256,26 +259,26 @@ export default function LivePlaylistLoader({
               upcomingQueue.map((item, index) => (
                 <div 
                   key={item.id} 
-                  className="p-3 bg-slate-900/50 hover:bg-slate-900 border border-slate-850 rounded-xl flex items-center justify-between gap-4 transition group"
+                  className="p-3 bg-slate-900/50 hover:bg-slate-900 border border-slate-850 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="font-mono text-xs text-slate-500 w-4 text-center">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 w-full sm:w-auto">
+                    <div className="font-mono text-xs text-slate-500 w-4 text-center shrink-0 pt-0.5 sm:pt-0">
                       {index + 1}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${getTypeColor(item.type)}`}>
                           {item.type}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono">{item.startTime}</span>
                       </div>
-                      <h5 className="text-xs font-bold text-white mt-1 truncate group-hover:text-sky-400 transition">{item.title}</h5>
+                      <h5 className="text-xs font-bold text-white mt-1 truncate group-hover:text-sky-400 transition" title={item.title}>{item.title}</h5>
                       <p className="text-[10px] text-slate-500 mt-0.5">{item.duration}m • {item.targetAudience}</p>
                     </div>
                   </div>
 
                   {/* Reorder & Action Controls */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                     {/* Reordering buttons */}
                     <button
                       onClick={() => moveUp(index)}
@@ -301,6 +304,22 @@ export default function LivePlaylistLoader({
                       title="Load and Play Now"
                     >
                       <Play className="h-3.5 w-3.5" />
+                    </button>
+
+                    {/* Pre-Fade Listen Cue button */}
+                    <button
+                      onClick={() => onCueMedia && onCueMedia({
+                        id: item.id,
+                        title: item.title,
+                        type: item.type,
+                        duration: item.duration,
+                        safetyRating: item.targetAudience === 'Children' ? 'G' : item.targetAudience === 'All Ages' ? 'PG' : 'PG-13',
+                        category: 'Queue Block'
+                      })}
+                      className="p-1.5 bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-slate-950 rounded border border-sky-500/20 transition"
+                      title="Cue in PFL Headphones Monitor"
+                    >
+                      <Headphones className="h-3.5 w-3.5" />
                     </button>
 
                     {/* Remove from queue */}
