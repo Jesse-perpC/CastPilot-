@@ -40,6 +40,7 @@ Increase viewer engagement and retention metrics by introducing visual graphics 
 * **News Ticker Crawlers**: Customize breaking news tickers scrolling at the bottom margins of your streams.
 * **Interactive Live Polls**: Configure instant questions and multiple choices, with interactive feedback panels for voters.
 * **Engagement Soundboards**: Simulate subscribing alerts and follow animations to increase user-channel bonds.
+* **Urgent On-Air Bulletins**: Broadcast critical service messages (e.g., programming interruptions, schedule shifts, technical faults) instantly. From the **Urgent Bulletins** sub-tab in the Overlay Graphic Studio, compose your alert text, select a style (*Breaking News*, *Urgent Alert*, or *Technical Bulletin*), and click **○ PUSH TO ON-AIR** to overlay it. Supports integrated browser Text-to-Speech (TTS) for voice warning synthesis.
 
 ### ⚡ Resource Allocator
 Ensure server nodes are balanced during peak stream traffic.
