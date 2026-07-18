@@ -1,16 +1,18 @@
 # 🛰️ CASTPILOT // FAST-LIVE BROADCAST SUITE
-> **Enterprise Cloud Playout Automation, SCTE-35 Programmatic Splicing, and Real-Time Audience Engagement Systems.**
 
-```
-   ______              __  ____  _ __        __  
-  / ____/___ ______/ /_/ / /_(_) /___  / /_ 
- / /   / __ `/ ___/ __/ __/ / / / __ \/ __/ 
-/ /___/ /_/ (__  ) /_/ /_/ / / / /_/ / /_   
-\____/\__,_/____/\__/\__/_/_/_/\____/\__/   
-                                            
-           [ SYSTEM OVERRIDE: ACTIVE ]
-           [ COGNITIVE CORE: ONLINE ]
-```
+> **Enterprise-Grade Cloud Playout Automation, High-Precision SCTE-35 Splicing, and Real-Time AI-Powered Audience Engagement.**
+
+<p align="center">
+  <img src="./src/assets/images/castpilot_hero_1784353877462.jpg" alt="CastPilot Cybernetic Playout Banner" width="100%" style="border-radius: 12px; border: 1px solid #1e293b;" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/System-Active-0ea5e9?style=for-the-badge&logo=cpu&logoColor=fff" alt="System Active" />
+  <img src="https://img.shields.io/badge/Runtime-Node.js_18%2B-10b981?style=for-the-badge&logo=nodedotjs&logoColor=fff" alt="Node v18+" />
+  <img src="https://img.shields.io/badge/Frontend-React_18_--_Vite-ec4899?style=for-the-badge&logo=react&logoColor=fff" alt="React + Vite" />
+  <img src="https://img.shields.io/badge/Backend-Express_TS-6366f1?style=for-the-badge&logo=express&logoColor=fff" alt="Express TS" />
+  <img src="https://img.shields.io/badge/AI-Gemini_Pro-f59e0b?style=for-the-badge&logo=google&logoColor=fff" alt="Gemini Powered" />
+</p>
 
 ---
 
@@ -22,6 +24,16 @@ From automated SCTE-35 programmatic ad-insertion commands to automated playout t
 
 ---
 
+## 📸 INTERFACE OVERVIEW
+
+<p align="center">
+  <img src="./src/assets/images/castpilot_dashboard_1784353890563.jpg" alt="CastPilot Futuristic Control Console" width="100%" style="border-radius: 12px; border: 1px solid #1e293b;" />
+  <br />
+  <em>Figure 1.0: Next-generation multi-screen playout console featuring live stereo VU metering, emergency override panels, and local program downlinks.</em>
+</p>
+
+---
+
 ## 🛠️ CORE BROADCAST MODULES
 
 ### 1. 📺 Playout Controller & Signal Monitor
@@ -30,7 +42,7 @@ From automated SCTE-35 programmatic ad-insertion commands to automated playout t
 * **Segment-Accurate Audio VU Metering**: Features live stereo (L/R) decibel segmentation meters with floating peak indicators, decay timing, and adaptive commercial compression algorithms.
 
 ### 2. 🔌 SCTE-35 Programmatic Ad Insertion
-* **Downstream Splicing Commands**: Simulates high-precision, industry-standard ANSI/SCTE-35 cue injection (`0xFC` Splice Command payloads).
+* **Downstream Splicing Commands**: Simulates high-precision, industry-standard ANSI/SCTE-35 cue injection (`0xFC` Splice Command payloads) to synchronize with modern ad-servers.
 * **Dynamic Ad Breaks**: Triggers programmatic ad breaks with visual and audio metadata alerts, complete with safety recovery countdown sequences.
 
 ### 3. 💬 Engagement Studio & Overlay Server
@@ -46,6 +58,15 @@ From automated SCTE-35 programmatic ad-insertion commands to automated playout t
 ### 5. 📅 Timeline Schedule & SCTE Analyzers
 * **Conflict Detection Engine**: Analyzes scheduled blocks and alerts programmers of overlap collisions, structural programming gaps, and SCTE marker timing conflicts in real-time.
 * **Intelligent Gaps Auto-Filler**: Instant fill algorithms to patch airtime voids with high-yield promotional banners or sponsor spots.
+* **Drag-and-Drop Scheduling**: Easily reorder broadcast blocks with standard mouse gestures. Playout timeline start times automatically re-calculate and re-align dynamically to prevent broadcast gaps or overruns.
+
+### 6. 🚨 FCC Emergency Alert System Console
+* **Emergency Override Intercept**: Simulates official emergency alerts. Instantly triggers a caution-tape framed warning graphic overlay with scrolling emergency message tape.
+* **FCC Dual-Tone Sounders**: Synthesizes standard 853Hz + 960Hz dual-frequency warning oscillators with robotic Text-to-Speech (TTS) synthesized warnings.
+
+### 7. 💵 Programmatic Ad Yield Dashboard
+* **Dynamic Yield Localization**: Instantly detects and displays ad yield metrics, forecasted revenues, and average CPM rates scaled to the broadcaster's physical location and local timezone.
+* **Multi-Currency Converter**: Support for manual conversion or automatic geolocation detection across USD, EUR, GBP, JPY, AUD, CAD, INR, SGD, CHF, CNY, ZAR, BRL, and AED.
 
 ---
 
@@ -93,35 +114,53 @@ Launch the popout moderator deck on a secondary touchscreen monitor:
 
 ---
 
-## 🚀 DEPLOYMENT GUIDE
+## 🚀 INSTALLATION & DEPLOYMENT
 
-### Prerequisite Environment Variables
-Declare the following within your server environment or `.env` configuration file:
-```env
-# Google Gemini API credentials (Optional: Fallbacks to system dummy generators)
-GEMINI_API_KEY=your_google_gen_ai_secret_key
+Get your local CastPilot broadcast environment running in less than 2 minutes.
 
-# OAuth Integrations (Dynamic redirection endpoints)
-OAUTH_CLIENT_ID=your_client_id
-OAUTH_CLIENT_SECRET=your_client_secret
-```
-
-### Installation & Run Commands
-Ensure you have Node.js 18+ installed on your workstation or container:
-
+### 📋 Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed (version 18.0 or higher is highly recommended):
 ```bash
-# 1. Clone repository & install dependencies
-npm install
-
-# 2. Boot development server (Express backend + Vite HMR frontend)
-npm run dev
-
-# 3. Compile optimized production bundles
-npm run build
-
-# 4. Spin up production server
-npm run start
+node --version
+# Output should be >= v18.0.0
 ```
+
+### 📦 Step-by-Step Setup
+
+1. **Clone and Navigate**
+   ```bash
+   git clone https://github.com/your-username/castpilot.git
+   cd castpilot
+   ```
+
+2. **Install Workspace Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**
+   Create a `.env` file in your root folder:
+   ```env
+   # Google Gemini API key for intelligent metadata analysis
+   GEMINI_API_KEY=your_google_gemini_api_key
+
+   # Port configuration (CastPilot defaults to 3000)
+   PORT=3000
+   ```
+
+4. **Boot Up Development Server**
+   Spin up the integrated Express + Vite live development environment:
+   ```bash
+   npm run dev
+   ```
+   Open your browser and navigate to `http://localhost:3000` to access the console.
+
+5. **Production Compiling & Running**
+   Compile production-ready bundles and boot up the micro-optimized Node server:
+   ```bash
+   npm run build
+   npm run start
+   ```
 
 ---
 
@@ -134,5 +173,5 @@ npm run start
 ---
 
 ```
-[ CASTPILOT BROADCAST SYSTEMS • ALL STREAMS ENGAGED ]
+[ CASTPILOT BROADCAST SYSTEMS • COGNITIVE MASTER CONTROL ACTIVE ]
 ```
