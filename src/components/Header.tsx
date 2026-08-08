@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon } from 'lucide-react';
+import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone } from 'lucide-react';
 import { ConflictAlert } from '../types';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n';
 import { useTheme } from '../ThemeContext';
@@ -11,6 +11,20 @@ interface HeaderProps {
   primaryActive: boolean;
   setPrimaryActive: (active: boolean) => void;
 }
+
+const RBAC_ROLES = [
+  { id: 'director', label: 'Technical Director', badge: 'TD', color: 'text-sky-400 bg-sky-500/10 border-sky-500/30' },
+  { id: 'traffic', label: 'Traffic Manager', badge: 'TRAFFIC', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
+  { id: 'audio', label: 'Audio Engineer', badge: 'AUDIO', color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
+  { id: 'mcr', label: 'MCR Lead Operator', badge: 'MCR', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+];
+
+const MCN_CHANNELS = [
+  { id: 'fast', name: 'FAST Entertainment', status: 'ON AIR', color: 'text-emerald-400' },
+  { id: 'news', name: 'News 24 Live', status: 'ON AIR', color: 'text-emerald-400' },
+  { id: 'sports', name: 'Sports HD 1', status: 'STANDBY', color: 'text-amber-400' },
+  { id: 'music', name: 'Music Vault 4K', status: 'ON AIR', color: 'text-emerald-400' },
+];
 
 export default function Header({ alerts, activeTab, setActiveTab, primaryActive, setPrimaryActive }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
@@ -127,6 +141,62 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
 
         {/* Live system state counters */}
         <div className="flex overflow-x-auto flex-nowrap items-center gap-2.5 text-xs w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth no-scrollbar select-none" id="header-status-counters">
+          {/* RBAC Role Selector Dropdown */}
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
+            <UserCheck className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-slate-500 font-mono hidden md:inline">ROLE:</span>
+            <select
+              className="bg-transparent font-semibold text-slate-200 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
+              defaultValue="director"
+              onChange={(e) => {
+                const role = RBAC_ROLES.find(r => r.id === e.target.value);
+                if (role) {
+                  const evt = new CustomEvent('rbac-role-changed', { detail: role });
+                  window.dispatchEvent(evt);
+                }
+              }}
+            >
+              {RBAC_ROLES.map(r => (
+                <option key={r.id} value={r.id} className="bg-slate-900 text-slate-100">
+                  {r.badge} • {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* MCN Multi-Channel Network Active Channel Switcher */}
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
+            <Tv className="h-3.5 w-3.5 text-sky-400" />
+            <span className="text-slate-500 font-mono hidden md:inline">MCN:</span>
+            <select
+              className="bg-transparent font-semibold text-sky-300 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
+              defaultValue="fast"
+              onChange={(e) => {
+                const chan = MCN_CHANNELS.find(c => c.id === e.target.value);
+                if (chan) {
+                  const evt = new CustomEvent('mcn-channel-changed', { detail: chan });
+                  window.dispatchEvent(evt);
+                }
+              }}
+            >
+              {MCN_CHANNELS.map(c => (
+                <option key={c.id} value={c.id} className="bg-slate-900 text-slate-100">
+                  {c.name} ({c.status})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tally & Prompter Field App Companion Launcher */}
+          <button
+            onClick={() => setActiveTab('prompter')}
+            className="flex items-center gap-1 rounded-lg bg-indigo-950/80 border border-indigo-700/60 px-2.5 py-1 text-indigo-300 hover:text-white hover:bg-indigo-900 text-[10px] sm:text-xs font-semibold transition shrink-0"
+            title="Mobile Field Tally Light & Teleprompter Sync"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-indigo-400" />
+            <span className="hidden xs:inline">Mobile Tally</span>
+          </button>
+
           {/* International Language Switcher Dropdown */}
           <div className="relative shrink-0" ref={langMenuRef}>
             <button

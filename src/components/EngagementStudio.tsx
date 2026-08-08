@@ -118,7 +118,35 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
   // Local controls auto chat simulator
   const [isAutoChatActive, setIsAutoChatActive] = useState(true);
   const [serverActive, setServerActive] = useState(false);
-  const [mainStudioTab, setMainStudioTab] = useState<'overlays' | 'chat' | 'guests' | 'recorder'>('overlays');
+  const [mainStudioTab, setMainStudioTab] = useState<'overlays' | 'ai_overlays' | 'chat' | 'guests' | 'recorder'>('ai_overlays');
+
+  // AI Highlights & Short-Form Clipper State (v2.0)
+  const [aiClips, setAiClips] = useState([
+    { id: 'clip-1', title: 'Deep Sea Eco Discovery', timestamp: '14:22 - 14:52', engagementScore: 98, durationSec: 30, platformStatus: { tiktok: 'Published', shorts: 'Published', reels: 'Queued' }, captions: 'Look at the bioluminescence in the deep trench!' },
+    { id: 'clip-2', title: 'Dr. Lin Speech on Cloud AI', timestamp: '15:10 - 15:40', engagementScore: 94, durationSec: 30, platformStatus: { tiktok: 'Queued', shorts: 'Published', reels: 'Queued' }, captions: 'AI is reshaping linear playout at 100x efficiency.' },
+    { id: 'clip-3', title: 'Late Night Retro Neon Reveal', timestamp: '16:05 - 16:35', engagementScore: 91, durationSec: 30, platformStatus: { tiktok: 'Draft', shorts: 'Draft', reels: 'Draft' }, captions: '1984 synthwave concept reel live on air.' }
+  ]);
+  const [isClippingActive, setIsClippingActive] = useState(true);
+
+  // Dynamic DSK 2.0 AI Lower-Thirds State (v2.0)
+  const [dsk2State, setDsk2State] = useState({
+    autoTranscription: true,
+    activeSpeaker: 'Dr. Sarah Lin',
+    speakerTitle: 'Lead Cloud AI Researcher • CastPilot Labs',
+    contextualTicker: 'NASDAQ: GOOGL +2.4% • AAPL +1.1% • NVDA +3.8%',
+    mapOverlay: 'Amazon Basin Hydro-Station #4',
+    autoRender: true
+  });
+
+  // Synthetic Virtual Presenter & Voiceover Fallback State (v2.0)
+  const [syntheticAnchor, setSyntheticAnchor] = useState({
+    model: 'Gemini Neural Voice Anchor (Sonia - EN)',
+    activeMode: 'Off-Peak Automatic Fallback',
+    nextBrief: 'Late Night News Brief (02:00 UTC)',
+    weatherScript: 'Clear skies across major broadcast centers with steady humidity.',
+    stationIdText: 'You are watching CastPilot Linear Network by Perp Corp Media.',
+    isGeneratingBrief: false
+  });
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -610,6 +638,7 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
       {/* Feature Navigation Tabs */}
       <div className="flex border-b border-slate-800 gap-1 overflow-x-auto no-scrollbar shrink-0">
         {[
+          { id: 'ai_overlays', label: 'AI Production & DSK 2.0', icon: <Sparkles className="h-4 w-4 text-amber-300 animate-pulse" />, desc: 'AI Highlights Clipper, DSK 2.0 & Virtual Presenters' },
           { id: 'overlays', label: 'Overlays & Themes', icon: <Tv className="h-4 w-4" />, desc: 'Simulate and manage graphic crawlers & tickers' },
           { id: 'chat', label: 'Multiplatform Comments', icon: <MessageSquare className="h-4 w-4" />, desc: 'Show comments from YouTube, Twitch, Facebook' },
           { id: 'guests', label: 'Live Guest Studio', icon: <Users className="h-4 w-4 animate-pulse" />, desc: 'Invite multiple guests & customize overlays' },
@@ -633,6 +662,242 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
           </button>
         ))}
       </div>
+
+      {mainStudioTab === 'ai_overlays' && (
+        <div className="space-y-8">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 border border-indigo-500/30 shadow-xl">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">
+                  ROADMAP PILLAR 1
+                </span>
+                <h3 className="font-display text-base font-bold text-white">
+                  Advanced Generative Production & Real-Time AI Overlays (DSK 2.0)
+                </h3>
+              </div>
+              <p className="text-xs text-slate-300">
+                Automated short-form video clipping (9:16 vertical), transcription-driven motion graphics, and synthetic AI presenter fallbacks.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setIsClippingActive(!isClippingActive);
+                addToast(isClippingActive ? "AI Clipper paused." : "AI Clipper stream monitor activated!", "info");
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
+                isClippingActive 
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-slate-800 text-slate-300 border border-slate-700'
+              }`}
+            >
+              <Sparkles className="h-4 w-4 text-amber-300" />
+              {isClippingActive ? 'AI Stream Clipper: Active' : 'AI Stream Clipper: Paused'}
+            </button>
+          </div>
+
+          {/* Grid Layout: 3 Cards matching Pillar 1 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {/* 1. Automated AI Highlights & Short-Form Clipper */}
+            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 shadow-xl space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-400">
+                      <Flame className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">AI Highlights & 9:16 Clipper</h4>
+                      <p className="text-[10px] text-slate-400">TikTok, Shorts & Reels auto-publisher</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-pink-950 text-pink-300 border border-pink-800 font-bold">
+                    9:16 Vertical
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Real-time audio/visual sentiment detection extracts peak engagement moments and renders auto-captioned vertical video shorts.
+                </p>
+
+                {/* Vertical Preview Mock */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-3">
+                  {aiClips.map(clip => (
+                    <div key={clip.id} className="p-2.5 rounded-lg bg-slate-950 border border-slate-850 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-white flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                          {clip.title}
+                        </span>
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                          {clip.engagementScore}% Viral
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 font-serif italic bg-slate-900 p-2 rounded border border-slate-800">
+                        "{clip.captions}"
+                      </p>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-900">
+                        <span>{clip.timestamp} ({clip.durationSec}s)</span>
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <button
+                            onClick={() => {
+                              addToast(`Published "${clip.title}" to TikTok, YouTube Shorts, & Reels!`, "success");
+                            }}
+                            className="px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 border border-pink-500/30 transition"
+                          >
+                            Sync 1-Click
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  const newClip = {
+                    id: `clip-${Date.now()}`,
+                    title: 'Live Playout Moment #' + (aiClips.length + 1),
+                    timestamp: '16:40 - 17:10',
+                    engagementScore: 96,
+                    durationSec: 30,
+                    platformStatus: { tiktok: 'Published', shorts: 'Published', reels: 'Published' },
+                    captions: 'High volume fan engagement detected on linear playout feed.'
+                  };
+                  setAiClips([newClip, ...aiClips]);
+                  addToast("AI Clipper extracted new 9:16 vertical short and generated auto-captions!", "success");
+                }}
+                className="w-full py-2.5 rounded-xl bg-pink-500 hover:bg-pink-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-pink-500/20"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Trigger Instant AI Clip Extraction
+              </button>
+            </div>
+
+            {/* 2. Dynamic AI Lower-Thirds & Motion Graphics (DSK 2.0) */}
+            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 shadow-xl space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+                      <Tv className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">Dynamic DSK 2.0 Overlays</h4>
+                      <p className="text-[10px] text-slate-400">Audio Transcription Driven Graphics</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800 font-bold">
+                    DSK 2.0
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Real-time speech-to-text dynamically renders speaker cards, maps, and ticker updates without manual operator intervention.
+                </p>
+
+                {/* DSK Live Card Mock */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Active Speaker Card (Auto-Detected)</label>
+                    <input
+                      type="text"
+                      value={dsk2State.activeSpeaker}
+                      onChange={e => setDsk2State({ ...dsk2State, activeSpeaker: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white font-semibold focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Speaker Title & Bio</label>
+                    <input
+                      type="text"
+                      value={dsk2State.speakerTitle}
+                      onChange={e => setDsk2State({ ...dsk2State, speakerTitle: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Contextual Ticker / Data Overlay</label>
+                    <input
+                      type="text"
+                      value={dsk2State.contextualTicker}
+                      onChange={e => setDsk2State({ ...dsk2State, contextualTicker: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  addToast(`Rendered DSK 2.0 lower-third graphics for "${dsk2State.activeSpeaker}" on air!`, "success");
+                }}
+                className="w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-sky-500/20"
+              >
+                <Tv className="h-3.5 w-3.5" />
+                Push DSK 2.0 Graphics to Live Stream
+              </button>
+            </div>
+
+            {/* 3. Synthetic Virtual Presenters & Voiceover Fallbacks */}
+            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 shadow-xl space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                      <Users className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">Synthetic AI Presenters</h4>
+                      <p className="text-[10px] text-slate-400">Voiceover & Off-Peak News Anchors</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800 font-bold">
+                    TTS Neural
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Deploys AI synthetic anchors to deliver late-night news briefs, weather updates, and station identifications during off-peak slots.
+                </p>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-3">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase block">Active Neural Anchor Model</span>
+                    <span className="text-xs font-bold text-purple-300 block">{syntheticAnchor.model}</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase block">Late-Night Weather & Station ID Script</span>
+                    <p className="text-xs text-slate-300 font-sans italic bg-slate-950 p-2.5 rounded border border-slate-800">
+                      "{syntheticAnchor.stationIdText} {syntheticAnchor.weatherScript}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setSyntheticAnchor({ ...syntheticAnchor, isGeneratingBrief: true });
+                  setTimeout(() => {
+                    setSyntheticAnchor({ ...syntheticAnchor, isGeneratingBrief: false });
+                    addToast("Synthetic AI Anchor generated late-night news brief & voiceover fallback audio!", "success");
+                  }, 1200);
+                }}
+                className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-purple-600/20"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {syntheticAnchor.isGeneratingBrief ? 'Synthesizing Audio...' : 'Generate AI News Brief & Fallback'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {mainStudioTab === 'overlays' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

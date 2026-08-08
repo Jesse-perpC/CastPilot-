@@ -459,6 +459,53 @@ export default function App() {
             {/* Dashboard Overview tab */}
             {activeTab === 'dashboard' && (
               <div className="space-y-8">
+                {/* Version 2.0 Feature Spotlight Banner */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-950/80 via-slate-900 to-indigo-950/80 border border-sky-500/30 p-5 sm:p-6 shadow-2xl">
+                  <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                    <div className="space-y-2 max-w-3xl">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 font-mono text-[10px] font-bold tracking-wider uppercase">
+                          <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
+                          VERSION 2.0 PRO SUITE
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                          Engineered for High-Availability Linear Playout
+                        </span>
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight">
+                        Welcome to CastPilot Enterprise Operating System v2.0
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        Version 2.0 unlocks Gemini AI Auto-Sort clustering in MAM, Live PFL Audio Auditioning, Multi-Language Internationalization (EN, ES, FR), SCTE-35 Ad Splice Monitoring, Standalone Overlay Popouts, and Automated Playlist Generation.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                      <button
+                        onClick={() => setActiveTab('mam')}
+                        className="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-sky-500/20"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Explore AI MAM Vault
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('playout')}
+                        className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-400 border border-sky-500/30 font-semibold text-xs flex items-center gap-2 transition"
+                      >
+                        <Radio className="h-3.5 w-3.5" />
+                        Playout Monitor
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('manual')}
+                        className="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/80 font-medium text-xs transition"
+                      >
+                        v2.0 Manual
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Status KPI Widget row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Playout Active channel */}

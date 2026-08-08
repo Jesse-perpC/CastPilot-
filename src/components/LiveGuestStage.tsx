@@ -28,6 +28,17 @@ interface Guest {
   speakingVolume: number; // 0 to 100 for volume levels simulation
   avatarUrl: string;
   streamColor: string;
+  // WebRTC & Cloud NDI metrics (v2.0)
+  ndiSource: string;
+  resolution: string;
+  fps: number;
+  bitrateMbps: number;
+  latencyMs: number;
+  jitterMs: number;
+  packetLossPct: number;
+  isoAudioRec: boolean;
+  lipSyncOffsetMs: number;
+  echoCancelActive: boolean;
 }
 
 interface LiveGuestStageProps {
@@ -43,11 +54,16 @@ const STREAM_BACKGROUNDS = [
 ];
 
 export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
+  const [viewMode, setViewMode] = useState<'stage' | 'ndi_matrix'>('ndi_matrix');
   const [guests, setGuests] = useState<Guest[]>([
-    { id: 'g1', name: 'Dr. Sarah Lin', role: 'AI Cloud Researcher', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 45, avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80', streamColor: 'border-sky-500' },
-    { id: 'g2', name: 'Marcus Vance', role: 'FAST Program Lead', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 12, avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80', streamColor: 'border-emerald-500' },
-    { id: 'g3', name: 'Dianne K.', role: 'OTT Systems Specialist', isConnected: false, isMuted: true, isCamOff: true, speakingVolume: 0, avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80', streamColor: 'border-purple-500' },
-    { id: 'g4', name: 'Jesse Lepota', role: 'CastPilot Host', isConnected: false, isMuted: true, isCamOff: true, speakingVolume: 0, avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80', streamColor: 'border-indigo-500' }
+    { id: 'g1', name: 'Dr. Sarah Lin', role: 'AI Cloud Researcher', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 45, avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80', streamColor: 'border-sky-500', ndiSource: '192.168.10.42:5961 / NDI-CAM-01', resolution: '1080p', fps: 60, bitrateMbps: 12.4, latencyMs: 38, jitterMs: 1.2, packetLossPct: 0.01, isoAudioRec: true, lipSyncOffsetMs: 0, echoCancelActive: true },
+    { id: 'g2', name: 'Marcus Vance', role: 'FAST Program Lead', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 12, avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80', streamColor: 'border-emerald-500', ndiSource: '192.168.10.43:5961 / NDI-CAM-02', resolution: '1080p', fps: 60, bitrateMbps: 11.8, latencyMs: 42, jitterMs: 1.8, packetLossPct: 0.02, isoAudioRec: true, lipSyncOffsetMs: 5, echoCancelActive: true },
+    { id: 'g3', name: 'Dianne K.', role: 'OTT Systems Specialist', isConnected: true, isMuted: true, isCamOff: false, speakingVolume: 0, avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80', streamColor: 'border-purple-500', ndiSource: '192.168.10.44:5961 / NDI-CAM-03', resolution: '4K', fps: 30, bitrateMbps: 24.2, latencyMs: 64, jitterMs: 2.4, packetLossPct: 0.04, isoAudioRec: false, lipSyncOffsetMs: -10, echoCancelActive: true },
+    { id: 'g4', name: 'Jesse Lepota', role: 'CastPilot Host', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 25, avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80', streamColor: 'border-indigo-500', ndiSource: '192.168.10.45:5961 / NDI-CAM-04', resolution: '1080p', fps: 60, bitrateMbps: 14.0, latencyMs: 28, jitterMs: 0.8, packetLossPct: 0.00, isoAudioRec: true, lipSyncOffsetMs: 0, echoCancelActive: true },
+    { id: 'g5', name: 'Elena Rostova', role: 'International Desk Lead', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 18, avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&q=80', streamColor: 'border-amber-500', ndiSource: '192.168.10.46:5961 / NDI-CAM-05', resolution: '1080p', fps: 60, bitrateMbps: 10.5, latencyMs: 78, jitterMs: 3.1, packetLossPct: 0.05, isoAudioRec: true, lipSyncOffsetMs: 12, echoCancelActive: true },
+    { id: 'g6', name: 'Kenji Takahashi', role: 'Tech Analyst Tokyo', isConnected: true, isMuted: true, isCamOff: false, speakingVolume: 0, avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&q=80', streamColor: 'border-pink-500', ndiSource: '192.168.10.47:5961 / NDI-CAM-06', resolution: '4K', fps: 30, bitrateMbps: 22.0, latencyMs: 51, jitterMs: 1.5, packetLossPct: 0.01, isoAudioRec: false, lipSyncOffsetMs: 0, echoCancelActive: true },
+    { id: 'g7', name: 'Amara Okafor', role: 'Field Mobile Reporter', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 32, avatarUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150&q=80', streamColor: 'border-emerald-400', ndiSource: '192.168.10.48:5961 / NDI-CAM-07', resolution: '720p', fps: 60, bitrateMbps: 6.5, latencyMs: 89, jitterMs: 4.2, packetLossPct: 0.08, isoAudioRec: true, lipSyncOffsetMs: -15, echoCancelActive: true },
+    { id: 'g8', name: 'Samira Patel', role: 'Financial Markets Desk', isConnected: true, isMuted: false, isCamOff: false, speakingVolume: 10, avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&q=80', streamColor: 'border-cyan-500', ndiSource: '192.168.10.49:5961 / NDI-CAM-08', resolution: '1080p', fps: 60, bitrateMbps: 13.2, latencyMs: 35, jitterMs: 0.9, packetLossPct: 0.00, isoAudioRec: true, lipSyncOffsetMs: 2, echoCancelActive: true }
   ]);
 
   const [activeLayout, setActiveLayout] = useState<'grid' | 'split' | 'speaker' | 'solo'>('grid');
@@ -113,6 +129,49 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
 
   return (
     <div className="space-y-6">
+      {/* Top View Mode Navigation: NDI Matrix vs Stage Layout */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-sky-950 border border-sky-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 font-mono text-[10px] font-bold border border-sky-500/30">
+              ROADMAP PILLAR 2
+            </span>
+            <h3 className="font-display text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <Users2 className="h-4 w-4 text-sky-400 animate-pulse" />
+              WebRTC & Cloud NDI Multi-Cam Ingestion Hub
+            </h3>
+          </div>
+          <p className="text-xs text-slate-300">
+            Ultra-low latency (&lt;100ms) multi-cam remote guest ingestion with ISO audio track recording, lip-sync delay offset, and echo cancellation.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setViewMode('ndi_matrix')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
+              viewMode === 'ndi_matrix'
+                ? 'bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/20'
+                : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Monitor className="h-3.5 w-3.5" />
+            8-Feed NDI Latency Dashboard
+          </button>
+          <button
+            onClick={() => setViewMode('stage')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
+              viewMode === 'stage'
+                ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
+            }`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Main On-Air Stage Layout
+          </button>
+        </div>
+      </div>
+
       {/* Invite banner */}
       <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -142,7 +201,160 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* 8-Feed WebRTC NDI Dashboard View */}
+      {viewMode === 'ndi_matrix' && (
+        <div className="space-y-6">
+          {/* NDI Global Ingestion Stats Header */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Active WebRTC Channels</span>
+              <span className="text-base sm:text-lg font-bold font-mono text-emerald-400 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                8 / 8 Feeds Online
+              </span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Average Peer Latency</span>
+              <span className="text-base sm:text-lg font-bold font-mono text-sky-400">
+                48.1 ms (&lt;100ms Target)
+              </span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">ISO Multi-Track Recording</span>
+              <span className="text-base sm:text-lg font-bold font-mono text-indigo-400">
+                {guests.filter(g => g.isoAudioRec).length} Tracks Arming
+              </span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Cloud NDI Matrix Throughput</span>
+              <span className="text-base sm:text-lg font-bold font-mono text-amber-300">
+                104.6 Mbps Total
+              </span>
+            </div>
+          </div>
+
+          {/* 8 Feeds Multi-Cam Matrix Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {guests.map((g, idx) => (
+              <div key={g.id} className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-3 shadow-lg flex flex-col justify-between hover:border-slate-700 transition">
+                {/* Guest Header */}
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img src={g.avatarUrl} alt={g.name} className="h-7 w-7 rounded-full object-cover border border-slate-700 shrink-0" />
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-white truncate">{g.name}</h4>
+                      <p className="text-[9px] text-slate-400 font-mono truncate">{g.role}</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800 shrink-0">
+                    CAM #{idx + 1}
+                  </span>
+                </div>
+
+                {/* Video Frame Mock + Latency Badge Overlay */}
+                <div className="relative h-28 rounded-lg bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center">
+                  <img src={g.avatarUrl} alt={g.name} className="h-16 w-16 rounded-full object-cover opacity-80" />
+                  
+                  {/* Top-Left: Latency Badge */}
+                  <div className="absolute top-1.5 left-1.5 bg-slate-950/90 border border-slate-800 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold flex items-center gap-1">
+                    <span className={`h-1.5 w-1.5 rounded-full ${g.latencyMs < 50 ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    <span className={g.latencyMs < 50 ? 'text-emerald-400' : 'text-amber-300'}>{g.latencyMs} ms</span>
+                  </div>
+
+                  {/* Top-Right: Resolution & Bitrate */}
+                  <div className="absolute top-1.5 right-1.5 bg-slate-950/90 border border-slate-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300">
+                    {g.resolution} • {g.bitrateMbps}M
+                  </div>
+
+                  {/* Bottom Bar: NDI IP & ISO Rec Indicator */}
+                  <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[8px] font-mono bg-slate-950/90 px-2 py-0.5 rounded text-slate-400">
+                    <span className="truncate">{g.ndiSource.split('/')[1] || g.ndiSource}</span>
+                    {g.isoAudioRec ? (
+                      <span className="text-rose-400 font-bold flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
+                        ISO REC
+                      </span>
+                    ) : (
+                      <span className="text-slate-500">ISO OFF</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Technical Controls & Delay Adjustments */}
+                <div className="space-y-2 text-[10px]">
+                  {/* Lip-Sync Delay Slider */}
+                  <div className="space-y-1 bg-slate-900/60 p-2 rounded-lg border border-slate-850">
+                    <div className="flex justify-between items-center text-slate-300">
+                      <span className="font-mono text-slate-400">Lip-Sync Offset</span>
+                      <span className="font-mono font-bold text-sky-400">{g.lipSyncOffsetMs > 0 ? `+${g.lipSyncOffsetMs}` : g.lipSyncOffsetMs} ms</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="-50"
+                      max="50"
+                      value={g.lipSyncOffsetMs}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setGuests(prev => prev.map(item => item.id === g.id ? { ...item, lipSyncOffsetMs: val } : item));
+                      }}
+                      className="w-full accent-sky-400 h-1 bg-slate-800 rounded cursor-pointer"
+                    />
+                  </div>
+
+                  {/* ISO & Echo Cancellation Toggles */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <button
+                      onClick={() => {
+                        setGuests(prev => prev.map(item => {
+                          if (item.id === g.id) {
+                            const next = !item.isoAudioRec;
+                            addToast(`ISO Audio track for ${item.name} ${next ? 'armed for recording' : 'disabled'}.`, 'info');
+                            return { ...item, isoAudioRec: next };
+                          }
+                          return item;
+                        }));
+                      }}
+                      className={`py-1.5 px-2 rounded text-[9px] font-bold flex items-center justify-center gap-1 border transition ${
+                        g.isoAudioRec
+                          ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                          : 'bg-slate-900 text-slate-400 border-slate-800'
+                      }`}
+                    >
+                      <Mic className="h-3 w-3" />
+                      {g.isoAudioRec ? 'ISO Audio: ARM' : 'ISO Audio: OFF'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setGuests(prev => prev.map(item => {
+                          if (item.id === g.id) {
+                            const next = !item.echoCancelActive;
+                            addToast(`Echo cancellation for ${item.name} ${next ? 'enabled' : 'bypassed'}.`, 'info');
+                            return { ...item, echoCancelActive: next };
+                          }
+                          return item;
+                        }));
+                      }}
+                      className={`py-1.5 px-2 rounded text-[9px] font-bold flex items-center justify-center gap-1 border transition ${
+                        g.echoCancelActive
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                          : 'bg-slate-900 text-slate-400 border-slate-800'
+                      }`}
+                    >
+                      <VolumeX className="h-3 w-3" />
+                      {g.echoCancelActive ? 'Echo Cancel: ON' : 'Echo Cancel: OFF'}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'stage' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Stage Video Frame Monitor (7 cols) */}
         <div className="lg:col-span-8 space-y-4">
@@ -475,6 +687,7 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
         </div>
 
       </div>
+      )}
 
     </div>
   );

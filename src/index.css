@@ -133,10 +133,22 @@ html.light-theme .dark-panel {
   border-color: #e2e8f0 !important;
 }
 
-html.light-theme .bg-sky-950\/80 {
-  background-color: rgba(224, 242, 254, 0.9) !important;
-  border-color: #7dd3fc !important;
-  color: #0369a1 !important;
+html.light-theme input,
+html.light-theme select,
+html.light-theme textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light-theme input::placeholder,
+html.light-theme textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light-theme option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 
