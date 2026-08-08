@@ -247,7 +247,7 @@ npx electron-builder build`;
             <div className="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-emerald-400" />
-                <span className="text-xs text-slate-300 font-mono font-bold">CastPilot Live Cloud Packager Terminal v1.0.4</span>
+                <span className="text-xs text-slate-300 font-mono font-bold">CastPilot Enterprise Packager • Perp Corp Media v1.1</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
@@ -366,7 +366,34 @@ npx electron-builder build`;
                     <button
                       onClick={() => {
                         // Generate dynamic receipt instruction report txt file
-                        const content = `CASTPILOT NATIVE PACKAGING RECEIPT & REFERENCE\n==========================================\n\nPlatform: ${getPlatformLabel()}\nTimestamp: ${new Date().toISOString()}\nFile: ${buildArtifact.name}\nSize: ${buildArtifact.size}\nHash: ${buildArtifact.hash}\n\nHOW TO COMPILE THIS NATIVELY:\n--------------------------\n1. Download this project ZIP from the AI Studio Settings menu.\n2. Open your terminal at the project root.\n3. Run: npm install\n4. For Android (APK):\n   - Run: npm install -D @capacitor/core @capacitor/cli @capacitor/android\n   - Run: npx cap init "CastPilot" "com.castpilot.studio" --web-dir=dist\n   - Run: npm run build\n   - Run: npx cap add android\n   - Run: npx cap sync\n   - Run: npx cap open android (Opens in Android Studio where you can click Build APK)\n\n5. For Desktop App (Electron):\n   - Run: npm install -D electron electron-builder\n   - Run: npx electron .\n\nThank you for choosing CastPilot Linear FAST Scheduler!`;
+                        const content = `CASTPILOT ENTERPRISE BROADCAST PACKAGING RECEIPT
+====================================================
+Developer & Architect: Jesse Lepota
+Enterprise Suite: Perp Corp Media Inc.
+Platform Target: ${getPlatformLabel()}
+Timestamp: ${new Date().toISOString()}
+Build Artifact: ${buildArtifact.name}
+Package Size: ${buildArtifact.size}
+SHA-256 Hash: ${buildArtifact.hash}
+
+COMPILATION & DEPLOYMENT INSTRUCTIONS:
+------------------------------------
+1. Download this project ZIP from the AI Studio Settings menu.
+2. Open your local terminal at the project root.
+3. Execute: npm install
+4. For Android Production APK:
+   - Run: npm install -D @capacitor/core @capacitor/cli @capacitor/android
+   - Run: npx cap init "CastPilot" "com.perpcorp.castpilot" --web-dir=dist
+   - Run: npm run build
+   - Run: npx cap add android
+   - Run: npx cap sync
+   - Run: npx cap open android (Opens in Android Studio to build signed APK)
+
+5. For Desktop App (Electron Master Control):
+   - Run: npm install -D electron electron-builder
+   - Run: npx electron .
+
+Thank you for relying on CastPilot Enterprise Broadcast Operating System by Perp Corp Media!`;
                         const blob = new Blob([content], { type: 'text/plain' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');

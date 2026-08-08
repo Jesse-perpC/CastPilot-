@@ -44,7 +44,7 @@ export default function ChannelSetup({ channelName, setChannelName, addToast }: 
   // Broadcaster profile state
   const [profile, setProfile] = useState<UserProfile>({
     name: "Jesse Lepota",
-    role: "Executive Director of Programming",
+    role: "Founder & Chief Executive Producer",
     email: "jesselepota.com@gmail.com",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80"
   });
@@ -594,11 +594,11 @@ export default function ChannelSetup({ channelName, setChannelName, addToast }: 
                 />
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-white font-display leading-tight">{profile.name}</h4>
-                  <p className="text-xs text-slate-400 font-medium">{profile.role}</p>
-                  <p className="text-[10px] text-slate-500 font-mono">{profile.email}</p>
-                  <div className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono mt-1">
-                    <ShieldCheck className="h-3 w-3" />
-                    Admin Access Level
+                  <p className="text-xs text-sky-400 font-semibold">{profile.role}</p>
+                  <p className="text-[10px] text-slate-400 font-mono">Perp Corp Media • {profile.email}</p>
+                  <div className="inline-flex items-center gap-1 text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded-full font-mono mt-1">
+                    <ShieldCheck className="h-3 w-3 text-purple-400" />
+                    Perp Corp Media Admin
                   </div>
                 </div>
               </div>

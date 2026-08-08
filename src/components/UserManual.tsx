@@ -59,10 +59,10 @@ export default function UserManual({ setActiveTab, addToast }: UserManualProps) 
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            Welcome to the <strong>CastPilot Executive Producer Console</strong>. CastPilot is a comprehensive, full-stack Linear FAST (Free Ad-Supported Streaming TV) playout and scheduling orchestration system designed for modern digital broadcasters, linear TV networks, and mobile-first content creators.
+            Welcome to the <strong>CastPilot Executive Producer Console</strong> by <strong>Perp Corp Media</strong>. CastPilot is an industry-leading, enterprise-grade Linear FAST (Free Ad-Supported Streaming TV) playout and scheduling orchestration system architected by <strong>Jesse Lepota</strong> for tier-1 television networks, global OTT syndicators, and digital broadcasting studios.
           </p>
           <p>
-            Unlike traditional video-on-demand (VOD) services, CastPilot operates as a <strong>continuous linear playout scheduler</strong>. It acts as an automated TV channel, organizing your videos into strict, sequential 24/7 timelines with <strong>frame-accurate alignments</strong>, SCTE-35 ad-marker insertions, and real-time streaming syndications.
+            Engineered at <strong>Perp Corp Media</strong>, CastPilot operates as a <strong>continuous linear playout broadcast engine</strong>. It orchestrates automated TV channels with sub-frame timing precision, ANSI/SCTE-35 digital cue splicing, multi-target RTMP/SRT stream distribution, and live audience interaction.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2">

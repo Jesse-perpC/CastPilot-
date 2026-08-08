@@ -33,8 +33,10 @@ import StandaloneOverlay from './components/StandaloneOverlay';
 import StandaloneChatPopout from './components/StandaloneChatPopout';
 import PflCueDeck from './components/PflCueDeck';
 import { ScheduleItem, ContentAsset, ResourceAsset, ConflictAlert, AdPerformance } from './types';
+import { useLanguage } from './i18n';
 
 export default function App() {
+  const { t } = useLanguage();
   const [standaloneView, setStandaloneView] = useState<'none' | 'overlay' | 'chat'>('none');
 
   useEffect(() => {
@@ -781,6 +783,39 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Global Broadcast Master Control Footer */}
+      <footer className="mt-12 border-t border-slate-900 bg-slate-950/90 py-6 px-4 sm:px-6">
+        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <div className="flex items-center gap-2 font-display font-bold text-slate-200">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{t('footerSystem')}</span>
+              <span className="text-slate-600">|</span>
+              <span className="text-sky-400 font-semibold">{t('footerCompany')}</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {t('footerArchitect')}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-mono">
+            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-slate-300">
+              SCTE-35 ANSI/SCTE 2019 Ready
+            </span>
+            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-slate-300">
+              SMPTE 2059-2 PTP Sync
+            </span>
+            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-emerald-400">
+              Uptime 99.999% SLA
+            </span>
+          </div>
+        </div>
+        <div className="mx-auto max-w-7xl mt-4 pt-3 border-t border-slate-900/60 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-600 gap-2">
+          <span>© {new Date().getFullYear()} {t('footerRights')}</span>
+          <span>{t('footerEdition')}</span>
+        </div>
+      </footer>
 
       {/* Studio Pre-Fade Listen Cue Deck */}
       <PflCueDeck cuedItem={cuedMedia} onClose={() => setCuedMedia(null)} />

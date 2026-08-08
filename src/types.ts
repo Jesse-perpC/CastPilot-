@@ -15,6 +15,9 @@ export interface ContentAsset {
   optimalSlot: string; // e.g. "Primetime Slot", "Early Morning"
   adMarkers: string[]; // ad insertion cue points, e.g. ["00:15:00", "00:30:00"]
   description?: string;
+  genre?: string;
+  mood?: string;
+  aiCluster?: string;
 }
 
 export interface ScheduleItem {

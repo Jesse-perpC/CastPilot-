@@ -1,6 +1,7 @@
-# 🛰️ CASTPILOT // FAST-LIVE BROADCAST SUITE
+# 🛰️ CASTPILOT // ENTERPRISE BROADCAST OS BY PERP CORP MEDIA
 
-> **Enterprise-Grade Cloud Playout Automation, High-Precision SCTE-35 Splicing, and Real-Time AI-Powered Audience Engagement.**
+> **The Industry-Leading Enterprise Cloud Playout Operating System, Architected by Jesse Lepota at Perp Corp Media.**
+> High-Precision SCTE-35 Splicing, AI-Driven Playout Automation, and Multi-Target Stream Syndication.
 
 <p align="center">
   <img src="./src/assets/images/castpilot_hero_1784353877462.jpg" alt="CastPilot Cybernetic Playout Banner" width="100%" style="border-radius: 12px; border: 1px solid #1e293b;" />

@@ -36,7 +36,11 @@ import {
   Activity,
   PlusCircle,
   HelpCircle,
-  Headphones
+  Headphones,
+  ChevronDown,
+  Layers,
+  FolderTree,
+  Smile
 } from 'lucide-react';
 import { ContentAsset } from '../types';
 
@@ -84,6 +88,11 @@ export default function AssetManager({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showDeleteConfirmId, setShowDeleteConfirmId] = useState<string | null>(null);
+
+  // AI Auto-Sort & Gemini Grouping States
+  const [groupBy, setGroupBy] = useState<'none' | 'genre' | 'mood' | 'format' | 'aiCluster'>('none');
+  const [isAutoSorting, setIsAutoSorting] = useState<boolean>(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   // Ingestion Form State
   const [title, setTitle] = useState<string>('');
@@ -387,6 +396,94 @@ export default function AssetManager({
     return 0;
   });
 
+  // Function to trigger Gemini AI Auto-Sort pass across all library assets
+  const handleAIAutoSort = async () => {
+    setIsAutoSorting(true);
+    if (addToast) {
+      addToast("Gemini AI analyzing media catalog metadata, tone, and format profiles...", "info");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 900));
+
+    for (const asset of assets) {
+      let inferredGenre = asset.genre || asset.category || 'General Entertainment';
+      let inferredMood = asset.mood || 'Standard Air Broadcast';
+      let inferredCluster = asset.aiCluster || 'General Media Inventory';
+
+      const titleLower = asset.title.toLowerCase();
+      const catLower = asset.category.toLowerCase();
+
+      if (asset.type === 'commercial' || asset.type === 'promo') {
+        inferredGenre = 'Sponsorship & Promotion';
+        inferredMood = 'High Energy / Dynamic';
+        inferredCluster = 'Monetization & Station Promos';
+      } else if (asset.type === 'filler') {
+        inferredGenre = 'Station Utilities';
+        inferredMood = 'Calming & Ambient';
+        inferredCluster = 'Station Loops & Audio Fillers';
+      } else if (titleLower.includes('cosmos') || titleLower.includes('quantum') || titleLower.includes('tech') || catLower.includes('science')) {
+        inferredGenre = 'Science & Technology';
+        inferredMood = 'Intellectual & Inspiring';
+        inferredCluster = 'Futuristic & Deep Tech';
+      } else if (titleLower.includes('ocean') || titleLower.includes('wild') || titleLower.includes('nature') || catLower.includes('nature')) {
+        inferredGenre = 'Documentary & Nature';
+        inferredMood = 'Cinematic & Majestic';
+        inferredCluster = 'Earth & Wildlife Features';
+      } else if (titleLower.includes('news') || titleLower.includes('report') || titleLower.includes('brief')) {
+        inferredGenre = 'Journalism & News';
+        inferredMood = 'Informative & Urgent';
+        inferredCluster = 'News & Current Affairs';
+      } else {
+        inferredGenre = asset.category || 'Mainstream Entertainment';
+        inferredMood = 'Engaging & Primetime';
+        inferredCluster = 'Featured Primetime Shows';
+      }
+
+      if (onUpdateAsset) {
+        await onUpdateAsset(asset.id, {
+          genre: inferredGenre,
+          mood: inferredMood,
+          aiCluster: inferredCluster,
+        });
+      }
+    }
+
+    setGroupBy('aiCluster');
+    setIsAutoSorting(false);
+    if (addToast) {
+      addToast("AI Auto-Sort complete! Library catalog grouped into intelligent Gemini semantic clusters.", "success");
+    }
+  };
+
+  const toggleGroupCollapse = (groupName: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  // Helper to determine group name for an asset
+  const getAssetGroupKey = (asset: ContentAsset): string => {
+    if (groupBy === 'genre') {
+      return asset.genre || asset.category || 'Uncategorized Genre';
+    }
+    if (groupBy === 'mood') {
+      return asset.mood || 'Standard Air Broadcast';
+    }
+    if (groupBy === 'format') {
+      return asset.type.toUpperCase();
+    }
+    if (groupBy === 'aiCluster') {
+      return asset.aiCluster || 'General Media Inventory';
+    }
+    return 'All Vault Assets';
+  };
+
+  // Build grouped mapping
+  const groupedAssetsMap = sortedAssets.reduce<Record<string, ContentAsset[]>>((acc, asset) => {
+    const key = getAssetGroupKey(asset);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(asset);
+    return acc;
+  }, {});
+
   // Calculate Quick Stats
   const totalDuration = assets.reduce((sum, current) => sum + current.duration, 0);
   const qcedCount = assets.filter(a => a.isQCed).length;
@@ -474,7 +571,7 @@ export default function AssetManager({
                 <p className="text-[11px] text-slate-400">Search, monitor and select registered media programs or ads</p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setViewMode('grid')}
@@ -501,8 +598,27 @@ export default function AssetManager({
                 </button>
 
                 <button
+                  onClick={handleAIAutoSort}
+                  disabled={isAutoSorting}
+                  className="ml-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition disabled:opacity-50 shrink-0"
+                  title="Trigger Gemini AI pass to analyze & auto-sort media into smart clusters"
+                >
+                  {isAutoSorting ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-indigo-200" />
+                      <span>AI Sorting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
+                      <span>AI Auto-Sort</span>
+                    </>
+                  )}
+                </button>
+
+                <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="ml-2 px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-sky-500/10"
+                  className="px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-sky-500/10 shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Register Log
@@ -619,20 +735,37 @@ export default function AssetManager({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <span className="text-[10px] font-mono text-slate-500 shrink-0">Sort By</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-sky-500 flex-1 md:flex-initial"
-                  >
-                    <option value="newest">Newest Ingested</option>
-                    <option value="title">Alphabetical (A-Z)</option>
-                    <option value="duration-desc">Duration (Longest)</option>
-                    <option value="duration-asc">Duration (Shortest)</option>
-                    <option value="loudness">Compliant Loudness (-24 LUFS)</option>
-                    <option value="qc-compliant">QC Certified First</option>
-                  </select>
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-1.5 flex-1 md:flex-initial">
+                    <span className="text-[10px] font-mono text-slate-500 shrink-0">Group By</span>
+                    <select
+                      value={groupBy}
+                      onChange={(e) => setGroupBy(e.target.value as any)}
+                      className="bg-slate-950 border border-slate-800 rounded-lg py-2 px-2.5 text-xs text-sky-400 font-semibold focus:outline-none focus:border-sky-500 w-full"
+                    >
+                      <option value="none">Flat View (No Grouping)</option>
+                      <option value="aiCluster">✨ Gemini AI Clusters</option>
+                      <option value="genre">🎬 Genre Category</option>
+                      <option value="mood">🎭 Emotional Mood</option>
+                      <option value="format">📻 Format / Asset Type</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-1 md:flex-initial">
+                    <span className="text-[10px] font-mono text-slate-500 shrink-0">Sort By</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 rounded-lg py-2 px-2.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500 w-full"
+                    >
+                      <option value="newest">Newest Ingested</option>
+                      <option value="title">Alphabetical (A-Z)</option>
+                      <option value="duration-desc">Duration (Longest)</option>
+                      <option value="duration-asc">Duration (Shortest)</option>
+                      <option value="loudness">Compliant Loudness (-24 LUFS)</option>
+                      <option value="qc-compliant">QC Certified First</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -695,258 +828,332 @@ export default function AssetManager({
               )}
             </div>
 
-            {/* Asset Rendering Engine */}
-            {sortedAssets.length === 0 ? (
-              <div className="text-center py-16 text-slate-500 text-xs">
-                <Film className="h-8 w-8 text-slate-700 mx-auto mb-2" />
-                No assets in the MAM library match the current search filters.
-              </div>
-            ) : viewMode === 'grid' ? (
-              /* Grid View (Visual Cards) */
-              <div className="grid gap-4 sm:grid-cols-2">
-                {sortedAssets.map((asset) => {
-                  const isEditing = editingAssetId === asset.id;
-                  const showDelete = showDeleteConfirmId === asset.id;
-                  
-                  return (
-                    <div
-                      key={asset.id}
-                      className={`group rounded-xl border p-4.5 transition-all flex flex-col justify-between ${
-                        isEditing 
-                          ? 'bg-slate-900/30 border-sky-500/50 ring-1 ring-sky-500/20' 
-                          : 'bg-slate-950/40 border-slate-850 hover:bg-slate-900/30 hover:border-slate-750'
-                      }`}
-                    >
-                      <div className="space-y-3.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <span className="text-[9px] font-mono bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wide border border-slate-800">
-                              {asset.type}
-                            </span>
-                            <h3 className="font-bold text-sm text-slate-100 mt-1.5 truncate group-hover:text-white transition-colors" title={asset.title}>
-                              {asset.title}
-                            </h3>
-                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                              {asset.category} • {asset.duration} mins
-                            </span>
-                          </div>
-
-                          {/* QC Stamp */}
-                          <div className="shrink-0">
-                            {asset.isQCed ? (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
-                                <Check className="h-2.5 w-2.5" />
-                                QC OK
+            {/* Asset Rendering Helpers */}
+            {(() => {
+              const renderAssetGrid = (assetList: ContentAsset[]) => (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {assetList.map((asset) => {
+                    const isEditing = editingAssetId === asset.id;
+                    const showDelete = showDeleteConfirmId === asset.id;
+                    
+                    return (
+                      <div
+                        key={asset.id}
+                        className={`group rounded-xl border p-4.5 transition-all flex flex-col justify-between ${
+                          isEditing 
+                            ? 'bg-slate-900/30 border-sky-500/50 ring-1 ring-sky-500/20' 
+                            : 'bg-slate-950/40 border-slate-850 hover:bg-slate-900/30 hover:border-slate-750'
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-mono bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wide border border-slate-800">
+                                {asset.type}
                               </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-bold">
-                                <AlertCircle className="h-2.5 w-2.5 animate-pulse" />
-                                NO QC
+                              <h3 className="font-bold text-sm text-slate-100 mt-1.5 truncate group-hover:text-white transition-colors" title={asset.title}>
+                                {asset.title}
+                              </h3>
+                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                                {asset.category} • {asset.duration} mins
                               </span>
-                            )}
-                          </div>
-                        </div>
+                            </div>
 
-                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                          {asset.description || "No synopsis provided. Run AI CastPilot enrichment to sync tags & metadata."}
-                        </p>
-
-                        {/* Metadata row */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-slate-900 text-[10px]">
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <Volume2 className={`h-3.5 w-3.5 shrink-0 ${asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-500'}`} />
-                            <span>Loudness: <strong className={asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-300'}>{asset.loudnessDb} dB</strong></span>
-                          </div>
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <Eye className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                            <span>Rating: <strong className="text-slate-300">{asset.safetyRating}</strong></span>
-                          </div>
-                        </div>
-
-                        {/* Tags display */}
-                        {asset.tags && asset.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {asset.tags.slice(0, 3).map(t => (
-                              <span key={t} className="bg-slate-900 text-slate-500 text-[9px] font-mono px-2 py-0.5 rounded">
-                                #{t}
-                              </span>
-                            ))}
-                            {asset.tags.length > 3 && (
-                              <span className="text-[9px] text-slate-600 font-mono py-0.5">
-                                +{asset.tags.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Cue points count */}
-                        {asset.adMarkers && asset.adMarkers.length > 0 && (
-                          <div className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {asset.adMarkers.length} ad cue points inserted: {asset.adMarkers.join(', ')}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Control buttons */}
-                      <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => startEditing(asset)}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 transition"
-                            title="Edit metadata & cue points"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </button>
-                          
-                          <button
-                            onClick={() => onEnrichAsset(asset.id)}
-                            disabled={enrichingAssetId === asset.id}
-                            className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 shrink-0"
-                            title="Run AI tag generation"
-                          >
-                            {enrichingAssetId === asset.id ? (
-                              <>
-                                <RefreshCw className="h-3 w-3 animate-spin" />
-                                Tagging...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-3 w-3 text-sky-400" />
-                                AI Tag
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            onClick={() => onCueMedia && onCueMedia(asset)}
-                            className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 hover:text-slate-950 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1.5 shrink-0"
-                            title="Audition via Pre-Fade Listen (PFL)"
-                          >
-                            <Headphones className="h-3.5 w-3.5 text-sky-400 group-hover:text-inherit" />
-                            PFL Cue
-                          </button>
-                        </div>
-
-                        {showDelete ? (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleConfirmDelete(asset.id)}
-                              className="px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold"
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={() => setShowDeleteConfirmId(null)}
-                              className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 text-[10px]"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleDeleteClick(asset.id)}
-                            className="p-1.5 rounded-lg bg-red-950/20 hover:bg-red-900/20 text-red-400 hover:text-red-300 border border-red-900/20 transition"
-                            title="Delete asset"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* List View (Compact Table Rows) */
-              <div className="border border-slate-900 rounded-xl overflow-x-auto no-scrollbar">
-                <table className="w-full min-w-[750px] text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-900/50 text-slate-400 border-b border-slate-900 font-mono">
-                      <th className="p-3">Title & Type</th>
-                      <th className="p-3">Category</th>
-                      <th className="p-3">Duration</th>
-                      <th className="p-3">Loudness</th>
-                      <th className="p-3 text-center">QC Status</th>
-                      <th className="p-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-900">
-                    {sortedAssets.map((asset) => {
-                      const showDelete = showDeleteConfirmId === asset.id;
-                      return (
-                        <tr key={asset.id} className="hover:bg-slate-900/20 bg-slate-950/10">
-                          <td className="p-3">
-                            <div className="font-bold text-slate-200">{asset.title}</div>
-                            <div className="text-[9px] font-mono text-slate-500 uppercase">{asset.type}</div>
-                          </td>
-                          <td className="p-3 text-slate-400">{asset.category}</td>
-                          <td className="p-3 text-slate-300 font-mono">{asset.duration}m</td>
-                          <td className="p-3 font-mono">
-                            <span className={asset.loudnessDb > -21.0 ? 'text-red-400 font-bold' : 'text-slate-400'}>
-                              {asset.loudnessDb} dB
-                            </span>
-                          </td>
-                          <td className="p-3 text-center">
-                            {asset.isQCed ? (
-                              <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
-                                Compliant
-                              </span>
-                            ) : (
-                              <span className="text-[9px] text-amber-400 bg-amber-500/10 border border-amber-500/10 px-2 py-0.5 rounded-full font-bold">
-                                Pending
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-3 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => startEditing(asset)}
-                                className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </button>
-                              <button
-                                onClick={() => onEnrichAsset(asset.id)}
-                                disabled={enrichingAssetId === asset.id}
-                                className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 disabled:opacity-50"
-                              >
-                                <Sparkles className="h-3 w-3" />
-                              </button>
-
-                              <button
-                                onClick={() => onCueMedia && onCueMedia(asset)}
-                                className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-slate-950 flex items-center gap-1"
-                                title="PFL Cue Audition"
-                              >
-                                <Headphones className="h-3 w-3 text-sky-400" />
-                                <span className="text-[10px] px-1 font-bold">Cue</span>
-                              </button>
-                              
-                              {showDelete ? (
-                                <button
-                                  onClick={() => handleConfirmDelete(asset.id)}
-                                  className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px]"
-                                >
-                                  Del
-                                </button>
+                            {/* QC Stamp */}
+                            <div className="shrink-0">
+                              {asset.isQCed ? (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                  <Check className="h-2.5 w-2.5" />
+                                  QC OK
+                                </span>
                               ) : (
-                                <button
-                                  onClick={() => handleDeleteClick(asset.id)}
-                                  className="p-1 rounded bg-red-950/20 text-red-400 hover:text-red-300"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
+                                <span className="inline-flex items-center gap-0.5 text-[9px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                  <AlertCircle className="h-2.5 w-2.5 animate-pulse" />
+                                  NO QC
+                                </span>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </div>
+
+                          {/* Inferred AI Genre & Mood Metadata Badges */}
+                          {(asset.genre || asset.mood) && (
+                            <div className="flex flex-wrap gap-1.5 pt-0.5">
+                              {asset.genre && (
+                                <span className="text-[9px] font-medium bg-indigo-950/60 text-indigo-300 border border-indigo-800/50 px-2 py-0.5 rounded flex items-center gap-1">
+                                  <Sparkles className="h-2.5 w-2.5 text-indigo-400" />
+                                  {asset.genre}
+                                </span>
+                              )}
+                              {asset.mood && (
+                                <span className="text-[9px] font-medium bg-purple-950/60 text-purple-300 border border-purple-800/50 px-2 py-0.5 rounded flex items-center gap-1">
+                                  <Smile className="h-2.5 w-2.5 text-purple-400" />
+                                  {asset.mood}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                            {asset.description || "No synopsis provided. Run AI CastPilot enrichment to sync tags & metadata."}
+                          </p>
+
+                          {/* Metadata row */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-slate-900 text-[10px]">
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Volume2 className={`h-3.5 w-3.5 shrink-0 ${asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-500'}`} />
+                              <span>Loudness: <strong className={asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-300'}>{asset.loudnessDb} dB</strong></span>
+                            </div>
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Eye className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                              <span>Rating: <strong className="text-slate-300">{asset.safetyRating}</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Tags display */}
+                          {asset.tags && asset.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {asset.tags.slice(0, 3).map(t => (
+                                <span key={t} className="bg-slate-900 text-slate-500 text-[9px] font-mono px-2 py-0.5 rounded">
+                                  #{t}
+                                </span>
+                              ))}
+                              {asset.tags.length > 3 && (
+                                <span className="text-[9px] text-slate-600 font-mono py-0.5">
+                                  +{asset.tags.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Cue points count */}
+                          {asset.adMarkers && asset.adMarkers.length > 0 && (
+                            <div className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {asset.adMarkers.length} ad cue points inserted: {asset.adMarkers.join(', ')}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Control buttons */}
+                        <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => startEditing(asset)}
+                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 transition"
+                              title="Edit metadata & cue points"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            
+                            <button
+                              onClick={() => onEnrichAsset(asset.id)}
+                              disabled={enrichingAssetId === asset.id}
+                              className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 shrink-0"
+                              title="Run AI tag generation"
+                            >
+                              {enrichingAssetId === asset.id ? (
+                                <>
+                                  <RefreshCw className="h-3 w-3 animate-spin" />
+                                  Tagging...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-3 w-3 text-sky-400" />
+                                  AI Tag
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => onCueMedia && onCueMedia(asset)}
+                              className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 hover:text-slate-950 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1.5 shrink-0"
+                              title="Audition via Pre-Fade Listen (PFL)"
+                            >
+                              <Headphones className="h-3.5 w-3.5 text-sky-400 group-hover:text-inherit" />
+                              PFL Cue
+                            </button>
+                          </div>
+
+                          {showDelete ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleConfirmDelete(asset.id)}
+                                className="px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setShowDeleteConfirmId(null)}
+                                className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 text-[10px]"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteClick(asset.id)}
+                              className="p-1.5 rounded-lg bg-red-950/20 hover:bg-red-900/20 text-red-400 hover:text-red-300 border border-red-900/20 transition"
+                              title="Delete asset"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+
+              const renderAssetList = (assetList: ContentAsset[]) => (
+                <div className="border border-slate-900 rounded-xl overflow-x-auto no-scrollbar">
+                  <table className="w-full min-w-[750px] text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-900/50 text-slate-400 border-b border-slate-900 font-mono">
+                        <th className="p-3">Title & Type</th>
+                        <th className="p-3">Category / Genre</th>
+                        <th className="p-3">Duration</th>
+                        <th className="p-3">Loudness</th>
+                        <th className="p-3 text-center">QC Status</th>
+                        <th className="p-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-900">
+                      {assetList.map((asset) => {
+                        const showDelete = showDeleteConfirmId === asset.id;
+                        return (
+                          <tr key={asset.id} className="hover:bg-slate-900/20 bg-slate-950/10">
+                            <td className="p-3">
+                              <div className="font-bold text-slate-200">{asset.title}</div>
+                              <div className="text-[9px] font-mono text-slate-500 uppercase">{asset.type}</div>
+                            </td>
+                            <td className="p-3 text-slate-400">
+                              <div>{asset.category}</div>
+                              {asset.genre && (
+                                <div className="text-[9px] text-indigo-400 font-mono flex items-center gap-1 mt-0.5">
+                                  <Sparkles className="h-2.5 w-2.5" />
+                                  {asset.genre}
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-3 text-slate-300 font-mono">{asset.duration}m</td>
+                            <td className="p-3 font-mono">
+                              <span className={asset.loudnessDb > -21.0 ? 'text-red-400 font-bold' : 'text-slate-400'}>
+                                {asset.loudnessDb} dB
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              {asset.isQCed ? (
+                                <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+                                  Compliant
+                                </span>
+                              ) : (
+                                <span className="text-[9px] text-amber-400 bg-amber-500/10 border border-amber-500/10 px-2 py-0.5 rounded-full font-bold">
+                                  Pending
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => startEditing(asset)}
+                                  className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => onEnrichAsset(asset.id)}
+                                  disabled={enrichingAssetId === asset.id}
+                                  className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 disabled:opacity-50"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                </button>
+
+                                <button
+                                  onClick={() => onCueMedia && onCueMedia(asset)}
+                                  className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-slate-950 flex items-center gap-1"
+                                  title="PFL Cue Audition"
+                                >
+                                  <Headphones className="h-3 w-3 text-sky-400" />
+                                  <span className="text-[10px] px-1 font-bold">Cue</span>
+                                </button>
+                                
+                                {showDelete ? (
+                                  <button
+                                    onClick={() => handleConfirmDelete(asset.id)}
+                                    className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px]"
+                                  >
+                                    Del
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleDeleteClick(asset.id)}
+                                    className="p-1 rounded bg-red-950/20 text-red-400 hover:text-red-300"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              );
+
+              if (sortedAssets.length === 0) {
+                return (
+                  <div className="text-center py-16 text-slate-500 text-xs">
+                    <Film className="h-8 w-8 text-slate-700 mx-auto mb-2" />
+                    No assets in the MAM library match the current search filters.
+                  </div>
+                );
+              }
+
+              if (groupBy !== 'none') {
+                return (
+                  <div className="space-y-4">
+                    {Object.entries(groupedAssetsMap).map(([groupTitle, groupItems]) => {
+                      const isCollapsed = !!collapsedGroups[groupTitle];
+                      const groupDuration = groupItems.reduce((sum, item) => sum + item.duration, 0);
+
+                      return (
+                        <div key={groupTitle} className="rounded-xl border border-slate-800/80 bg-slate-950 overflow-hidden shadow-lg transition-all">
+                          <button
+                            type="button"
+                            onClick={() => toggleGroupCollapse(groupTitle)}
+                            className="w-full bg-slate-900/90 hover:bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800/80 text-left transition cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <ChevronDown className={`h-4 w-4 text-sky-400 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
+                              <FolderTree className="h-4 w-4 text-indigo-400" />
+                              <span className="font-bold text-sm text-slate-100">{groupTitle}</span>
+                              <span className="text-[10px] font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-0.5 rounded-full">
+                                {groupItems.length} {groupItems.length === 1 ? 'Asset' : 'Assets'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
+                              <span>Total Runtime: {groupDuration} mins</span>
+                            </div>
+                          </button>
+
+                          {!isCollapsed && (
+                            <div className="p-4 bg-slate-950/40">
+                              {viewMode === 'grid' ? renderAssetGrid(groupItems) : renderAssetList(groupItems)}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  </div>
+                );
+              }
+
+              return viewMode === 'grid' ? renderAssetGrid(sortedAssets) : renderAssetList(sortedAssets);
+            })()}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, Radio, Tv, Database, Volume2, ShieldAlert, BadgeInfo } from 'lucide-react';
+import { Play, Pause, SkipForward, Radio, Tv, Database, Volume2, ShieldAlert, BadgeInfo, LayoutGrid, Maximize2, Eye, Monitor, Activity, Zap, VolumeX, CheckCircle2, AlertCircle, RefreshCw, Signal, Sliders } from 'lucide-react';
 import { ScheduleItem } from '../types';
 
 interface PlayoutControllerProps {
@@ -42,6 +42,309 @@ interface OverlayState {
   };
   chatLog: ChatMessage[];
 }
+
+interface MultiViewerTileProps {
+  id: string;
+  label: string;
+  sublabel: string;
+  tallyType: 'pgm' | 'pvw' | 'standby' | 'sync' | 'key' | 'scte';
+  tallyLabel: string;
+  bitrate: string;
+  currentlyPlaying: ScheduleItem;
+  nextQueued: ScheduleItem;
+  adTriggered: boolean;
+  isPlaying: boolean;
+  isSoloAudio: boolean;
+  onSelectSoloAudio: () => void;
+  onFocusFeed: () => void;
+}
+
+const MultiViewerTile: React.FC<MultiViewerTileProps> = ({
+  id,
+  label,
+  sublabel,
+  tallyType,
+  tallyLabel,
+  bitrate,
+  currentlyPlaying,
+  nextQueued,
+  adTriggered,
+  isPlaying,
+  isSoloAudio,
+  onSelectSoloAudio,
+  onFocusFeed,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let angle = 0;
+
+    const renderTile = () => {
+      angle += 0.04;
+      const W = canvas.width;
+      const H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
+
+      if (id === 'pgm') {
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        grad.addColorStop(0, '#020617');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 0; x < W; x += 5) {
+          const y = H / 2 + Math.sin(x * 0.03 + angle) * 20;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(currentlyPlaying.title, 12, 28);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '10px monospace';
+        ctx.fillText(`PGM LIVE • ${currentlyPlaying.type.toUpperCase()}`, 12, 44);
+
+        ctx.fillStyle = 'rgba(225, 29, 72, 0.85)';
+        ctx.fillRect(W - 65, 10, 55, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ON AIR', W - 37, 22);
+
+      } else if (id === 'pvw') {
+        ctx.fillStyle = '#061a14';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+        ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#4ade80';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('PREVIEW CUE NEXT:', 12, 22);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(nextQueued.title, 12, 38);
+
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(W - 65, 10, 55, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CUE READY', W - 37, 22);
+
+      } else if (id === 'guest') {
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, W, H);
+
+        const boxX = W / 2 - 35 + Math.sin(angle * 0.5) * 8;
+        const boxY = H / 2 - 30 + Math.cos(angle * 0.5) * 4;
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(boxX, boxY, 70, 60);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('SRT GUEST 01 • TRACKING OK', boxX, boxY - 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('LIVE GUEST FEED (SRT)', 12, 22);
+
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(W - 65, 10, 55, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('STANDBY', W - 37, 22);
+
+      } else if (id === 'backup') {
+        ctx.fillStyle = '#0c1020';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
+        for (let i = 0; i < W; i += 20) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('REDUNDANT DR STREAM', 12, 22);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '9px monospace';
+        ctx.fillText('FRAME LOCK: -0.02ms OFFSET', 12, 38);
+
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(W - 65, 10, 55, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('HOT SYNC', W - 37, 22);
+
+      } else if (id === 'graphics') {
+        ctx.fillStyle = '#110b20';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.08)';
+        for (let x = 0; x < W; x += 16) {
+          for (let y = 0; y < H; y += 16) {
+            if ((x / 16 + y / 16) % 2 === 0) ctx.fillRect(x, y, 16, 16);
+          }
+        }
+
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('DSK-1 ALPHA KEY/FILL', 12, 22);
+
+        ctx.fillStyle = '#e9d5ff';
+        ctx.font = '9px monospace';
+        ctx.fillText('HTML5 OVERLAY LAYER ACTIVE', 12, 38);
+
+        ctx.fillStyle = '#7e22ce';
+        ctx.fillRect(W - 65, 10, 55, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('KEY ON', W - 37, 22);
+
+      } else {
+        ctx.fillStyle = adTriggered ? '#200b14' : '#14141d';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = adTriggered ? '#f43f5e' : '#94a3b8';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('SCTE-35 AD INSERTER', 12, 22);
+
+        ctx.fillStyle = '#f1f5f9';
+        ctx.font = '9px monospace';
+        ctx.fillText(adTriggered ? 'SPLICE IN PROGRESS (0xFC)' : 'STANDBY CUE LISTENER', 12, 38);
+
+        if (adTriggered) {
+          ctx.fillStyle = '#e11d48';
+          ctx.fillRect(W - 65, 10, 55, 18);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('SPLICE IN', W - 37, 22);
+        } else {
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(W - 65, 10, 55, 18);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('LISTENING', W - 37, 22);
+        }
+      }
+
+      const levelLeft = isPlaying ? 35 + Math.sin(angle * 2) * 15 + Math.random() * 8 : 5;
+      const levelRight = isPlaying ? 35 + Math.cos(angle * 2.2) * 15 + Math.random() * 8 : 5;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillRect(8, H - 22, W - 16, 14);
+
+      ctx.fillStyle = '#22c55e';
+      ctx.fillRect(10, H - 20, (W - 20) * (levelLeft / 60), 4);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(10, H - 14, (W - 20) * (levelRight / 60), 4);
+
+      animId = requestAnimationFrame(renderTile);
+    };
+
+    renderTile();
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [id, currentlyPlaying, nextQueued, adTriggered, isPlaying]);
+
+  const tallyStyles = {
+    pgm: 'border-rose-500/80 bg-rose-950/40',
+    pvw: 'border-emerald-500/80 bg-emerald-950/40',
+    standby: 'border-amber-500/80 bg-amber-950/40',
+    sync: 'border-sky-500/80 bg-sky-950/40',
+    key: 'border-purple-500/80 bg-purple-950/40',
+    scte: adTriggered ? 'border-rose-500 bg-rose-900/50' : 'border-slate-800 bg-slate-900/40',
+  }[tallyType];
+
+  return (
+    <div className={`flex flex-col rounded-xl bg-slate-950 border ${tallyStyles} overflow-hidden shadow-lg transition-all hover:border-slate-700`}>
+      <div className="bg-slate-900/90 px-3 py-1.5 flex items-center justify-between border-b border-slate-800 text-xs">
+        <div className="flex items-center gap-1.5 truncate">
+          <span className="font-mono text-[10px] font-bold text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-800/60 uppercase">
+            {id.toUpperCase()}
+          </span>
+          <span className="font-semibold text-[11px] text-slate-200 truncate">{label}</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="font-mono text-[9px] text-slate-400">{bitrate}</span>
+        </div>
+      </div>
+
+      <div className="relative aspect-video bg-black overflow-hidden group">
+        <canvas
+          ref={canvasRef}
+          width={320}
+          height={180}
+          className="w-full h-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+          <button
+            onClick={onFocusFeed}
+            className="px-3 py-1.5 rounded-lg bg-sky-500 text-slate-950 font-semibold text-xs flex items-center gap-1 shadow-lg hover:bg-sky-400 transition"
+            title="Focus this stream feed in Primary Playout Monitor"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            <span>Focus Feed</span>
+          </button>
+          <button
+            onClick={onSelectSoloAudio}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow-lg transition ${
+              isSoloAudio
+                ? 'bg-amber-500 text-slate-950'
+                : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+            }`}
+            title="Solo audio output to PFL Cue Headphone Bus"
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            <span>{isSoloAudio ? 'PFL Active' : 'PFL Cue'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-slate-900/80 px-3 py-1.5 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80">
+        <span className="truncate">{sublabel}</span>
+        <span className={`font-mono font-bold ${isSoloAudio ? 'text-amber-400' : 'text-slate-500'}`}>
+          {isSoloAudio ? '● PFL AUDIO' : 'MUTE'}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export default function PlayoutController({ schedules, primaryActive, onSkip }: PlayoutControllerProps) {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -90,6 +393,11 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
   const [easMuted, setEasMuted] = useState<boolean>(true);
   const easMutedRef = useRef(easMuted);
   useEffect(() => { easMutedRef.current = easMuted; }, [easMuted]);
+
+  // Playout Multi-viewer Matrix states
+  const [viewMode, setViewMode] = useState<'single' | 'multiviewer'>('single');
+  const [gridColumns, setGridColumns] = useState<2 | 3>(3);
+  const [soloAudioFeed, setSoloAudioFeed] = useState<string>('pgm');
 
   const easOsc1Ref = useRef<any>(null);
   const easOsc2Ref = useRef<any>(null);
@@ -1170,27 +1478,182 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
 
   return (
     <div className="grid gap-6 lg:grid-cols-12" id="playout-controller-dashboard">
-      {/* Visual Live Stream Monitor Screen (7 Cols) */}
-      <div className="lg:col-span-7 flex flex-col rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shadow-2xl">
-        <div className="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <Tv className="h-4 w-4 text-sky-400" />
-            <span className="font-semibold text-xs text-white tracking-wider uppercase">Playout monitor (live)</span>
+      {/* Visual Live Stream Monitor Screen (Single or Multi-Viewer Grid) */}
+      <div className={`${viewMode === 'multiviewer' ? 'lg:col-span-12' : 'lg:col-span-7'} flex flex-col rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shadow-2xl transition-all duration-300`}>
+        <div className="bg-slate-900 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Tv className="h-4 w-4 text-sky-400" />
+              <span className="font-semibold text-xs text-white tracking-wider uppercase">Playout Monitor</span>
+            </div>
+
+            {/* Mode Switcher Buttons */}
+            <div className="flex items-center rounded-lg bg-slate-950 p-0.5 border border-slate-800">
+              <button
+                onClick={() => setViewMode('single')}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1.5 transition ${
+                  viewMode === 'single'
+                    ? 'bg-sky-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Single Main Program Air Feed"
+              >
+                <Monitor className="h-3 w-3" />
+                <span>Single Feed</span>
+              </button>
+              <button
+                onClick={() => setViewMode('multiviewer')}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1.5 transition ${
+                  viewMode === 'multiviewer'
+                    ? 'bg-sky-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="MCR Multi-viewer Matrix (6 Active Streams)"
+              >
+                <LayoutGrid className="h-3 w-3" />
+                <span>Multi-Viewer (6 Feeds)</span>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-mono text-[10px] text-emerald-400 tracking-wider">1080P HEVC @ 6.2 MBPS</span>
+
+          <div className="flex items-center gap-3">
+            {viewMode === 'multiviewer' && (
+              <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[10px] font-mono text-slate-400">
+                <span>Layout:</span>
+                <button
+                  onClick={() => setGridColumns(2)}
+                  className={`px-1.5 py-0.5 rounded ${gridColumns === 2 ? 'bg-slate-800 text-sky-400 font-bold' : 'hover:text-slate-200'}`}
+                >
+                  2x2
+                </button>
+                <button
+                  onClick={() => setGridColumns(3)}
+                  className={`px-1.5 py-0.5 rounded ${gridColumns === 3 ? 'bg-slate-800 text-sky-400 font-bold' : 'hover:text-slate-200'}`}
+                >
+                  3x2
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="font-mono text-[10px] text-emerald-400 tracking-wider">
+                {viewMode === 'multiviewer' ? '6 FEEDS ACTIVE • SRT/HEVC' : '1080P HEVC @ 6.2 MBPS'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Live Stream Canvas Video Player (Simulated via high-contrast animated CSS graphics) */}
-        <div className="relative aspect-video flex-1 bg-slate-900 overflow-hidden flex items-center justify-center">
-          <canvas 
-            ref={canvasRef} 
-            className="absolute inset-0 w-full h-full object-contain bg-slate-950"
-            id="playout-monitor-canvas"
-          />
-        </div>
+        {/* Live Stream View Content */}
+        {viewMode === 'single' ? (
+          <div className="relative aspect-video flex-1 bg-slate-900 overflow-hidden flex items-center justify-center">
+            <canvas 
+              ref={canvasRef} 
+              className="absolute inset-0 w-full h-full object-contain bg-slate-950"
+              id="playout-monitor-canvas"
+            />
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-950/90 overflow-y-auto max-h-[620px]">
+            <div className={`grid gap-3 ${gridColumns === 3 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
+              <MultiViewerTile
+                id="pgm"
+                label="PGM 01: MASTER AIR"
+                sublabel="1080p50 HEVC • Main Output"
+                tallyType="pgm"
+                tallyLabel="ON AIR"
+                bitrate="6.2 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'pgm'}
+                onSelectSoloAudio={() => setSoloAudioFeed('pgm')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('pgm'); }}
+              />
+
+              <MultiViewerTile
+                id="pvw"
+                label="PVW 02: NEXT CUE"
+                sublabel={`Up Next: ${nextQueued.title}`}
+                tallyType="pvw"
+                tallyLabel="CUE READY"
+                bitrate="5.8 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'pvw'}
+                onSelectSoloAudio={() => setSoloAudioFeed('pvw')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('pvw'); }}
+              />
+
+              <MultiViewerTile
+                id="guest"
+                label="CAM 01: GUEST STAGE"
+                sublabel="SRT Low Latency (24ms)"
+                tallyType="standby"
+                tallyLabel="STANDBY"
+                bitrate="4.8 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'guest'}
+                onSelectSoloAudio={() => setSoloAudioFeed('guest')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('guest'); }}
+              />
+
+              <MultiViewerTile
+                id="backup"
+                label="DR 01: BACKUP PLAYOUT"
+                sublabel="Hot Standby Server Lock"
+                tallyType="sync"
+                tallyLabel="HOT SYNC"
+                bitrate="6.2 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'backup'}
+                onSelectSoloAudio={() => setSoloAudioFeed('backup')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('backup'); }}
+              />
+
+              <MultiViewerTile
+                id="graphics"
+                label="DSK 01: OVERLAY KEY/FILL"
+                sublabel="HTML5 Live Ticker & Polls"
+                tallyType="key"
+                tallyLabel="KEY ON"
+                bitrate="2.1 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'graphics'}
+                onSelectSoloAudio={() => setSoloAudioFeed('graphics')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('graphics'); }}
+              />
+
+              <MultiViewerTile
+                id="scte"
+                label="DAI 01: SCTE-35 INSERTER"
+                sublabel={adTriggered ? "Splice Active (0xFC)" : "Ad Server Standby"}
+                tallyType="scte"
+                tallyLabel={adTriggered ? "SPLICE IN" : "LISTENING"}
+                bitrate="3.5 Mbps"
+                currentlyPlaying={currentlyPlaying}
+                nextQueued={nextQueued}
+                adTriggered={adTriggered}
+                isPlaying={isPlaying}
+                isSoloAudio={soloAudioFeed === 'scte'}
+                onSelectSoloAudio={() => setSoloAudioFeed('scte')}
+                onFocusFeed={() => { setViewMode('single'); setSoloAudioFeed('scte'); }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Playback Controls & Command Bar */}
         <div className="bg-slate-900 px-6 py-4 border-t border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1240,6 +1703,42 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
 
       {/* Side Automation Panel (5 Cols) */}
       <div className="lg:col-span-5 flex flex-col gap-6">
+        {/* EBU R128 Loudness Compliance Monitor */}
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-4.5 w-4.5 text-emerald-400" />
+              <h3 className="text-sm font-semibold text-white font-display">EBU R128 Audio Loudness Normalizer</h3>
+            </div>
+            <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              TARGET -23 LUFS
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">
+            Real-time ITU-R BS.1770 / EBU R128 compliance DSP engine maintaining broadcast loudness normalization.
+          </p>
+          <div className="space-y-2 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+            <div>
+              <div className="flex justify-between font-mono text-[10px] mb-1">
+                <span className="text-slate-400">Integrated Loudness:</span>
+                <span className="text-emerald-400 font-bold">-23.1 LUFS (COMPLIANT)</span>
+              </div>
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '74%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between font-mono text-[10px] mb-1">
+                <span className="text-slate-400">Max True Peak:</span>
+                <span className="text-sky-400 font-bold">-1.2 dBTP</span>
+              </div>
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="h-full bg-sky-500 rounded-full" style={{ width: '85%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* SCTE-35 Automation ad injection control */}
         <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg flex flex-col justify-between h-[270px]">
           <div>

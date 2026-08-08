@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon } from 'lucide-react';
 import { ConflictAlert } from '../types';
+import { useLanguage, LANGUAGE_OPTIONS } from '../i18n';
+import { useTheme } from '../ThemeContext';
 
 interface HeaderProps {
   alerts: ConflictAlert[];
@@ -11,12 +13,28 @@ interface HeaderProps {
 }
 
 export default function Header({ alerts, activeTab, setActiveTab, primaryActive, setPrimaryActive }: HeaderProps) {
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const [time, setTime] = useState<string>('');
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
+
   const unresolvedAlerts = alerts.filter(a => !a.resolved);
+  const currentLangOption = LANGUAGE_OPTIONS.find(o => o.code === language) || LANGUAGE_OPTIONS[0];
 
   const navRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const checkScroll = () => {
     if (navRef.current) {
@@ -84,24 +102,101 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
         {/* Logo and Status */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] shrink-0">
-            <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse" />
+            <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse text-sky-400" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-white">CastPilot</h1>
-              <span className="rounded bg-slate-800 px-1 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-400 border border-slate-700">
-                v1.1-AI
+              <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                CastPilot
+                <span className="text-slate-500 font-normal text-xs font-mono hidden md:inline">by</span>
+                <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent font-bold text-xs tracking-wider uppercase hidden md:inline">
+                  Perp Corp Media
+                </span>
+              </h1>
+              <span className="rounded bg-sky-950/80 px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-sky-300 border border-sky-800/60 font-semibold shadow-sm">
+                {t('versionBadge')}
               </span>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-400">Automated Broadcast Management System</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1">
+              <span>{t('tagline')}</span>
+              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-slate-300 font-medium hidden sm:inline">{t('authorAndSuite')}</span>
+            </p>
           </div>
         </div>
 
-        {/* Live system state counters - Compact and scrollable horizontally on mobile */}
+        {/* Live system state counters */}
         <div className="flex overflow-x-auto flex-nowrap items-center gap-2.5 text-xs w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth no-scrollbar select-none" id="header-status-counters">
+          {/* International Language Switcher Dropdown */}
+          <div className="relative shrink-0" ref={langMenuRef}>
+            <button
+              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+              className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium"
+              title={t('selectLanguage')}
+              id="language-selector-btn"
+            >
+              <Globe className="h-3.5 w-3.5 text-sky-400" />
+              <span className="font-semibold text-slate-200">{currentLangOption.flag} {currentLangOption.code.toUpperCase()}</span>
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isLangMenuOpen && (
+              <div className="absolute right-0 mt-2 w-44 rounded-xl bg-slate-900/95 border border-slate-800 shadow-2xl z-50 py-1 overflow-hidden backdrop-blur-md">
+                <div className="px-3 py-1.5 border-b border-slate-800/80 text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>{t('selectLanguage')}</span>
+                  <Globe className="h-3 w-3 text-sky-400" />
+                </div>
+                {LANGUAGE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.code}
+                    onClick={() => {
+                      setLanguage(opt.code);
+                      setIsLangMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                      language === opt.code
+                        ? 'bg-sky-500/15 text-sky-300 font-semibold border-l-2 border-sky-400'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm">{opt.flag}</span>
+                      <span>{opt.nativeName}</span>
+                    </span>
+                    {language === opt.code ? (
+                      <Check className="h-3.5 w-3.5 text-sky-400" />
+                    ) : (
+                      <span className="text-[10px] font-mono uppercase text-slate-500">{opt.code}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Dark / Light Studio Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium shrink-0"
+            title={theme === 'dark' ? t('themeLight') : t('themeDark')}
+            id="theme-toggle-btn"
+          >
+            {theme === 'dark' ? (
+              <>
+                <Sun className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                <span className="font-semibold text-slate-200 hidden xs:inline">{t('themeLight')}</span>
+              </>
+            ) : (
+              <>
+                <Moon className="h-3.5 w-3.5 text-indigo-400" />
+                <span className="font-semibold text-slate-200 hidden xs:inline">{t('themeDark')}</span>
+              </>
+            )}
+          </button>
+
           {/* Playout Failover Status Toggle */}
           <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 p-1 border border-slate-800 shrink-0">
-            <span className="px-1.5 font-medium text-slate-400 text-[10px] sm:text-xs">Stream:</span>
+            <span className="px-1.5 font-medium text-slate-400 text-[10px] sm:text-xs">{t('streamLabel')}</span>
             <button
               onClick={toggleFailover}
               className={`flex items-center gap-1.5 rounded px-2 py-0.5 sm:py-1 font-semibold text-[10px] sm:text-xs transition-all ${
@@ -112,11 +207,11 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
               id="failover-toggle-btn"
             >
               <Server className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              {primaryActive ? 'PRIMARY' : 'BACKUP DR'}
+              {primaryActive ? t('primaryServer') : t('backupServer')}
             </button>
             <button
               onClick={toggleFailover}
-              title="Force Manual Failover"
+              title={t('failoverToggle')}
               className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition"
             >
               <Power className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -126,20 +221,20 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
           {/* SCTE-35 & Regulatory compliance markers */}
           <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 border border-slate-800 text-slate-300 shrink-0 text-[10px] sm:text-xs">
             <ShieldCheck className="h-3.5 w-3.5 text-sky-400" />
-            <span>SCTE-35:</span>
-            <span className="font-mono text-emerald-400 font-semibold">READY</span>
+            <span>{t('scte35Status')}</span>
+            <span className="font-mono text-emerald-400 font-semibold">{t('scte35Ready')}</span>
           </div>
 
           {/* Alarm Indicator */}
           {unresolvedAlerts.length > 0 ? (
             <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-rose-400 animate-pulse shrink-0 text-[10px] sm:text-xs">
               <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="font-semibold">{unresolvedAlerts.length} Alerts</span>
+              <span className="font-semibold">{unresolvedAlerts.length} {t('alertsCount')}</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
               <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Broadcast Safe</span>
+              <span>{t('broadcastSafe')}</span>
             </div>
           )}
 
@@ -151,7 +246,7 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
         </div>
       </div>
 
-      {/* Navigation tabs built into Header for clean, sleek layout */}
+      {/* Navigation tabs built into Header */}
       <div className="mx-auto max-w-7xl mt-4 relative flex items-center">
         {/* Scroll Left Button */}
         {canScrollLeft && (
@@ -184,17 +279,17 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
           className="flex border-b border-slate-800 overflow-x-auto scroll-smooth no-scrollbar gap-1 w-full"
         >
           {[
-            { id: 'dashboard', label: 'Dashboard' },
-            { id: 'scheduler', label: 'AI Scheduling' },
-            { id: 'playout', label: 'Playout Stream' },
-            { id: 'mam', label: 'Media Library (MAM)' },
-            { id: 'prompter', label: 'Show Scripts & Prompter' },
-            { id: 'engagement', label: 'Audience Overlays & Chat' },
-            { id: 'resources', label: 'Resource Allocator' },
-            { id: 'syndication', label: 'Streaming & VOD' },
-            { id: 'setup', label: 'Setup & Logins' },
-            { id: 'export', label: 'Native Apps & Desktop' },
-            { id: 'manual', label: 'User Manual & Academy' },
+            { id: 'dashboard', label: t('navDashboard') },
+            { id: 'scheduler', label: t('navScheduler') },
+            { id: 'playout', label: t('navPlayout') },
+            { id: 'mam', label: t('navMam') },
+            { id: 'prompter', label: t('navPrompter') },
+            { id: 'engagement', label: t('navEngagement') },
+            { id: 'resources', label: t('navResources') },
+            { id: 'syndication', label: t('navSyndication') },
+            { id: 'setup', label: t('navSetup') },
+            { id: 'export', label: t('navExport') },
+            { id: 'manual', label: t('navManual') },
           ].map((tab) => (
             <button
               key={tab.id}

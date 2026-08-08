@@ -411,9 +411,39 @@ export default function ScheduleManager({
               </h2>
               <p className="text-[11px] sm:text-xs text-slate-400">Chronological playout blocks on {channelName}</p>
             </div>
-            <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase self-start sm:self-auto">
-              {filteredSchedules.length} Items Scheduled
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => {
+                  const xmltvData = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tv SYSTEM "xmltv.dtd">
+<tv generator-info-name="CastPilot Enterprise Broadcast OS" generator-info-url="https://perpcorp.com">
+  <channel id="${channelName.toLowerCase().replace(/\s+/g, '-')}">
+    <display-name>${channelName}</display-name>
+  </channel>
+${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0000 +0000" stop="20260808${10 + idx + 1}0000 +0000" channel="${channelName.toLowerCase().replace(/\s+/g, '-')}">
+    <title lang="en">${item.title}</title>
+    <desc lang="en">${item.type.toUpperCase()} segment scheduled for ${item.targetAudience}. Rationale: ${item.aiRationale}</desc>
+    <category lang="en">${item.type}</category>
+  </programme>`).join('\n')}
+</tv>`;
+                  const blob = new Blob([xmltvData], { type: 'text/xml' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${channelName.toLowerCase().replace(/\s+/g, '_')}_epg_xmltv.xml`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  if (addToast) addToast('Exported standard XMLTV EPG feed for smart TVs & aggregators', 'success');
+                }}
+                className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-[10px] font-mono flex items-center gap-1.5 transition"
+                title="Export XMLTV EPG file for FAST platforms & Smart TV aggregators"
+              >
+                <span>📡 Export XMLTV EPG</span>
+              </button>
+              <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase">
+                {filteredSchedules.length} Items Scheduled
+              </span>
+            </div>
           </div>
 
           {loadingAI ? (

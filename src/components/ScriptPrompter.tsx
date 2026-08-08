@@ -42,9 +42,9 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
   const [scripts, setScripts] = useState<ScriptDraft[]>([
     {
       id: 'sc-1',
-      title: 'EcoQuest Nature Series - Episode 1 Intro',
+      title: 'Perp Corp Media Flagship - Episode 1 Intro',
       segmentType: 'program',
-      body: "Welcome back to CastPilot Nature Network. Tonight, we embark on an extraordinary journey deep into the heart of the Amazon basin. In this episode of EcoQuest, our camera crews capture never-before-seen animal behaviors and talk with top conservationists working around the clock to safeguard this fragile ecosystem. Stay with us as we uncover nature's ultimate sanctuary, starting... right now.",
+      body: "Welcome back to CastPilot Broadcast Network by Perp Corp Media. I am your host, Jesse Lepota. Tonight, we embark on an extraordinary journey deep into the heart of the Amazon basin. In this episode of EcoQuest, our camera crews capture never-before-seen animal behaviors and talk with top conservationists working around the clock to safeguard this fragile ecosystem. Stay with us as we uncover nature's ultimate sanctuary, starting... right now.",
       durationSec: 45
     },
     {
