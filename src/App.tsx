@@ -27,6 +27,7 @@ import ChannelSetup from './components/ChannelSetup';
 import LivePlaylistLoader from './components/LivePlaylistLoader';
 import ScriptPrompter from './components/ScriptPrompter';
 import EngagementStudio from './components/EngagementStudio';
+import MultiCamNdiIngestion from './components/MultiCamNdiIngestion';
 import ExportHub from './components/ExportHub';
 import UserManual from './components/UserManual';
 import StandaloneOverlay from './components/StandaloneOverlay';
@@ -780,6 +781,13 @@ export default function App() {
             {activeTab === 'engagement' && (
               <EngagementStudio
                 channelName={channelName}
+                addToast={(message, type) => triggerToast(message, type)}
+              />
+            )}
+
+            {/* Multi-Cam NDI & WebRTC Ingestion Tab */}
+            {activeTab === 'multicam' && (
+              <MultiCamNdiIngestion
                 addToast={(message, type) => triggerToast(message, type)}
               />
             )}
