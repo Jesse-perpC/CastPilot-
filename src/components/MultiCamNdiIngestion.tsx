@@ -15,7 +15,14 @@ import {
   RotateCcw,
   Wifi,
   Settings,
-  HardDrive
+  HardDrive,
+  Radio,
+  Signal,
+  BarChart3,
+  Gauge,
+  Layers,
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 
 export interface VideoFeed {
@@ -40,7 +47,24 @@ export interface VideoFeed {
   isAudioMuted: boolean;
   isVideoFrozen: boolean;
   isoRecording: boolean;
-  audioVolume: number; // 0 to 100 for VU simulation
+
+  // Real-time Peak Audio Level Metrics (Stereo L/R & True Peak dBFS)
+  audioLevelL: number; // 0 to 100 percentage (RMS level)
+  audioLevelR: number; // 0 to 100 percentage (RMS level)
+  peakHoldL: number; // 0 to 100 percentage (decaying peak hold marker)
+  peakHoldR: number; // 0 to 100 percentage (decaying peak hold marker)
+  peakDbfsL: number; // -60.0 to 0.0 dBFS
+  peakDbfsR: number; // -60.0 to 0.0 dBFS
+  isClippingL: boolean;
+  isClippingR: boolean;
+
+  // Signal Strength Visualization Metrics
+  signalStrength: number; // 0 to 100 (%)
+  signalBars: number; // 1 to 5 bars
+  signalRssiDbm: number; // e.g. -42 to -78 dBm
+  signalQuality: 'Excellent' | 'Optimal' | 'Stable' | 'Degraded';
+  packetIntegrity: number; // e.g. 99.98%
+
   avatarUrl: string;
   talentName: string;
   location: string;
@@ -69,7 +93,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 68,
+    audioLevelL: 74,
+    audioLevelR: 71,
+    peakHoldL: 84,
+    peakHoldR: 82,
+    peakDbfsL: -4.8,
+    peakDbfsR: -5.4,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 98,
+    signalBars: 5,
+    signalRssiDbm: -41,
+    signalQuality: 'Excellent',
+    packetIntegrity: 99.99,
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80',
     talentName: 'Dr. Sarah Lin (Lead Anchor)',
     location: 'Main Studio Desk A'
@@ -96,7 +132,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 42,
+    audioLevelL: 52,
+    audioLevelR: 56,
+    peakHoldL: 66,
+    peakHoldR: 70,
+    peakDbfsL: -11.2,
+    peakDbfsR: -9.8,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 95,
+    signalBars: 5,
+    signalRssiDbm: -45,
+    signalQuality: 'Excellent',
+    packetIntegrity: 99.98,
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80',
     talentName: 'Marcus Vance (Co-Host)',
     location: 'Main Studio Desk B'
@@ -123,7 +171,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 55,
+    audioLevelL: 62,
+    audioLevelR: 59,
+    peakHoldL: 76,
+    peakHoldR: 72,
+    peakDbfsL: -8.1,
+    peakDbfsR: -9.0,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 88,
+    signalBars: 4,
+    signalRssiDbm: -54,
+    signalQuality: 'Optimal',
+    packetIntegrity: 99.89,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80',
     talentName: 'Dianne K. (European Bureau)',
     location: 'London Studio 4'
@@ -150,7 +210,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 30,
+    audioLevelL: 45,
+    audioLevelR: 48,
+    peakHoldL: 58,
+    peakHoldR: 62,
+    peakDbfsL: -14.3,
+    peakDbfsR: -12.9,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 92,
+    signalBars: 5,
+    signalRssiDbm: -49,
+    signalQuality: 'Excellent',
+    packetIntegrity: 99.95,
     avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&q=80',
     talentName: 'Samira Patel (Financial Markets)',
     location: 'New York Remote Hub'
@@ -177,7 +249,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: false,
-    audioVolume: 20,
+    audioLevelL: 38,
+    audioLevelR: 42,
+    peakHoldL: 52,
+    peakHoldR: 58,
+    peakDbfsL: -16.5,
+    peakDbfsR: -14.2,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 78,
+    signalBars: 4,
+    signalRssiDbm: -63,
+    signalQuality: 'Stable',
+    packetIntegrity: 99.62,
     avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&q=80',
     talentName: 'Kenji Takahashi (APAC Analyst)',
     location: 'Tokyo Bureau Floor'
@@ -204,7 +288,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 48,
+    audioLevelL: 58,
+    audioLevelR: 54,
+    peakHoldL: 72,
+    peakHoldR: 68,
+    peakDbfsL: -9.5,
+    peakDbfsR: -10.6,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 84,
+    signalBars: 4,
+    signalRssiDbm: -58,
+    signalQuality: 'Optimal',
+    packetIntegrity: 99.81,
     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&q=80',
     talentName: 'Elena Rostova (International Desk)',
     location: 'Paris Satellite Desk'
@@ -231,7 +327,19 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: true,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 0,
+    audioLevelL: 0,
+    audioLevelR: 0,
+    peakHoldL: 0,
+    peakHoldR: 0,
+    peakDbfsL: -60.0,
+    peakDbfsR: -60.0,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 72,
+    signalBars: 3,
+    signalRssiDbm: -68,
+    signalQuality: 'Stable',
+    packetIntegrity: 99.45,
     avatarUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=300&q=80',
     talentName: 'Skyline Drone Alpha (Remote Link)',
     location: 'Metropolitan Aerial Sector'
@@ -258,12 +366,32 @@ const INITIAL_FEEDS: VideoFeed[] = [
     isAudioMuted: false,
     isVideoFrozen: false,
     isoRecording: true,
-    audioVolume: 60,
+    audioLevelL: 68,
+    audioLevelR: 72,
+    peakHoldL: 80,
+    peakHoldR: 85,
+    peakDbfsL: -6.4,
+    peakDbfsR: -4.5,
+    isClippingL: false,
+    isClippingR: false,
+    signalStrength: 96,
+    signalBars: 5,
+    signalRssiDbm: -43,
+    signalQuality: 'Excellent',
+    packetIntegrity: 99.98,
     avatarUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80',
     talentName: 'Amara Okafor (Meteorology & Field)',
     location: 'Virtual Chroma Stage B'
   }
 ];
+
+// Helper: Convert 0-100 linear percentage to accurate True Peak dBFS scale (-60 to 0 dBFS)
+function percentToDbfs(pct: number): number {
+  if (pct <= 0) return -60.0;
+  // Scaled non-linear mapping mimicking broadcast True Peak PPM response
+  const db = -60 + (Math.pow(pct / 100, 0.65) * 60);
+  return Number(Math.max(-60.0, Math.min(0.0, db)).toFixed(1));
+}
 
 interface MultiCamNdiIngestionProps {
   addToast?: (message: string, type?: 'success' | 'info' | 'error') => void;
@@ -274,34 +402,80 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
   const [activeLayout, setActiveLayout] = useState<'8-grid' | 'quad' | 'solo'>('8-grid');
   const [soloFeedId, setSoloFeedId] = useState<string>('feed-1');
   const [activeCalibratingFeed, setActiveCalibratingFeed] = useState<VideoFeed | null>(null);
+  const [activeSignalDetailsFeed, setActiveSignalDetailsFeed] = useState<VideoFeed | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterSource, setFilterSource] = useState<string>('all');
   const [isAutoCalibratingAll, setIsAutoCalibratingAll] = useState<boolean>(false);
   const [globalPtpSyncStatus, setGlobalPtpSyncStatus] = useState<string>('SMPTE 2059-2 LOCKED');
+  const [audioMeterMode, setAudioMeterMode] = useState<'dbfs' | 'vu' | 'compact'>('dbfs');
 
-  // Simulated live VU meter & minor latency fluctuation tick
+  // Real-time Peak Audio Level & Signal Strength dynamic simulation loop (250ms interval)
   useEffect(() => {
     const timer = setInterval(() => {
       setFeeds(prev =>
         prev.map(feed => {
           if (feed.isAudioMuted || feed.webrtcStatus !== 'connected') {
-            return { ...feed, audioVolume: 0 };
+            return {
+              ...feed,
+              audioLevelL: 0,
+              audioLevelR: 0,
+              peakHoldL: Math.max(0, feed.peakHoldL - 6),
+              peakHoldR: Math.max(0, feed.peakHoldR - 6),
+              peakDbfsL: -60.0,
+              peakDbfsR: -60.0,
+              isClippingL: false,
+              isClippingR: false
+            };
           }
-          // Slight natural jitter & VU fluctuations
-          const jitterDelta = (Math.random() - 0.5) * 2;
-          const latencyDelta = (Math.random() - 0.5) * 3;
-          const newLatency = Math.max(18, Math.min(130, Math.round(feed.latencyMs + latencyDelta)));
-          const newVolume = Math.max(5, Math.min(95, Math.round(feed.audioVolume + (Math.random() - 0.5) * 16)));
+
+          // Natural voice modulation with stereo balance variations
+          const voiceVariance = (Math.random() - 0.48) * 22;
+          const stereoPanVariance = (Math.random() - 0.5) * 8;
+          
+          const rawBase = Math.max(10, Math.min(94, feed.audioLevelL + voiceVariance));
+          const newLevelL = Math.max(5, Math.min(98, Math.round(rawBase + stereoPanVariance / 2)));
+          const newLevelR = Math.max(5, Math.min(98, Math.round(rawBase - stereoPanVariance / 2)));
+
+          // Peak hold logic with smooth decay
+          const newPeakHoldL = Math.max(newLevelL, Math.round(feed.peakHoldL * 0.94));
+          const newPeakHoldR = Math.max(newLevelR, Math.round(feed.peakHoldR * 0.94));
+
+          const dbfsL = percentToDbfs(newLevelL);
+          const dbfsR = percentToDbfs(newLevelR);
+
+          // Simulated Signal Strength & RSSI fluctuations
+          const signalDelta = (Math.random() - 0.5) * 3;
+          const newSignalStrength = Math.max(50, Math.min(100, Math.round(feed.signalStrength + signalDelta)));
+          const newBars = newSignalStrength >= 90 ? 5 : newSignalStrength >= 75 ? 4 : newSignalStrength >= 60 ? 3 : 2;
+          const newRssi = Math.round(-85 + (newSignalStrength / 100) * 45); // e.g. -40dBm to -80dBm
+          const newQuality: 'Excellent' | 'Optimal' | 'Stable' | 'Degraded' =
+            newSignalStrength >= 90 ? 'Excellent' : newSignalStrength >= 78 ? 'Optimal' : newSignalStrength >= 65 ? 'Stable' : 'Degraded';
+
+          // Latency and jitter minor tick
+          const jitterDelta = (Math.random() - 0.5) * 1.5;
+          const latencyDelta = (Math.random() - 0.5) * 2.5;
+          const newLatency = Math.max(18, Math.min(125, Math.round(feed.latencyMs + latencyDelta)));
 
           return {
             ...feed,
+            audioLevelL: newLevelL,
+            audioLevelR: newLevelR,
+            peakHoldL: newPeakHoldL,
+            peakHoldR: newPeakHoldR,
+            peakDbfsL: dbfsL,
+            peakDbfsR: dbfsR,
+            isClippingL: dbfsL >= -0.5,
+            isClippingR: dbfsR >= -0.5,
+            signalStrength: newSignalStrength,
+            signalBars: newBars,
+            signalRssiDbm: newRssi,
+            signalQuality: newQuality,
             latencyMs: newLatency,
-            jitterMs: Math.max(0.2, Number((feed.jitterMs + jitterDelta * 0.1).toFixed(1))),
-            audioVolume: newVolume
+            jitterMs: Math.max(0.2, Number((feed.jitterMs + jitterDelta * 0.1).toFixed(1)))
           };
         })
       );
-    }, 1500);
+    }, 250);
 
     return () => clearInterval(timer);
   }, []);
@@ -315,7 +489,6 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
     const feed = feeds.find(f => f.id === feedId);
     if (!feed) return;
 
-    // Trigger visual calibration indicator
     setFeeds(prev => prev.map(f => f.id === feedId ? { ...f, isCalibrating: true } : f));
     toast(`Running acoustic & timestamp clapperboard sync for ${feed.name}...`, 'info');
 
@@ -338,7 +511,6 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
     }
 
     setTimeout(() => {
-      // Auto-calculate optimized offset (typically within -2ms to +3ms target)
       const optimalOffset = Math.round((Math.random() - 0.5) * 6);
       setFeeds(prev =>
         prev.map(f =>
@@ -363,7 +535,7 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
         prev.map(f => ({
           ...f,
           isCalibrating: false,
-          lipSyncOffsetMs: Math.round((Math.random() - 0.5) * 4) // tight 0-2ms sync
+          lipSyncOffsetMs: Math.round((Math.random() - 0.5) * 4)
         }))
       );
       setIsAutoCalibratingAll(false);
@@ -390,7 +562,7 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
       setFeeds(prev =>
         prev.map(f =>
           f.id === feedId
-            ? { ...f, webrtcStatus: 'connected', iceState: 'completed', latencyMs: Math.round(f.latencyMs * 0.9) }
+            ? { ...f, webrtcStatus: 'connected', iceState: 'completed', latencyMs: Math.round(f.latencyMs * 0.9), signalStrength: 96 }
             : f
         )
       );
@@ -439,6 +611,7 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
   const avgLatency = Math.round(feeds.reduce((acc, curr) => acc + curr.latencyMs, 0) / feeds.length);
   const totalBitrate = (feeds.reduce((acc, curr) => acc + curr.bitrateMbps, 0)).toFixed(1);
   const activeIsoCount = feeds.filter(f => f.isoRecording).length;
+  const avgSignalStrength = Math.round(feeds.reduce((acc, curr) => acc + curr.signalStrength, 0) / feeds.length);
 
   return (
     <div className="space-y-6" id="multicam-ndi-ingestion-hub">
@@ -457,6 +630,10 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
                 <Shield className="h-3 w-3" />
                 {globalPtpSyncStatus}
               </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-mono text-[10px]">
+                <BarChart3 className="h-3 w-3 text-cyan-300" />
+                REAL-TIME PEAK AUDIO & RF SIGNAL TELEMETRY ACTIVE
+              </span>
             </div>
 
             <h2 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight flex items-center gap-2.5">
@@ -464,7 +641,7 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               Multi-Cam NDI & WebRTC Ingestion Station (8 Feeds)
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Real-time ultra-low latency multi-camera ingestion grid. Monitor latency badges, WebRTC peer connection states, SMPTE clock synchronization, and execute 1-click lip-sync acoustic calibration.
+              Real-time ultra-low latency multi-camera ingestion grid. Inspect real-time peak audio level meters (Stereo L/R dBFS with True Peak hold & clipping alerts), RF/network signal strength visualizers, SMPTE clock synchronization, and 1-click lip-sync acoustic calibration.
             </p>
           </div>
 
@@ -500,8 +677,8 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
       </div>
 
       {/* Global Ingestion Telemetry & Health Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-1.5 shadow-md">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-400 uppercase">Active Feeds</span>
             <Wifi className="h-3.5 w-3.5 text-emerald-400" />
@@ -510,10 +687,22 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <span>{feeds.filter(f => f.webrtcStatus === 'connected').length} / {feeds.length} Online</span>
           </div>
-          <p className="text-[10px] text-emerald-400/80 font-mono">100% ICE Candidate Connectivity</p>
+          <p className="text-[10px] text-emerald-400/80 font-mono">100% ICE Peer Link</p>
         </div>
 
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-1.5 shadow-md">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-slate-400 uppercase">Signal Strength</span>
+            <Signal className="h-3.5 w-3.5 text-cyan-400" />
+          </div>
+          <div className="text-lg sm:text-xl font-bold font-mono text-cyan-400 flex items-center gap-2">
+            <span>{avgSignalStrength}%</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-mono">5/5 BARS</span>
+          </div>
+          <p className="text-[10px] text-cyan-400/80 font-mono">Avg RSSI: -48 dBm (Optimal)</p>
+        </div>
+
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-400 uppercase">Average Latency</span>
             <Clock className="h-3.5 w-3.5 text-sky-400" />
@@ -521,29 +710,29 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
           <div className="text-lg sm:text-xl font-bold font-mono text-sky-400">
             {avgLatency} ms
           </div>
-          <p className="text-[10px] text-slate-400 font-mono">Target SLA: &lt; 100 ms Glass-to-Glass</p>
+          <p className="text-[10px] text-slate-400 font-mono">SLA: &lt; 100 ms Glass-to-Glass</p>
         </div>
 
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-1.5 shadow-md">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-slate-400 uppercase">Total Ingestion Bitrate</span>
+            <span className="text-[10px] font-mono text-slate-400 uppercase">Ingestion Bitrate</span>
             <Activity className="h-3.5 w-3.5 text-indigo-400" />
           </div>
           <div className="text-lg sm:text-xl font-bold font-mono text-indigo-300">
             {totalBitrate} Mbps
           </div>
-          <p className="text-[10px] text-slate-400 font-mono">Uncompressed NDI + WebRTC SRTP</p>
+          <p className="text-[10px] text-slate-400 font-mono">NDI + WebRTC SRTP Streams</p>
         </div>
 
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-1.5 shadow-md">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md col-span-2 sm:col-span-4 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-slate-400 uppercase">ISO Recording Pool</span>
+            <span className="text-[10px] font-mono text-slate-400 uppercase">ISO Recording</span>
             <Mic className="h-3.5 w-3.5 text-rose-400" />
           </div>
           <div className="text-lg sm:text-xl font-bold font-mono text-rose-400">
             {activeIsoCount} / {feeds.length} Armed
           </div>
-          <p className="text-[10px] text-slate-400 font-mono">Multi-Track 24-bit 48kHz WAV</p>
+          <p className="text-[10px] text-slate-400 font-mono">24-bit 48kHz WAV Multi-Track</p>
         </div>
       </div>
 
@@ -563,12 +752,33 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
             onChange={(e) => setFilterSource(e.target.value)}
             className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
           >
-            <option value="all">All Protocols</option>
+            <option value="all">All Protocols (8 Feeds)</option>
             <option value="NDI-HB">NDI High-Bandwidth</option>
             <option value="NDI-HX3">NDI HX3</option>
             <option value="WebRTC-Cloud">WebRTC Cloud P2P</option>
             <option value="SRT-Bridge">SRT Bridge</option>
           </select>
+
+          {/* Meter Scale Mode Toggle */}
+          <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-[10px] font-mono">
+            <span className="text-slate-400 px-1">PEAK METER:</span>
+            <button
+              onClick={() => setAudioMeterMode('dbfs')}
+              className={`px-2 py-0.5 rounded font-semibold transition ${
+                audioMeterMode === 'dbfs' ? 'bg-sky-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Stereo True Peak (dBFS)
+            </button>
+            <button
+              onClick={() => setAudioMeterMode('vu')}
+              className={`px-2 py-0.5 rounded font-semibold transition ${
+                audioMeterMode === 'vu' ? 'bg-sky-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Broadcast PPM
+            </button>
+          </div>
         </div>
 
         {/* Layout Switcher */}
@@ -614,8 +824,10 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
             <FeedCard
               key={feed.id}
               feed={feed}
+              audioMeterMode={audioMeterMode}
               onCalibrate={() => handleCalibrateFeed(feed.id)}
               onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
+              onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
               onReconnect={() => handleReconnectWebRTC(feed.id)}
               onToggleIso={() => handleToggleIso(feed.id)}
               onCycleTally={() => handleCycleTally(feed.id)}
@@ -642,8 +854,10 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               key={feed.id}
               feed={feed}
               isLarge
+              audioMeterMode={audioMeterMode}
               onCalibrate={() => handleCalibrateFeed(feed.id)}
               onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
+              onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
               onReconnect={() => handleReconnectWebRTC(feed.id)}
               onToggleIso={() => handleToggleIso(feed.id)}
               onCycleTally={() => handleCycleTally(feed.id)}
@@ -693,8 +907,10 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
                 feed={feed}
                 isLarge
                 isSolo
+                audioMeterMode={audioMeterMode}
                 onCalibrate={() => handleCalibrateFeed(feed.id)}
                 onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
+                onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
                 onReconnect={() => handleReconnectWebRTC(feed.id)}
                 onToggleIso={() => handleToggleIso(feed.id)}
                 onCycleTally={() => handleCycleTally(feed.id)}
@@ -708,6 +924,122 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               />
             );
           })()}
+        </div>
+      )}
+
+      {/* Signal Strength & RF Spectrum Inspector Modal */}
+      {activeSignalDetailsFeed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-xl rounded-2xl bg-slate-950 border border-slate-800 p-6 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-900 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                  <Signal className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-white text-base">
+                    RF & Network Signal Strength Telemetry
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {activeSignalDetailsFeed.name} • {activeSignalDetailsFeed.sourceType} ({activeSignalDetailsFeed.ipAddress})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveSignalDetailsFeed(null)}
+                className="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white border border-slate-800 text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Detailed Signal Metrics */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">Signal Strength (RSSI)</span>
+                  <div className="text-lg font-bold font-mono text-cyan-400 flex items-center gap-2">
+                    <span>{activeSignalDetailsFeed.signalStrength}%</span>
+                    <span className="text-xs text-slate-300">({activeSignalDetailsFeed.signalRssiDbm} dBm)</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1">
+                    <div
+                      style={{ width: `${activeSignalDetailsFeed.signalStrength}%` }}
+                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">Packet Integrity</span>
+                  <div className="text-lg font-bold font-mono text-emerald-400">
+                    {activeSignalDetailsFeed.packetIntegrity}%
+                  </div>
+                  <p className="text-[10px] font-mono text-slate-400">Packet Loss: {activeSignalDetailsFeed.packetLoss}%</p>
+                </div>
+
+                <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">Carrier-to-Noise (CNR)</span>
+                  <div className="text-lg font-bold font-mono text-sky-400">
+                    +38.4 dB
+                  </div>
+                  <p className="text-[10px] font-mono text-slate-400">Target: &gt; +28 dB</p>
+                </div>
+
+                <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">Jitter Buffer Depth</span>
+                  <div className="text-lg font-bold font-mono text-amber-400">
+                    ±{activeSignalDetailsFeed.jitterMs} ms
+                  </div>
+                  <p className="text-[10px] font-mono text-slate-400">Adaptive dejitter active</p>
+                </div>
+              </div>
+
+              {/* Simulated RF Spectrum Constellation */}
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400 flex items-center gap-1.5">
+                    <Radio className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                    TRANSMISSION CARRIER SPECTRUM & BITSTREAM STABILITY
+                  </span>
+                  <span className="text-emerald-400 font-bold">STATUS: STABLE</span>
+                </div>
+                <div className="h-16 rounded-lg bg-slate-950 border border-slate-800 p-2 flex items-end gap-1 overflow-hidden">
+                  {Array.from({ length: 36 }).map((_, i) => {
+                    const height = Math.sin(i * 0.35 + (activeSignalDetailsFeed.signalStrength / 20)) * 20 + 26;
+                    return (
+                      <div
+                        key={i}
+                        style={{ height: `${Math.max(4, height)}px` }}
+                        className={`flex-1 rounded-t-xs transition-all duration-200 ${
+                          height > 40 ? 'bg-cyan-400' : height > 24 ? 'bg-sky-500/80' : 'bg-slate-700'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    handleReconnectWebRTC(activeSignalDetailsFeed.id);
+                    setActiveSignalDetailsFeed(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Re-Optimize Transmission Carrier
+                </button>
+                <button
+                  onClick={() => setActiveSignalDetailsFeed(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -841,8 +1173,10 @@ interface FeedCardProps {
   feed: VideoFeed;
   isLarge?: boolean;
   isSolo?: boolean;
+  audioMeterMode?: 'dbfs' | 'vu' | 'compact';
   onCalibrate: () => void;
   onOpenCalibrationModal: () => void;
+  onOpenSignalDetails: () => void;
   onReconnect: () => void;
   onToggleIso: () => void;
   onCycleTally: () => void;
@@ -855,8 +1189,10 @@ function FeedCard({
   feed,
   isLarge,
   isSolo,
+  audioMeterMode = 'dbfs',
   onCalibrate,
   onOpenCalibrationModal,
+  onOpenSignalDetails,
   onReconnect,
   onToggleIso,
   onCycleTally,
@@ -913,10 +1249,21 @@ function FeedCard({
           </div>
         </div>
 
-        {/* Source Protocol Tag */}
-        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-800/80 font-bold shrink-0">
-          {feed.sourceType}
-        </span>
+        {/* Source Protocol & Signal Badge */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={onOpenSignalDetails}
+            title={`Signal Strength: ${feed.signalStrength}% (${feed.signalRssiDbm} dBm) | Quality: ${feed.signalQuality}. Click for RF details.`}
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-700/60 font-mono text-[9px] transition"
+          >
+            <SignalBarsVisualizer bars={feed.signalBars} strength={feed.signalStrength} />
+            <span className="font-bold">{feed.signalStrength}%</span>
+          </button>
+
+          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-800/80 font-bold">
+            {feed.sourceType}
+          </span>
+        </div>
       </div>
 
       {/* Simulated Video Feed Placeholder Box */}
@@ -966,7 +1313,7 @@ function FeedCard({
           {feed.resolution} • {feed.fps}fps • {feed.bitrateMbps}M
         </div>
 
-        {/* BOTTOM-LEFT: Simulated WebRTC Connection Status Pill */}
+        {/* BOTTOM-LEFT: Simulated WebRTC Connection Status Pill & Signal Bar Indicator */}
         <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 px-2 py-1 rounded-md text-[9px] font-mono text-slate-200 backdrop-blur-md">
           <span className={`h-2 w-2 rounded-full ${
             feed.webrtcStatus === 'connected'
@@ -976,37 +1323,52 @@ function FeedCard({
               : 'bg-rose-500'
           }`} />
           <span className="font-bold uppercase tracking-wider">
-            WebRTC: {feed.webrtcStatus} ({feed.iceState})
+            WebRTC: {feed.webrtcStatus}
           </span>
+          <span className="text-slate-500">|</span>
+          <span className="text-cyan-300 font-bold">{feed.signalRssiDbm} dBm</span>
         </div>
 
-        {/* BOTTOM-RIGHT: Live VU Audio Meter Simulation */}
-        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 px-2 py-1 rounded-md backdrop-blur-md">
+        {/* BOTTOM-RIGHT: Real-time True Peak Audio Meter & Stereo VU Simulation */}
+        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-2 bg-slate-950/90 border border-slate-800 px-2 py-1.5 rounded-md backdrop-blur-md shadow-lg">
           {feed.isAudioMuted ? (
-            <VolumeX className="h-3 w-3 text-rose-400" />
+            <VolumeX className="h-3.5 w-3.5 text-rose-400" />
           ) : (
-            <Volume2 className="h-3 w-3 text-emerald-400" />
+            <Volume2 className="h-3.5 w-3.5 text-emerald-400" />
           )}
-          <div className="w-12 h-2 bg-slate-800 rounded-sm overflow-hidden flex items-center">
-            <div
-              style={{ width: `${feed.isAudioMuted ? 0 : feed.audioVolume}%` }}
-              className={`h-full transition-all duration-150 ${
-                feed.audioVolume > 85 ? 'bg-rose-500' : feed.audioVolume > 65 ? 'bg-amber-400' : 'bg-emerald-400'
-              }`}
-            />
-          </div>
+
+          {/* Dual Channel Peak Audio Level Meter (Left & Right with Peak Hold) */}
+          <PeakAudioMeterWidget
+            isMuted={feed.isAudioMuted}
+            levelL={feed.audioLevelL}
+            levelR={feed.audioLevelR}
+            peakHoldL={feed.peakHoldL}
+            peakHoldR={feed.peakHoldR}
+            dbfsL={feed.peakDbfsL}
+            dbfsR={feed.peakDbfsR}
+            isClippingL={feed.isClippingL}
+            isClippingR={feed.isClippingR}
+          />
         </div>
       </div>
 
-      {/* Network Stream Details & NDI Channel */}
-      <div className="grid grid-cols-2 gap-2 text-[10px] font-mono bg-slate-900/60 p-2.5 rounded-xl border border-slate-850">
+      {/* Network Stream Details & Real-Time Telemetry Bar */}
+      <div className="grid grid-cols-3 gap-2 text-[10px] font-mono bg-slate-900/60 p-2.5 rounded-xl border border-slate-850">
         <div className="space-y-0.5 truncate">
-          <span className="text-slate-500 block text-[8px] uppercase">NDI Channel / Stream</span>
+          <span className="text-slate-500 block text-[8px] uppercase">NDI Channel</span>
           <span className="text-slate-300 font-semibold truncate block">{feed.ndiChannel}</span>
         </div>
+        <div className="space-y-0.5 truncate text-center">
+          <span className="text-slate-500 block text-[8px] uppercase">Peak Audio (L/R)</span>
+          <span className={`font-semibold truncate block ${feed.isAudioMuted ? 'text-slate-500' : 'text-emerald-400'}`}>
+            {feed.isAudioMuted ? 'MUTED' : `${feed.peakDbfsL} / ${feed.peakDbfsR} dBFS`}
+          </span>
+        </div>
         <div className="space-y-0.5 truncate text-right">
-          <span className="text-slate-500 block text-[8px] uppercase">Codec & Jitter</span>
-          <span className="text-slate-300 font-semibold truncate block">{feed.codec} (±{feed.jitterMs}ms)</span>
+          <span className="text-slate-500 block text-[8px] uppercase">Signal & Jitter</span>
+          <span className="text-slate-300 font-semibold truncate block">
+            {feed.signalStrength}% (±{feed.jitterMs}ms)
+          </span>
         </div>
       </div>
 
@@ -1082,6 +1444,133 @@ function FeedCard({
             <Maximize2 className="h-3 w-3" />
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// 5-Bar RF Signal Strength Visualizer Component
+function SignalBarsVisualizer({ bars, strength }: { bars: number; strength: number }) {
+  return (
+    <div className="flex items-end gap-0.5 h-2.5 w-3.5" title={`Signal Strength: ${strength}%`}>
+      {[1, 2, 3, 4, 5].map(step => {
+        const isActive = bars >= step;
+        const colorClass =
+          strength >= 80 ? 'bg-cyan-400' : strength >= 60 ? 'bg-emerald-400' : strength >= 40 ? 'bg-amber-400' : 'bg-rose-500';
+        const heightPct = step * 20;
+
+        return (
+          <div
+            key={step}
+            style={{ height: `${heightPct}%` }}
+            className={`w-0.5 rounded-2xs transition-all duration-300 ${
+              isActive ? colorClass : 'bg-slate-700/50'
+            }`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// Real-Time Peak Audio Level Meter Widget with Stereo L/R Ladder & Peak Hold Pins
+interface PeakAudioMeterWidgetProps {
+  isMuted: boolean;
+  levelL: number;
+  levelR: number;
+  peakHoldL: number;
+  peakHoldR: number;
+  dbfsL: number;
+  dbfsR: number;
+  isClippingL: boolean;
+  isClippingR: boolean;
+}
+
+function PeakAudioMeterWidget({
+  isMuted,
+  levelL,
+  levelR,
+  peakHoldL,
+  peakHoldR,
+  dbfsL,
+  dbfsR,
+  isClippingL,
+  isClippingR
+}: PeakAudioMeterWidgetProps) {
+  if (isMuted) {
+    return (
+      <div className="flex items-center gap-1 font-mono text-[9px] text-rose-400/90 font-bold">
+        <span>MUTED</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1 min-w-[95px] select-none">
+      {/* Channel Left (L) Meter */}
+      <div className="flex items-center gap-1">
+        <span className="text-[8px] font-mono text-slate-400 w-2">L</span>
+        <div className="relative w-16 h-1.5 bg-slate-900 rounded-2xs overflow-hidden flex items-center border border-slate-800">
+          {/* Active Level Bar with Multi-Segment Color Gradient */}
+          <div
+            style={{ width: `${levelL}%` }}
+            className={`h-full transition-all duration-100 ${
+              levelL > 88
+                ? 'bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500'
+                : levelL > 65
+                ? 'bg-gradient-to-r from-emerald-500 to-amber-400'
+                : 'bg-emerald-400'
+            }`}
+          />
+
+          {/* Peak Hold Marker Tick */}
+          {peakHoldL > 0 && (
+            <div
+              style={{ left: `${Math.min(97, peakHoldL)}%` }}
+              className={`absolute top-0 bottom-0 w-0.5 z-10 ${
+                peakHoldL > 88 ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'bg-white'
+              }`}
+            />
+          )}
+        </div>
+        <span className={`text-[8px] font-mono font-bold w-6 text-right ${
+          isClippingL ? 'text-rose-400 animate-pulse' : dbfsL > -6 ? 'text-amber-300' : 'text-slate-300'
+        }`}>
+          {isClippingL ? 'CLIP' : `${Math.round(dbfsL)}`}
+        </span>
+      </div>
+
+      {/* Channel Right (R) Meter */}
+      <div className="flex items-center gap-1">
+        <span className="text-[8px] font-mono text-slate-400 w-2">R</span>
+        <div className="relative w-16 h-1.5 bg-slate-900 rounded-2xs overflow-hidden flex items-center border border-slate-800">
+          {/* Active Level Bar with Multi-Segment Color Gradient */}
+          <div
+            style={{ width: `${levelR}%` }}
+            className={`h-full transition-all duration-100 ${
+              levelR > 88
+                ? 'bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500'
+                : levelR > 65
+                ? 'bg-gradient-to-r from-emerald-500 to-amber-400'
+                : 'bg-emerald-400'
+            }`}
+          />
+
+          {/* Peak Hold Marker Tick */}
+          {peakHoldR > 0 && (
+            <div
+              style={{ left: `${Math.min(97, peakHoldR)}%` }}
+              className={`absolute top-0 bottom-0 w-0.5 z-10 ${
+                peakHoldR > 88 ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'bg-white'
+              }`}
+            />
+          )}
+        </div>
+        <span className={`text-[8px] font-mono font-bold w-6 text-right ${
+          isClippingR ? 'text-rose-400 animate-pulse' : dbfsR > -6 ? 'text-amber-300' : 'text-slate-300'
+        }`}>
+          {isClippingR ? 'CLIP' : `${Math.round(dbfsR)}`}
+        </span>
       </div>
     </div>
   );
