@@ -34,11 +34,15 @@ import StandaloneOverlay from './components/StandaloneOverlay';
 import StandaloneChatPopout from './components/StandaloneChatPopout';
 import PflCueDeck from './components/PflCueDeck';
 import BroadcastStandardsSuite from './components/BroadcastStandardsSuite';
+import StudioHotkeysModal from './components/StudioHotkeysModal';
+import ChannelPresetsModal from './components/ChannelPresetsModal';
 import { ScheduleItem, ContentAsset, ResourceAsset, ConflictAlert, AdPerformance } from './types';
 import { useLanguage } from './i18n';
+import { useTheme } from './ThemeContext';
 
 export default function App() {
   const { t } = useLanguage();
+  const { theme } = useTheme();
   const [standaloneView, setStandaloneView] = useState<'none' | 'overlay' | 'chat'>('none');
 
   useEffect(() => {
@@ -78,10 +82,124 @@ export default function App() {
   const [activePgmCameraId, setActivePgmCameraId] = useState<string>('feed-1');
   const [activePvwCameraId, setActivePvwCameraId] = useState<string>('feed-2');
 
+  // Interactive Broadcast Modals (Hotkeys HUD & 1-Click Archetype Presets)
+  const [isHotkeysOpen, setIsHotkeysOpen] = useState<boolean>(false);
+  const [isPresetsOpen, setIsPresetsOpen] = useState<boolean>(false);
+
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  // 1-Click Channel Preset Loader
+  const handleApplyPreset = async (
+    presetChannelName: string,
+    presetSchedules: ScheduleItem[],
+    presetAssets: ContentAsset[],
+    presetTitle: string
+  ) => {
+    setChannelName(presetChannelName);
+    setSchedules(presetSchedules);
+    setAssets(prev => {
+      const incomingIds = new Set(presetAssets.map(a => a.id));
+      return [...presetAssets, ...prev.filter(p => !incomingIds.has(p.id))];
+    });
+    await saveSchedulesToServer(presetSchedules);
+    triggerToast(`Activated "${presetTitle}" Channel Preset!`, "success");
+  };
+
+  // Global Master Control Switcher Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        (target.getAttribute && target.getAttribute('role') === 'textbox')
+      ) {
+        return;
+      }
+
+      // '?' -> Toggle hotkeys HUD
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsHotkeysOpen(prev => !prev);
+        return;
+      }
+
+      // 'Escape' -> Close any open modals
+      if (e.key === 'Escape') {
+        setIsHotkeysOpen(false);
+        setIsPresetsOpen(false);
+        setCuedMedia(null);
+        return;
+      }
+
+      // 'Space' -> CUT / TAKE
+      if (e.code === 'Space') {
+        e.preventDefault();
+        const currentPgm = activePgmCameraId;
+        const currentPvw = activePvwCameraId;
+        setActivePgmCameraId(currentPvw);
+        setActivePvwCameraId(currentPgm);
+        handleSelectPgmCamera(currentPvw);
+        handleSelectPvwCamera(currentPgm);
+        triggerToast(`CUT / TAKE: PGM switched to ${currentPvw.replace('feed-', 'CAM ')}`, "info");
+        return;
+      }
+
+      // '1' - '4' -> Direct Cut to Camera
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const feedId = `feed-${e.key}`;
+        handleSelectPgmCamera(feedId);
+        triggerToast(`Direct Cut to Camera ${e.key}`, "info");
+        return;
+      }
+
+      // 'E' or 'e' -> Emergency Slate Override
+      if (e.key.toLowerCase() === 'e') {
+        window.dispatchEvent(new CustomEvent('studio-hotkey-emergency'));
+        triggerToast("Toggled FCC Emergency Override Slate (EAS)", "info");
+        return;
+      }
+
+      // 'C' or 'c' -> SCTE-35 Commercial Ad Insertion
+      if (e.key.toLowerCase() === 'c') {
+        window.dispatchEvent(new CustomEvent('studio-hotkey-scte35'));
+        triggerToast("Triggered SCTE-35 30s Commercial Break", "info");
+        return;
+      }
+
+      // 'M' or 'm' -> Master Audio Mute
+      if (e.key.toLowerCase() === 'm') {
+        window.dispatchEvent(new CustomEvent('studio-hotkey-mute'));
+        triggerToast("Toggled Master Output Audio Mute", "info");
+        return;
+      }
+
+      // 'R' or 'r' -> Instant Replay
+      if (e.key.toLowerCase() === 'r') {
+        window.dispatchEvent(new CustomEvent('studio-hotkey-replay'));
+        triggerToast("Triggered Instant Replay (15s @ 0.5x)", "info");
+        return;
+      }
+
+      // 'S' or 's' -> Skip to Next Queued Item
+      if (e.key.toLowerCase() === 's') {
+        if (schedules.length > 1) {
+          const updated = [...schedules.slice(1), schedules[0]];
+          setSchedules(updated);
+          saveSchedulesToServer(updated);
+          triggerToast("Skipped to next queued lineup item", "info");
+        }
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePgmCameraId, activePvwCameraId, schedules]);
 
   const handleSelectPgmCamera = async (feedId: string) => {
     setActivePgmCameraId(feedId);
@@ -461,7 +579,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-300 font-sans antialiased pb-12">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-slate-100 text-slate-800' : 'bg-[#0f172a] text-slate-300'} font-sans antialiased pb-12 transition-colors duration-200`}>
       {/* Toast Notification Container */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl border text-xs font-semibold flex items-center gap-3 animate-slideIn ${
@@ -495,6 +613,8 @@ export default function App() {
         onSelectResource={(res) => {
           triggerToast(`Navigated to resource: ${res.name}`, "info");
         }}
+        onOpenHotkeys={() => setIsHotkeysOpen(true)}
+        onOpenPresets={() => setIsPresetsOpen(true)}
       />
 
       {/* Core Body Container */}
@@ -533,6 +653,14 @@ export default function App() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                      <button
+                        onClick={() => setIsPresetsOpen(true)}
+                        className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-amber-500/20"
+                        title="Load 1-click broadcast channel archetypes"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-slate-950" />
+                        Channel Presets
+                      </button>
                       <button
                         onClick={() => setActiveTab('standards')}
                         className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-indigo-600/25 border border-indigo-400/40"
@@ -907,6 +1035,7 @@ export default function App() {
               <UserManual
                 setActiveTab={setActiveTab}
                 addToast={(message, type) => triggerToast(message, type)}
+                onOpenHotkeys={() => setIsHotkeysOpen(true)}
               />
             )}
           </>
@@ -914,33 +1043,46 @@ export default function App() {
       </main>
 
       {/* Global Broadcast Master Control Footer */}
-      <footer className="mt-12 border-t border-slate-900 bg-slate-950/90 py-6 px-4 sm:px-6">
+      <footer className={`mt-12 border-t ${theme === 'light' ? 'border-slate-200 bg-white' : 'border-slate-900 bg-slate-950/90'} py-6 px-4 sm:px-6 transition-colors`}>
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <div className="flex items-center gap-2 font-display font-bold text-slate-200">
+            <div className={`flex items-center gap-2 font-display font-bold ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>{t('footerSystem')}</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-sky-400 font-semibold">{t('footerCompany')}</span>
+              <span className="text-slate-400">|</span>
+              <span className="text-sky-500 font-semibold">{t('footerCompany')}</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className={`text-[11px] ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
               {t('footerArchitect')}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-mono">
-            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-slate-300">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono">
+            <button
+              onClick={() => setIsPresetsOpen(true)}
+              className="px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5"
+            >
+              <Sparkles className="h-3 w-3" />
+              Presets
+            </button>
+            <button
+              onClick={() => setIsHotkeysOpen(true)}
+              className="px-2.5 py-1 rounded-md bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5"
+            >
+              Hotkeys [ ? ]
+            </button>
+            <span className={`${theme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-300'} border px-2.5 py-1 rounded-md`}>
               SCTE-35 ANSI/SCTE 2019 Ready
             </span>
-            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-slate-300">
+            <span className={`${theme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-300'} border px-2.5 py-1 rounded-md`}>
               SMPTE 2059-2 PTP Sync
             </span>
-            <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-emerald-400">
+            <span className={`${theme === 'light' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-900 border-slate-800 text-emerald-400'} border px-2.5 py-1 rounded-md font-semibold`}>
               Uptime 99.999% SLA
             </span>
           </div>
         </div>
-        <div className="mx-auto max-w-7xl mt-4 pt-3 border-t border-slate-900/60 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-600 gap-2">
+        <div className={`mx-auto max-w-7xl mt-4 pt-3 border-t ${theme === 'light' ? 'border-slate-100 text-slate-500' : 'border-slate-900/60 text-slate-600'} flex flex-col sm:flex-row justify-between items-center text-[10px] gap-2`}>
           <span>© {new Date().getFullYear()} {t('footerRights')}</span>
           <span>{t('footerEdition')}</span>
         </div>
@@ -948,6 +1090,19 @@ export default function App() {
 
       {/* Studio Pre-Fade Listen Cue Deck */}
       <PflCueDeck cuedItem={cuedMedia} onClose={() => setCuedMedia(null)} />
+
+      {/* Master Control Hotkeys HUD Modal */}
+      <StudioHotkeysModal
+        isOpen={isHotkeysOpen}
+        onClose={() => setIsHotkeysOpen(false)}
+      />
+
+      {/* 1-Click Broadcast Channel Archetype Presets Modal */}
+      <ChannelPresetsModal
+        isOpen={isPresetsOpen}
+        onClose={() => setIsPresetsOpen(false)}
+        onApplyPreset={handleApplyPreset}
+      />
     </div>
   );
 }

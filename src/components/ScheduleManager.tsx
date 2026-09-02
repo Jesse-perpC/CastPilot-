@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Cpu, Sparkles, Plus, RefreshCw, Layers, Clock, AlertTriangle, Users, Trash2, ShieldAlert, GripVertical } from 'lucide-react';
+import { Calendar, Cpu, Sparkles, Plus, RefreshCw, Layers, Clock, AlertTriangle, Users, Trash2, ShieldAlert, GripVertical, Stethoscope, Activity, CheckCircle2, Wand2, X } from 'lucide-react';
 import { ScheduleItem, ContentAsset } from '../types';
 
 interface ScheduleManagerProps {
@@ -44,10 +44,86 @@ export default function ScheduleManager({
   const [manualDuration, setManualDuration] = useState<number>(30);
   const [manualAudience, setManualAudience] = useState<string>('General Audience');
 
+  // Rundown Doctor / AI Harmonization states
+  const [isHarmonizing, setIsHarmonizing] = useState<boolean>(false);
+  const [harmonizeReport, setHarmonizeReport] = useState<{
+    integrityScore: number;
+    rundownHealth: string;
+    totalDurationMinutes: number;
+    issues: string[];
+    optimizations: string[];
+    harmonizedSchedule: any[];
+  } | null>(null);
+  const [showHarmonizerModal, setShowHarmonizerModal] = useState<boolean>(false);
+
   const filteredSchedules = schedules.filter((s) => s.channelName === channelName);
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleHarmonizeRundown = async () => {
+    if (filteredSchedules.length === 0) {
+      if (addToast) addToast("Lineup is currently empty. Populate items first.", "error");
+      return;
+    }
+    setIsHarmonizing(true);
+    if (addToast) addToast("Running AI Rundown Doctor diagnostic via Gemini 3.8 Flash...", "info");
+
+    try {
+      const res = await fetch('/api/ai/harmonize-rundown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: filteredSchedules,
+          channelName,
+          targetRuntimeMinutes: filteredSchedules.reduce((acc, it) => acc + (it.duration || 0), 0)
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Rundown harmonization failed");
+      }
+
+      setHarmonizeReport({
+        integrityScore: data.integrityScore,
+        rundownHealth: data.rundownHealth,
+        totalDurationMinutes: data.totalDurationMinutes,
+        issues: data.issues || [],
+        optimizations: data.optimizations || [],
+        harmonizedSchedule: data.harmonizedSchedule || []
+      });
+      setShowHarmonizerModal(true);
+      if (addToast) addToast(`Rundown Health: ${data.rundownHealth} (Score: ${data.integrityScore}/100)`, "success");
+    } catch (err: any) {
+      console.error(err);
+      if (addToast) addToast(`Harmonization error: ${err.message}`, "error");
+    } finally {
+      setIsHarmonizing(false);
+    }
+  };
+
+  const handleApplyHarmonized = () => {
+    if (!harmonizeReport || !harmonizeReport.harmonizedSchedule || !onUpdateSchedules) return;
+
+    const otherSchedules = schedules.filter(s => s.channelName !== channelName);
+    const newItems: ScheduleItem[] = harmonizeReport.harmonizedSchedule.map((it: any, idx: number) => ({
+      id: `sched-harm-${Date.now()}-${idx}`,
+      channelName,
+      startTime: it.startTime,
+      title: it.title,
+      type: it.type,
+      duration: it.duration,
+      demandScore: 92,
+      targetAudience: it.targetAudience || 'General Audience',
+      aiRationale: it.aiRationale || 'Harmonized by AI Rundown Doctor for optimal broadcast flow.',
+      status: idx === 0 ? 'playing' : 'scheduled'
+    }));
+
+    onUpdateSchedules([...otherSchedules, ...newItems]);
+    setShowHarmonizerModal(false);
+    if (addToast) addToast("Harmonized lineup successfully deployed to playout engine!", "success");
+  };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -435,11 +511,32 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                   URL.revokeObjectURL(url);
                   if (addToast) addToast('Exported standard XMLTV EPG feed for smart TVs & aggregators', 'success');
                 }}
-                className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-[10px] font-mono flex items-center gap-1.5 transition"
+                className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 text-[10px] font-mono flex items-center gap-1.5 transition"
                 title="Export XMLTV EPG file for FAST platforms & Smart TV aggregators"
               >
                 <span>📡 Export XMLTV EPG</span>
               </button>
+
+              {/* AI Rundown Doctor button */}
+              <button
+                onClick={handleHarmonizeRundown}
+                disabled={isHarmonizing || filteredSchedules.length === 0}
+                className="px-2.5 py-1 rounded bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/60 text-[10px] font-mono flex items-center gap-1.5 transition disabled:opacity-50 shadow-sm"
+                title="AI Rundown Doctor: Verify structural integrity, resolve clock slippage, and auto-harmonize schedule"
+              >
+                {isHarmonizing ? (
+                  <>
+                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
+                    <span>Analyzing Lineup...</span>
+                  </>
+                ) : (
+                  <>
+                    <Stethoscope className="h-3 w-3 text-indigo-400" />
+                    <span>🩺 AI Rundown Doctor</span>
+                  </>
+                )}
+              </button>
+
               <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase">
                 {filteredSchedules.length} Items Scheduled
               </span>
@@ -595,6 +692,159 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
           )}
         </div>
       </div>
+
+      {/* AI Rundown Doctor Modal */}
+      {showHarmonizerModal && harmonizeReport && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-900 flex items-center justify-between bg-slate-900/40">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/30">
+                  <Stethoscope className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="font-display text-sm font-bold text-white flex items-center gap-2">
+                    AI Rundown Doctor — Lineup Diagnostics
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Channel: <span className="text-slate-200">{channelName}</span> • Powered by Gemini 3.8 Flash
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowHarmonizerModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 no-scrollbar">
+              
+              {/* Scorecard row */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl text-center">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">Structural Integrity</span>
+                  <span className="text-xl font-mono font-bold text-indigo-400">
+                    {harmonizeReport.integrityScore}<span className="text-xs text-slate-500">/100</span>
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl text-center">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">Rundown Health</span>
+                  <span className={`text-xs font-mono font-bold uppercase px-2 py-0.5 rounded inline-block mt-1 ${
+                    harmonizeReport.rundownHealth === 'HEALTHY'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : harmonizeReport.rundownHealth === 'WARNING'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                  }`}>
+                    {harmonizeReport.rundownHealth}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl text-center">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">Total Air Time</span>
+                  <span className="text-xl font-mono font-bold text-white">
+                    {harmonizeReport.totalDurationMinutes}<span className="text-xs text-slate-500"> mins</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Issues detected */}
+              <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block flex items-center gap-1.5">
+                  <Activity className="h-3.5 w-3.5 text-sky-400" />
+                  Structural Timing & Flow Audit
+                </span>
+                {harmonizeReport.issues.length === 0 ? (
+                  <div className="flex items-center gap-2 text-xs text-emerald-400 pt-1">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>Zero structural timing flaws or dead-air gaps detected.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-1 pt-1">
+                    {harmonizeReport.issues.map((iss, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs text-amber-300">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-400 mt-0.5" />
+                        <span>{iss}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Optimizations */}
+              {harmonizeReport.optimizations.length > 0 && (
+                <div className="p-3.5 bg-indigo-950/20 border border-indigo-900/40 rounded-xl space-y-2">
+                  <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                    Harmonization Recommendations
+                  </span>
+                  <ul className="space-y-1 text-xs text-slate-300 list-disc list-inside">
+                    {harmonizeReport.optimizations.map((opt, i) => (
+                      <li key={i} className="leading-relaxed">{opt}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Proposed Harmonized Lineup Preview */}
+              {harmonizeReport.harmonizedSchedule && harmonizeReport.harmonizedSchedule.length > 0 && (
+                <div>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                    Harmonized Sequence Matrix ({harmonizeReport.harmonizedSchedule.length} blocks)
+                  </span>
+                  <div className="border border-slate-800 rounded-xl overflow-hidden max-h-48 overflow-y-auto no-scrollbar">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-900 text-slate-400 font-mono text-[10px]">
+                        <tr>
+                          <th className="p-2">Start</th>
+                          <th className="p-2">Title</th>
+                          <th className="p-2">Type</th>
+                          <th className="p-2">Dur</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                        {harmonizeReport.harmonizedSchedule.map((blk, idx) => (
+                          <tr key={idx} className="hover:bg-slate-900/50">
+                            <td className="p-2 text-sky-400">{blk.startTime}</td>
+                            <td className="p-2 font-sans font-medium text-white truncate max-w-[200px]">{blk.title}</td>
+                            <td className="p-2 uppercase text-[10px] text-slate-400">{blk.type}</td>
+                            <td className="p-2 text-slate-300">{blk.duration}m</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-900 bg-slate-950 flex items-center justify-between gap-3">
+              <button
+                onClick={() => setShowHarmonizerModal(false)}
+                className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-850 text-xs font-semibold text-slate-400 hover:text-white border border-slate-800 transition"
+              >
+                Dismiss
+              </button>
+
+              <button
+                onClick={handleApplyHarmonized}
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-500/20 transition flex items-center gap-1.5"
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Apply Harmonized Lineup to Playout
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

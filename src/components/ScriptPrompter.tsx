@@ -17,7 +17,13 @@ import {
   Cpu, 
   RefreshCw,
   Eye,
-  Plus
+  Plus,
+  ShieldCheck,
+  ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  Radio,
+  Zap
 } from 'lucide-react';
 import { ScheduleItem } from '../types';
 
@@ -33,6 +39,23 @@ interface ScriptDraft {
   segmentType: string;
   body: string;
   durationSec: number;
+}
+
+interface ComplianceFlag {
+  category: string;
+  snippet: string;
+  severity: 'low' | 'medium' | 'high';
+  reason: string;
+  suggestedFix: string;
+}
+
+interface ComplianceResult {
+  rating: string;
+  subRatings?: string[];
+  safeForAir: boolean;
+  fccSafeHarborRequired: boolean;
+  summary: string;
+  flags: ComplianceFlag[];
 }
 
 export default function ScriptPrompter({ schedules, channelName, addToast }: ScriptPrompterProps) {
@@ -91,10 +114,22 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
   // AI draft states
   const [isDraftingAI, setIsDraftingAI] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
-  const [aiVibe, setAiVibe] = useState('engaging');
+  const [aiVibe, setAiVibe] = useState('formal');
+  const [aiGenre, setAiGenre] = useState<'program' | 'commercial' | 'breaking' | 'promo'>('program');
+  const [aiDurationSec, setAiDurationSec] = useState<number>(45);
+  const [aiInstructions, setAiInstructions] = useState<string>('');
+  const [lastAiTakeaways, setLastAiTakeaways] = useState<string[]>([]);
+
+  // Compliance Screening states
+  const [isAuditingCompliance, setIsAuditingCompliance] = useState(false);
+  const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);
 
   const prompterScrollRef = useRef<HTMLDivElement>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Pacing calculations
+  const wordCount = editedBody.trim() ? editedBody.trim().split(/\s+/).length : 0;
+  const targetWpm = Math.round((wordCount / (editedDuration || 1)) * 60);
 
   // Scroll effect
   useEffect(() => {
@@ -142,41 +177,112 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
     };
     setScripts(prev => [...prev, newScript]);
     setSelectedScriptId(newId);
+    setComplianceResult(null);
     addToast("Blank script draft initialized.", "success");
   };
 
-  // Simulated AI Script generation (using local templates + prompt details)
-  const handleAiScriptGenerate = () => {
-    if (!aiTopic) {
-      addToast("Please provide a topic or prompt for the AI draft script.", "error");
+  // Real Gemini AI Script generation
+  const handleAiScriptGenerate = async () => {
+    if (!aiTopic.trim()) {
+      addToast("Please provide a topic or subject for the AI broadcast script.", "error");
       return;
     }
     setIsDraftingAI(true);
-    setTimeout(() => {
-      let generatedBody = "";
-      if (aiVibe === 'formal') {
-        generatedBody = `Good evening and welcome to our premier linear broadcast block. In our focal segment tonight, we explore the intricate details of ${aiTopic}. As we analyze the latest developments and speak with accredited experts, we aim to present a comprehensive, balanced look at this unfolding story. Please stay with us for key insights, coming up next.`;
-      } else if (aiVibe === 'retro') {
-        generatedBody = `Hey there, night owls and synth riders! Tune in and gear up because we are dialing back the clock to take a deep look into ${aiTopic}. We are bringing you those warm VHS vibes, classic commercial breaks, and retro concept reels you know and love. Let's fire up the engine and dive straight into the grid right now.`;
-      } else {
-        generatedBody = `Hey, welcome back to the live show! Today we are diving into something absolutely huge: ${aiTopic}. You guys have been asking for this in the chat all week, so we are super excited to break it down. Don't forget to hit that subscribe button and drop your comments in the live feed. Let's get right into the action!`;
+    addToast("Synthesizing broadcast teleprompter script via Gemini 3.8 Flash...", "info");
+
+    try {
+      const response = await fetch('/api/ai/generate-script', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: aiTopic,
+          genre: aiGenre,
+          vibe: aiVibe,
+          targetDurationSec: aiDurationSec,
+          channelName,
+          hostName: "Jesse Lepota",
+          instructions: aiInstructions
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to generate script");
       }
 
       const newId = `sc-ai-${Date.now()}`;
       const newScript: ScriptDraft = {
         id: newId,
-        title: `AI Draft: ${aiTopic.slice(0, 30)}`,
-        segmentType: 'program',
-        body: generatedBody,
-        durationSec: 45
+        title: data.scriptTitle || `AI Draft: ${aiTopic.slice(0, 30)}`,
+        segmentType: data.segmentType || aiGenre,
+        body: data.scriptBody,
+        durationSec: data.estimatedDurationSec || aiDurationSec
       };
 
-      setScripts(prev => [...prev, newScript]);
+      setScripts(prev => [newScript, ...prev]);
       setSelectedScriptId(newId);
+      setEditedTitle(newScript.title);
+      setEditedBody(newScript.body);
+      setEditedDuration(newScript.durationSec);
+      if (data.keyTakeaways) {
+        setLastAiTakeaways(data.keyTakeaways);
+      }
+      setComplianceResult(null);
+      addToast("Emmy-standard teleprompter script generated successfully!", "success");
+    } catch (err: any) {
+      console.error(err);
+      addToast(`Error generating script: ${err.message}`, "error");
+    } finally {
       setIsDraftingAI(false);
-      setAiTopic('');
-      addToast("Gemini AI successfully drafted a professional segment script!", "success");
-    }, 1500);
+    }
+  };
+
+  // Run AI Standards & Practices Compliance Screening
+  const handleComplianceAudit = async () => {
+    if (!editedBody.trim()) {
+      addToast("Cannot screen an empty script.", "error");
+      return;
+    }
+
+    setIsAuditingCompliance(true);
+    addToast("Running FCC Title 47 & OFCOM compliance audit on active script...", "info");
+
+    try {
+      const res = await fetch('/api/ai/compliance-screen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentText: editedBody,
+          title: editedTitle,
+          targetDemographic: "Linear Primetime / FAST Audience"
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Compliance screening failed");
+      }
+
+      setComplianceResult({
+        rating: data.rating || "TV-PG",
+        subRatings: data.subRatings || [],
+        safeForAir: data.safeForAir,
+        fccSafeHarborRequired: data.fccSafeHarborRequired,
+        summary: data.summary,
+        flags: data.flags || []
+      });
+
+      if (data.safeForAir) {
+        addToast(`Content Cleared: Rated ${data.rating}. Safe for linear airplay.`, "success");
+      } else {
+        addToast(`Standards Warning: Content rated ${data.rating} requires editorial remediation.`, "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      addToast(`Compliance audit error: ${err.message}`, "error");
+    } finally {
+      setIsAuditingCompliance(false);
+    }
   };
 
   const handleImportCurrentlyPlaying = () => {
@@ -265,41 +371,77 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
           </div>
 
           {/* Gemini AI remark generator */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-5 shadow-lg">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-              <Cpu className="h-4 w-4 text-sky-400" />
-              Gemini Showremark Copilot
-            </h3>
+          <div className="rounded-xl border border-sky-500/20 bg-gradient-to-b from-sky-950/20 to-slate-950 p-5 shadow-lg relative overflow-hidden">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
+                <Cpu className="h-4 w-4 text-sky-400" />
+                Gemini Anchor Scriptwriter
+              </h3>
+              <span className="text-[9px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded">
+                gemini-3.8-flash
+              </span>
+            </div>
             <p className="text-[11px] text-slate-400 mb-3.5 leading-normal">
-              Need host intros, teaser scripts, or ad bumpers? Let CastPilot AI generate speech-optimized copy for you.
+              Produce broadcast-ready anchor intros, live sponsor reads, breaking news flashes, or Act teasers with calibrated words-per-minute pacing.
             </p>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] text-slate-400 font-semibold mb-1">What's the segment or topic about?</label>
+                <label className="block text-[10px] text-slate-400 font-semibold mb-1">Segment Topic or Story Wire</label>
                 <input
                   type="text"
-                  placeholder="e.g. EcoQuest Amazon expedition highlights"
+                  placeholder="e.g. Space exploration milestone / sponsor read / breaking news"
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-sky-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-slate-400 font-semibold mb-1">Segment Format</label>
+                  <select
+                    value={aiGenre}
+                    onChange={(e) => setAiGenre(e.target.value as any)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-xs text-white focus:outline-none"
+                  >
+                    <option value="program">Program Intro</option>
+                    <option value="commercial">Sponsor Live Read</option>
+                    <option value="breaking">Breaking Flash</option>
+                    <option value="promo">Teaser / Outro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 font-semibold mb-1">Target Duration</label>
+                  <select
+                    value={aiDurationSec}
+                    onChange={(e) => setAiDurationSec(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-xs text-white font-mono focus:outline-none"
+                  >
+                    <option value="15">15s (~35 words)</option>
+                    <option value="30">30s (~70 words)</option>
+                    <option value="45">45s (~100 words)</option>
+                    <option value="60">60s (~140 words)</option>
+                    <option value="90">90s (~210 words)</option>
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[10px] text-slate-400 font-semibold mb-1">Presenter Vibe</label>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-4 gap-1">
                   {[
-                    { id: 'engaging', label: 'Casual / Live' },
-                    { id: 'formal', label: 'News / Anchor' },
-                    { id: 'retro', label: 'Retro / Synth' },
+                    { id: 'formal', label: 'News' },
+                    { id: 'engaging', label: 'Live' },
+                    { id: 'retro', label: 'LateNight' },
+                    { id: 'urgent', label: 'Urgent' }
                   ].map(v => (
                     <button
                       key={v.id}
                       onClick={() => setAiVibe(v.id)}
                       className={`py-1 text-[10px] font-semibold border rounded transition ${
                         aiVibe === v.id
-                          ? 'bg-sky-500/15 border-sky-500/30 text-sky-300'
+                          ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
                           : 'bg-slate-900 border-slate-850 text-slate-400 hover:bg-slate-850'
                       }`}
                     >
@@ -309,23 +451,46 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
                 </div>
               </div>
 
+              <div>
+                <label className="block text-[10px] text-slate-400 font-semibold mb-1">Presenter Directions (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Include cue for Cam 2, mention sponsor discount code"
+                  value={aiInstructions}
+                  onChange={(e) => setAiInstructions(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-xs text-white placeholder-slate-600 focus:outline-none"
+                />
+              </div>
+
               <button
                 onClick={handleAiScriptGenerate}
                 disabled={isDraftingAI}
-                className="w-full py-1.5 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-xs font-bold text-white rounded-lg transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-xs font-bold text-white rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20 disabled:opacity-50"
               >
                 {isDraftingAI ? (
                   <>
                     <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    Drafting host script...
+                    Synthesizing Teleprompter Copy...
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-3.5 w-3.5" />
-                    Generate Script Remarks
+                    Generate Broadcast Script
                   </>
                 )}
               </button>
+
+              {lastAiTakeaways.length > 0 && (
+                <div className="mt-2 p-2 bg-slate-900/80 rounded-lg border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                  <span className="font-semibold text-slate-300 uppercase tracking-wider block">AI Key Segments:</span>
+                  {lastAiTakeaways.map((point, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <span className="h-1 w-1 rounded-full bg-sky-400" />
+                      <span>{point}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -337,18 +502,18 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
           <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 shadow-xl space-y-4">
             
             {/* Title / Duration edit line */}
-            <div className="grid gap-4 sm:grid-cols-4 items-end">
-              <div className="sm:col-span-3">
+            <div className="grid gap-4 sm:grid-cols-12 items-end">
+              <div className="sm:col-span-6">
                 <label className="block text-[10px] text-slate-400 font-semibold mb-1">Segment Title</label>
                 <input
                   type="text"
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-semibold mb-1">Pacing read time (Sec)</label>
+              <div className="sm:col-span-3">
+                <label className="block text-[10px] text-slate-400 font-semibold mb-1">Air Duration (Sec)</label>
                 <input
                   type="number"
                   value={editedDuration}
@@ -358,15 +523,24 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
                   max="600"
                 />
               </div>
+              <div className="sm:col-span-3 bg-slate-900/80 border border-slate-800 rounded-lg p-2 flex flex-col justify-center">
+                <span className="text-[9px] text-slate-400 uppercase font-semibold">Pacing Telemetry</span>
+                <span className="text-xs font-mono font-bold text-white">
+                  {wordCount} words <span className="text-slate-500">|</span> {targetWpm} WPM
+                </span>
+              </div>
             </div>
 
             {/* Script Text Body Area */}
             <div>
-              <label className="block text-[10px] text-slate-400 font-semibold mb-1.5">Presenter Speech Copy</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[10px] text-slate-400 font-semibold">Presenter Speech Copy (Teleprompter Feed)</label>
+                <span className="text-[10px] text-slate-500 font-mono">Stage cues in [BRACKETS] are highlighted for talent</span>
+              </div>
               <textarea
                 value={editedBody}
                 onChange={(e) => setEditedBody(e.target.value)}
-                rows={8}
+                rows={9}
                 className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-sky-500 leading-relaxed font-sans"
                 placeholder="Write script content here..."
               />
@@ -374,13 +548,32 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
 
             {/* Control Tray */}
             <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-900 flex-wrap">
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handleSaveScript}
                   className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
                 >
                   <Save className="h-3.5 w-3.5 text-sky-400" />
                   Save Draft
+                </button>
+
+                {/* AI Compliance Audit Button */}
+                <button
+                  onClick={handleComplianceAudit}
+                  disabled={isAuditingCompliance || !editedBody.trim()}
+                  className="px-3.5 py-1.5 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-800/60 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isAuditingCompliance ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-400" />
+                      Auditing Standards...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                      AI S&P Compliance Audit
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -394,6 +587,65 @@ export default function ScriptPrompter({ schedules, channelName, addToast }: Scr
                 </button>
               </div>
             </div>
+
+            {/* Compliance Screening Results Box */}
+            {complianceResult && (
+              <div className={`p-4 rounded-xl border transition-all ${
+                complianceResult.safeForAir 
+                  ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200' 
+                  : 'bg-amber-950/30 border-amber-800/50 text-amber-200'
+              }`}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    {complianceResult.safeForAir ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                    )}
+                    <span className="font-bold text-xs uppercase tracking-wide">
+                      {complianceResult.safeForAir ? "FCC / OFCOM Clearance: Passed" : "Broadcast Standards Warning"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded font-mono font-bold text-xs bg-slate-900 border border-slate-700 text-white">
+                      Rating: {complianceResult.rating}
+                    </span>
+                    {complianceResult.fccSafeHarborRequired && (
+                      <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-red-950 border border-red-800 text-red-300">
+                        FCC Safe Harbor (10 PM - 6 AM Only)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300 mb-2 leading-relaxed">
+                  {complianceResult.summary}
+                </p>
+
+                {complianceResult.flags && complianceResult.flags.length > 0 && (
+                  <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-800/80">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                      Standards Flags & Suggested Remediation:
+                    </span>
+                    {complianceResult.flags.map((flag, idx) => (
+                      <div key={idx} className="p-2 bg-slate-900/90 border border-slate-800 rounded-lg text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-amber-400 text-[11px]">{flag.category}: "{flag.snippet}"</span>
+                          <span className="text-[9px] uppercase px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-mono">
+                            {flag.severity} risk
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">{flag.reason}</p>
+                        <p className="text-[11px] text-emerald-300 font-mono">
+                          Suggested alternative: <span className="underline">{flag.suggestedFix}</span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
 

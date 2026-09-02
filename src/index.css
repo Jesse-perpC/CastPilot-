@@ -71,42 +71,87 @@
 /* Light Theme Overrides for Day Studio Mode */
 html.light-theme, 
 html.light-theme body {
-  background-color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
+/* Card & Surface elevation */
 html.light-theme .bg-slate-950 {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
 }
 
 html.light-theme .bg-slate-900 {
   background-color: #ffffff !important;
 }
 
-html.light-theme .bg-slate-900\/90,
+html.light-theme .bg-slate-850 {
+  background-color: #f8fafc !important;
+}
+
+html.light-theme .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
 html.light-theme .bg-slate-900\/95,
+html.light-theme .bg-slate-900\/90,
 html.light-theme .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html.light-theme .bg-slate-950\/95,
+html.light-theme .bg-slate-950\/90,
+html.light-theme .bg-slate-950\/80 {
   background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
-html.light-theme .bg-slate-950\/90,
-html.light-theme .bg-slate-950\/95 {
-  background-color: rgba(248, 250, 252, 0.95) !important;
+html.light-theme .bg-slate-950\/40,
+html.light-theme .bg-slate-950\/50,
+html.light-theme .bg-slate-950\/60,
+html.light-theme .bg-slate-900\/60,
+html.light-theme .bg-slate-900\/50,
+html.light-theme .bg-slate-900\/40,
+html.light-theme .bg-slate-900\/30,
+html.light-theme .bg-slate-900\/20 {
+  background-color: #f8fafc !important;
 }
 
+html.light-theme .bg-slate-800\/50,
+html.light-theme .bg-slate-800\/80 {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+}
+
+/* Borders */
 html.light-theme .border-slate-800,
+html.light-theme .border-slate-850,
 html.light-theme .border-slate-800\/80,
-html.light-theme .border-slate-800\/60 {
+html.light-theme .border-slate-800\/60,
+html.light-theme .border-slate-800\/40 {
   border-color: #e2e8f0 !important;
 }
 
-html.light-theme .border-slate-900 {
+html.light-theme .border-slate-900,
+html.light-theme .border-slate-900\/80,
+html.light-theme .border-slate-900\/60 {
   border-color: #cbd5e1 !important;
 }
 
+/* Hover states */
+html.light-theme .hover\:bg-slate-800:hover,
+html.light-theme .hover\:bg-slate-850:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.light-theme .hover\:bg-slate-900:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Typography contrast */
+html.light-theme h1,
+html.light-theme h2,
+html.light-theme h3,
+html.light-theme h4,
 html.light-theme .text-slate-100,
-html.light-theme .text-slate-200,
-html.light-theme .text-white {
+html.light-theme .text-slate-200 {
   color: #0f172a !important;
 }
 
@@ -119,20 +164,17 @@ html.light-theme .text-slate-500 {
   color: #64748b !important;
 }
 
-html.light-theme .bg-slate-800 {
-  background-color: #f1f5f9 !important;
+html.light-theme .text-slate-600 {
+  color: #94a3b8 !important;
 }
 
-html.light-theme .bg-slate-800\/50,
-html.light-theme .bg-slate-800\/80 {
-  background-color: rgba(241, 245, 249, 0.8) !important;
-}
-
+/* Panels and Containers */
 html.light-theme .dark-panel {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
 
+/* Inputs and Forms */
 html.light-theme input,
 html.light-theme select,
 html.light-theme textarea {
@@ -149,6 +191,42 @@ html.light-theme textarea::placeholder {
 html.light-theme option {
   background-color: #ffffff !important;
   color: #0f172a !important;
+}
+
+/* Nav fade masks in Header */
+html.light-theme .from-slate-950 {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255, 255, 255, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #ffffff var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+/* Colored buttons, badges, and chips MUST retain crisp white text */
+html.light-theme button.bg-sky-500,
+html.light-theme button.bg-sky-600,
+html.light-theme button.bg-indigo-600,
+html.light-theme button.bg-indigo-500,
+html.light-theme button.bg-rose-600,
+html.light-theme button.bg-rose-500,
+html.light-theme button.bg-emerald-600,
+html.light-theme button.bg-emerald-500,
+html.light-theme button.bg-purple-600,
+html.light-theme button.bg-amber-600,
+html.light-theme [class*="bg-sky-500"] > span.text-white,
+html.light-theme [class*="bg-sky-600"] > span.text-white,
+html.light-theme [class*="bg-indigo-600"] > span.text-white,
+html.light-theme [class*="bg-rose-600"] > span.text-white,
+html.light-theme [class*="bg-emerald-600"] > span.text-white,
+html.light-theme .btn-primary {
+  color: #ffffff !important;
+}
+
+/* Broadcast SDI/NDI monitors, live canvas players, audio meters, and teleprompter screen maintain high-contrast dark monitor appearance */
+html.light-theme #playout-monitor-canvas,
+html.light-theme .broadcast-monitor,
+html.light-theme .video-canvas-container,
+html.light-theme .prompter-display-screen,
+html.light-theme [id*="canvas"] {
+  background-color: #020617 !important;
 }
 
 

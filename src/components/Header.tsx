@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone } from 'lucide-react';
+import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone, Keyboard, Sparkles } from 'lucide-react';
 import { ConflictAlert, ContentAsset, ScheduleItem, ResourceAsset } from '../types';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n';
 import { useTheme } from '../ThemeContext';
@@ -17,6 +17,8 @@ interface HeaderProps {
   onSelectAsset?: (asset: ContentAsset) => void;
   onSelectSchedule?: (schedule: ScheduleItem) => void;
   onSelectResource?: (resource: ResourceAsset) => void;
+  onOpenHotkeys?: () => void;
+  onOpenPresets?: () => void;
 }
 
 const RBAC_ROLES = [
@@ -45,6 +47,8 @@ export default function Header({
   onSelectAsset,
   onSelectSchedule,
   onSelectResource,
+  onOpenHotkeys,
+  onOpenPresets,
 }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -244,6 +248,31 @@ export default function Header({
               </>
             )}
           </button>
+
+          {/* 1-Click Channel Presets Button */}
+          {onOpenPresets && (
+            <button
+              onClick={onOpenPresets}
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-amber-300 hover:text-white hover:bg-amber-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0"
+              title="1-Click Broadcast Channel Archetype Presets"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Presets</span>
+            </button>
+          )}
+
+          {/* Master Control Keyboard Shortcuts HUD */}
+          {onOpenHotkeys && (
+            <button
+              onClick={onOpenHotkeys}
+              className="flex items-center gap-1.5 rounded-lg bg-sky-500/10 border border-sky-500/30 px-2.5 py-1.5 text-sky-300 hover:text-white hover:bg-sky-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0"
+              title="Studio Keyboard Hotkeys (Press ?)"
+            >
+              <Keyboard className="h-3.5 w-3.5 text-sky-400" />
+              <span className="hidden sm:inline">Hotkeys</span>
+              <kbd className="hidden md:inline px-1 py-0.5 bg-slate-950/80 border border-slate-700/80 rounded font-mono text-[9px] text-sky-400 font-bold">?</kbd>
+            </button>
+          )}
 
           {/* Alarm Indicator */}
           {unresolvedAlerts.length > 0 ? (

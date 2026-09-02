@@ -148,6 +148,60 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
     isGeneratingBrief: false
   });
 
+  // AI Audience Engagement Synthesizer state (v2.0)
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const [aiTopicInput, setAiTopicInput] = useState('');
+
+  const handleSynthesizeEngagement = async (type: 'poll' | 'ticker' | 'trivia') => {
+    setIsSynthesizing(true);
+    if (addToast) addToast(`Synthesizing broadcast ${type} via Gemini 3.8 Flash...`, 'info');
+
+    try {
+      const res = await fetch('/api/ai/synthesize-engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelName,
+          type,
+          currentTopic: aiTopicInput.trim() || "Live broadcast programming, viewer decisions, and breaking coverage",
+          count: type === 'ticker' ? 4 : 1
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to synthesize engagement items");
+      }
+
+      if (type === 'poll' && data.items && data.items.length > 0) {
+        const item = data.items[0];
+        setPollQuestionInput(item.question || '');
+        if (item.options && item.options.length >= 2) {
+          setPollOption1Input(item.options[0]);
+          setPollOption2Input(item.options[1]);
+        }
+        if (addToast) addToast(`AI Poll synthesized: "${item.question}"`, 'success');
+      } else if (type === 'ticker' && data.items && data.items.length > 0) {
+        const combinedTicker = data.items.map((it: any) => it.headline || it.content).join(' • ');
+        updateSettings({ tickerText: combinedTicker });
+        if (addToast) addToast(`AI Tickers synthesized and deployed to live crawl!`, 'success');
+      } else if (type === 'trivia' && data.items && data.items.length > 0) {
+        const item = data.items[0];
+        setPollQuestionInput(`TRIVIA: ${item.question}`);
+        if (item.options && item.options.length >= 2) {
+          setPollOption1Input(item.options[0]);
+          setPollOption2Input(item.options[1]);
+        }
+        if (addToast) addToast(`AI Broadcast Trivia synthesized!`, 'success');
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (addToast) addToast(`Engagement error: ${err.message}`, 'error');
+    } finally {
+      setIsSynthesizing(false);
+    }
+  };
+
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch full state from server on load and periodically
@@ -1128,11 +1182,41 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
                     {settings.tickerVisible ? 'Graphic Enabled' : 'Graphic Hidden'}
                   </button>
                 </div>
+
+                {/* AI Ticker Generator Toolbar */}
+                <div className="flex gap-2 items-center bg-slate-900/60 p-2 rounded-lg border border-slate-850">
+                  <input
+                    type="text"
+                    value={aiTopicInput}
+                    onChange={(e) => setAiTopicInput(e.target.value)}
+                    placeholder="Context / topic for AI (e.g. Breaking news, sports, weather, sponsor)..."
+                    className="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSynthesizeEngagement('ticker')}
+                    disabled={isSynthesizing}
+                    className="px-3 py-1 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded flex items-center gap-1.5 transition disabled:opacity-50 shrink-0"
+                  >
+                    {isSynthesizing ? (
+                      <>
+                        <RefreshCw className="h-3 w-3 animate-spin" />
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3" />
+                        <span>AI Synthesize Ticker</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 <input
                   type="text"
                   value={settings.tickerText}
                   onChange={(e) => updateSettings({ tickerText: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white font-mono"
                   placeholder="Insert ticker tape copy..."
                 />
                 <p className="text-[10px] text-slate-500 font-mono">
@@ -1154,6 +1238,37 @@ export default function EngagementStudio({ channelName, addToast }: EngagementSt
                   >
                     {poll.isActive ? 'Poll Active' : 'Poll Closed'}
                   </button>
+                </div>
+
+                {/* AI Poll & Trivia Generator Toolbar */}
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-slate-900/60 p-2.5 rounded-lg border border-slate-850">
+                  <input
+                    type="text"
+                    value={aiTopicInput}
+                    onChange={(e) => setAiTopicInput(e.target.value)}
+                    placeholder="AI topic / question prompt (e.g. Viewer favorite scene, prime-time choice)..."
+                    className="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  />
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleSynthesizeEngagement('poll')}
+                      disabled={isSynthesizing}
+                      className="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded flex items-center gap-1 transition disabled:opacity-50"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      AI Poll
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSynthesizeEngagement('trivia')}
+                      disabled={isSynthesizing}
+                      className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded flex items-center gap-1 transition disabled:opacity-50"
+                    >
+                      <Award className="h-3 w-3" />
+                      AI Trivia
+                    </button>
+                  </div>
                 </div>
 
                 <form onSubmit={handleLaunchNewPoll} className="space-y-3">

@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Runtime-Node.js_18%2B-10b981?style=for-the-badge&logo=nodedotjs&logoColor=fff" alt="Node v18+" />
   <img src="https://img.shields.io/badge/Frontend-React_18_--_Vite-ec4899?style=for-the-badge&logo=react&logoColor=fff" alt="React + Vite" />
   <img src="https://img.shields.io/badge/Backend-Express_TS-6366f1?style=for-the-badge&logo=express&logoColor=fff" alt="Express TS" />
-  <img src="https://img.shields.io/badge/AI-Gemini_Pro-f59e0b?style=for-the-badge&logo=google&logoColor=fff" alt="Gemini Powered" />
+  <img src="https://img.shields.io/badge/AI-Gemini_3.8_Flash-8b5cf6?style=for-the-badge&logo=google&logoColor=fff" alt="Gemini 3.8 Flash" />
 </p>
 
 ---
@@ -70,9 +70,14 @@ CastPilot bridges the gap between uncompressed IP television standards and flexi
 * **Dynamic Polling & Analytics**: Deploy instant choice polls with automated voting simulators that render live, animated bar chart analytics directly inside the broadcast monitor and the browser source.
 * **Soundboard Event Alerts**: Instantly fire highly stylized follower, subscriber, cheer, and donor alerts.
 
-### 5. 🗄️ Media Asset Management (MAM) & Gemini AI
-* **Intelligent Metadata Enrichment**: Leverages **Google Gemini** server-side APIs to automatically analyze program descriptions, generate technical tags, write compliance ratings, and synthesize promotional copy.
-* **Asset Library**: High-speed, responsive search, filter, and scheduling drawers for video files, live feeds, and ad filler segments.
+### 5. 🧠 Advanced Broadcast AI Suite (Powered by Gemini 3.8 Flash)
+* **AI Teleprompter & Live Broadcast Scriptwriter**: Generates professional SMPTE broadcast scripts with automatic segment slugs, anchor spoken copy, technical stage directions (`[CAMERA 1]`, `[GFX: LOWER THIRD]`), precise duration pacing, and customizable broadcast tone (News Anchor, Sports Desk, Late-Night, Investigative).
+* **AI Standards & Practices (S&P) Compliance Screening**: Real-time regulatory audit engine analyzing scripts against **FCC Title 47 CFR Part 73**, **OFCOM Broadcasting Code**, CAP Code, defamation, indecency, and violence. Returns an overall compliance score, risk level, pass/fail status, and timestamped flag locations with recommended editorial mitigations.
+* **AI Rundown Doctor & Schedule Harmonizer**: Automated lineup diagnostic engine that analyzes the entire broadcast day, calculates an overall Rundown Integrity Score, flags timing drift / under-runs / over-runs, and generates a harmonized schedule with commercial pad optimizations to ensure 0-frame gapless playout.
+* **AI SCTE-35 Dynamic Ad Insertion (DPI) Optimizer**: Ingests program metadata and narrative flow to identify non-disruptive, viewer-friendly ad splice insertion points placed at natural scene boundaries and dialogue pauses.
+* **AI Closed Captioning & Multilingual Subtitles (CEA-708 / WebVTT)**: Synthesizes timecoded broadcast subtitles in English, Spanish, and French conforming to **FCC 79.1 Closed Captioning Rules**, complete with direct `.vtt` file download for playout downlinks.
+* **AI Audience Engagement & Interactive Overlays**: Synthesizes real-time news crawler tickers, interactive viewer decision polls, and broadcast trivia quizzes to boost live audience retention.
+* **Intelligent MAM Metadata Enrichment**: Automatically analyzes program descriptions, generates technical and editorial tags, writes compliance ratings (TV-G through TV-MA), and synthesizes marketing promotional copy.
 
 ### 6. 📅 Timeline Schedule & SCTE Analyzers
 * **Conflict Detection Engine**: Analyzes scheduled blocks and alerts programmers of overlap collisions, structural programming gaps, and SCTE marker timing conflicts in real-time.
@@ -130,6 +135,22 @@ CastPilot exposes standard RESTful endpoints for integration into broadcast auto
 | `POST` | `/api/standards/as-run/entry` | Ingests verified as-run performance record for billing reconciliation. |
 | `POST` | `/api/standards/scte104/inject` | Formats and injects SCTE-104 DPI splice cue into VANC PID `0x0104`. |
 | `GET` | `/api/standards/audit` | Generates official Tier-1 Major Broadcast Network Readiness Audit certificate. |
+
+---
+
+## 🤖 ADVANCED BROADCAST AI API ENDPOINTS (GEMINI 3.8 FLASH)
+
+CastPilot exposes dedicated enterprise AI endpoints powered by Google Gemini 3.8 Flash for real-time editorial, compliance, and playout intelligence:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/ai/generate-script` | Synthesizes SMPTE-formatted teleprompter scripts with segment slugs, anchor dialogue, tech cues, and duration pacing. |
+| `POST` | `/api/ai/compliance-screen` | Audits teleprompter scripts against FCC Title 47 CFR Part 73, OFCOM, CAP, defamation, and indecency regulations. |
+| `POST` | `/api/ai/harmonize-rundown` | Diagnoses playout rundown integrity, detects timing drift / gaps, and generates a zero-frame harmonized schedule. |
+| `POST` | `/api/ai/optimize-ad-breaks` | Analyzes media asset narrative flow and returns optimized SCTE-35 DPI splice cues at natural scene breaks. |
+| `POST` | `/api/ai/generate-subtitles` | Generates multilingual (EN/ES/FR) CEA-708 captions and raw WebVTT files meeting FCC 79.1 compliance. |
+| `POST` | `/api/ai/synthesize-engagement` | Generates real-time news crawler tickers, interactive viewer decision polls, and broadcast trivia. |
+| `POST` | `/api/ai/analyze-metadata` | Enriches MAM assets with synopsis, tags, technical keywords, and FCC/MPAA ratings. |
 
 ---
 

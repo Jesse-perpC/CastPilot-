@@ -1504,6 +1504,22 @@ export default function PlayoutController({
     }
   };
 
+  // Studio Master Control hotkey listener
+  useEffect(() => {
+    const handleEmergencyHotkey = () => {
+      toggleEas();
+    };
+    const handleScteHotkey = () => {
+      triggerScteAdBreak();
+    };
+    window.addEventListener('studio-hotkey-emergency', handleEmergencyHotkey);
+    window.addEventListener('studio-hotkey-scte35', handleScteHotkey);
+    return () => {
+      window.removeEventListener('studio-hotkey-emergency', handleEmergencyHotkey);
+      window.removeEventListener('studio-hotkey-scte35', handleScteHotkey);
+    };
+  }, [easState.active]);
+
   const formatDuration = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;

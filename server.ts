@@ -978,7 +978,7 @@ app.post("/api/schedule/generate", async (req, res) => {
 
     console.log("Calling Gemini API for schedule generation...");
     const response = await client.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.8-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -1149,7 +1149,7 @@ app.post("/api/mam/enrich", async (req, res) => {
 
     console.log(`Enriching asset ${asset.title} with Gemini...`);
     const response = await client.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.8-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -1189,6 +1189,473 @@ app.post("/api/mam/enrich", async (req, res) => {
   } catch (error: any) {
     console.error("Gemini asset enrichment error:", error);
     res.status(500).json({ error: "Failed to enrich asset with AI", message: error.message });
+  }
+});
+
+
+// ==========================================
+// ADVANCED BROADCAST AI SUITE ENDPOINTS
+// ==========================================
+
+// 1. AI Broadcast Teleprompter & Anchor Script Studio
+app.post("/api/ai/generate-script", async (req, res) => {
+  const { topic, genre, vibe, targetDurationSec = 45, channelName = "FAST Entertainment", hostName = "Jesse Lepota", instructions } = req.body;
+  if (!topic) {
+    return res.status(400).json({ error: "Missing topic for script generation" });
+  }
+
+  const client = getGeminiClient();
+  if (!client) {
+    const mockWordCount = Math.round((targetDurationSec || 45) * 2.3);
+    const mockScript = `[CAMERA 1 - HOST CLOSEUP]\n\n"Good evening and welcome back to ${channelName}. I'm your host, ${hostName}.\n\nTonight, we are zeroing in on a story that is captivating audiences worldwide: ${topic}. [PAUSE - GRAPHIC INSERT OVERLAY]\n\nOver the course of the next hour, our investigative correspondents and industry analysts break down the unprecedented developments, what it means for the wider ecosystem, and what we can anticipate next.\n\n[TRANSITION TO B-ROLL]\n\nStay with us as we unpack ${topic}—only on ${channelName}."`;
+
+    return res.json({
+      success: true,
+      scriptTitle: `Anchor Segment: ${topic.slice(0, 35)}`,
+      scriptBody: mockScript,
+      segmentType: genre || "program",
+      estimatedDurationSec: targetDurationSec,
+      estimatedWords: mockWordCount,
+      suggestedPrompterSpeed: 3,
+      keyTakeaways: [`Comprehensive overview of ${topic}`, "Correspondent reports & analysis", "Lead-in to upcoming primetime block"],
+      source: "local-broadcast-engine"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are an Emmy-winning television broadcast director and executive scriptwriter for a Tier-1 television network / FAST channel called "${channelName}".
+      Write an on-air broadcast teleprompter script for anchor/host "${hostName}".
+      
+      Parameters:
+      - Topic/Subject: "${topic}"
+      - Vibe/Tone: "${vibe || 'engaging'}" (e.g., formal news, energetic live, late-night retro, breaking urgency)
+      - Segment Type: "${genre || 'program'}" (e.g., program intro, commercial sponsor read, promo teaser, breaking news)
+      - Target Air Duration: Approximately ${targetDurationSec} seconds (Standard broadcast reading rate is ~130-145 words per minute, so aim for ~${Math.round(targetDurationSec * 2.25)} spoken words).
+      - Special Instructions: "${instructions || 'Include realistic stage cues in brackets like [PAUSE], [LOOK TO CAM 2], [LOWER-THIRD GRAPHIC]. Write in natural spoken teleprompter syntax without difficult tongue-twisters.'}"
+
+      Return strictly valid JSON matching this schema:
+      {
+        "scriptTitle": "Short punchy broadcast title",
+        "scriptBody": "Complete formatted teleprompter text with stage directions in brackets",
+        "estimatedWords": number,
+        "estimatedDurationSec": number,
+        "suggestedPrompterSpeed": number,
+        "keyTakeaways": ["Point 1", "Point 2", "Point 3"]
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.7,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      scriptTitle: parsed.scriptTitle || `Anchor Segment: ${topic.slice(0, 35)}`,
+      scriptBody: parsed.scriptBody || "",
+      segmentType: genre || "program",
+      estimatedDurationSec: parsed.estimatedDurationSec || targetDurationSec,
+      estimatedWords: parsed.estimatedWords || Math.round(targetDurationSec * 2.2),
+      suggestedPrompterSpeed: parsed.suggestedPrompterSpeed || 3,
+      keyTakeaways: parsed.keyTakeaways || [],
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini script generation error:", error);
+    res.status(500).json({ error: "Failed to generate script", message: error.message });
+  }
+});
+
+// 2. AI Broadcast Standards & Practices (S&P) Compliance Screener
+app.post("/api/ai/compliance-screen", async (req, res) => {
+  const { contentText, title = "Untitled Segment", targetDemographic = "General Audience" } = req.body;
+  if (!contentText) {
+    return res.status(400).json({ error: "Missing contentText for compliance screening" });
+  }
+
+  const client = getGeminiClient();
+  if (!client) {
+    return res.json({
+      success: true,
+      rating: "TV-PG",
+      subRatings: ["L"],
+      safeForAir: true,
+      fccSafeHarborRequired: false,
+      summary: "Simulated Broadcast S&P Audit: Content adheres to daytime linear transmission standards with no severe FCC Title 47 indecency violations.",
+      flags: [],
+      source: "local-compliance-engine"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are the Chief Standards & Practices (S&P) Compliance Officer for a major broadcast television network.
+      Audit the following broadcast text / script for FCC (US Title 47), UK OFCOM, and advertiser safety compliance:
+      
+      Content Title: "${title}"
+      Target Demographic: "${targetDemographic}"
+      Script/Content Text:
+      """
+      ${contentText}
+      """
+
+      Evaluate:
+      1. Profanity, obscenity, or indecency (FCC 10pm-6am Safe Harbor requirements).
+      2. Defamation, unsubstantiated allegations, or legal liability risks.
+      3. Violence, self-harm, or graphic themes.
+      4. Sponsor / Commercial conflict or hidden product endorsement concerns.
+      5. Appropriate official TV Content Rating: TV-Y, TV-Y7, TV-G, TV-PG, TV-14, or TV-MA, with optional sub-ratings (V, S, L, D).
+
+      Return output strictly as JSON matching this schema:
+      {
+        "rating": "TV-G" | "TV-PG" | "TV-14" | "TV-MA",
+        "subRatings": ["L", "V"],
+        "safeForAir": boolean,
+        "fccSafeHarborRequired": boolean,
+        "summary": "2-3 sentence executive compliance summary",
+        "flags": [
+          {
+            "category": "Profanity" | "Sponsor Conflict" | "Violence" | "Sensationalism" | "Legal",
+            "snippet": "exact or approximate word/phrase",
+            "severity": "low" | "medium" | "high",
+            "reason": "explanation of violation",
+            "suggestedFix": "recommended broadcast-friendly alternative"
+          }
+        ]
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      rating: parsed.rating || "TV-PG",
+      subRatings: parsed.subRatings || [],
+      safeForAir: parsed.safeForAir !== undefined ? parsed.safeForAir : true,
+      fccSafeHarborRequired: parsed.fccSafeHarborRequired || false,
+      summary: parsed.summary || "Passed standards screening.",
+      flags: parsed.flags || [],
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini compliance screening error:", error);
+    res.status(500).json({ error: "Failed to screen content", message: error.message });
+  }
+});
+
+// 3. AI Dynamic Ad-Break & SCTE-35 Placement Optimizer
+app.post("/api/ai/optimize-ad-breaks", async (req, res) => {
+  const { assetTitle, durationMinutes = 30, category = "General", description = "" } = req.body;
+  
+  const client = getGeminiClient();
+  if (!client) {
+    const breaks = [];
+    if (durationMinutes >= 30) {
+      breaks.push({ timecode: "00:10:00", rationale: "Act I resolution & narrative pause", energyLevel: "Low dialogue", breakDurationSec: 120 });
+      breaks.push({ timecode: "00:20:00", rationale: "Act II midpoint tension cliffhanger", energyLevel: "Natural scene fade", breakDurationSec: 120 });
+    } else if (durationMinutes >= 15) {
+      breaks.push({ timecode: "00:07:30", rationale: "Midpoint feature break", energyLevel: "Low speech activity", breakDurationSec: 90 });
+    }
+    return res.json({
+      success: true,
+      recommendedCuePoints: breaks,
+      totalAdMinutes: breaks.length * 2,
+      adLoadPercentage: `${Math.round(((breaks.length * 2) / durationMinutes) * 100)}%`,
+      source: "local-optimizer"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are an expert FAST (Free Ad-supported Streaming TV) and linear broadcast monetization engineer.
+      Analyze this media asset and identify the optimal SCTE-35 DPI (Digital Program Insertion) ad break cue points.
+      
+      Asset Details:
+      - Title: "${assetTitle}"
+      - Duration: ${durationMinutes} minutes
+      - Category/Genre: "${category}"
+      - Synopsis: "${description || 'Standard episodic content'}"
+
+      FAST Industry Guidelines:
+      - Standard ad load is 8-14 minutes per hour (approx 2-4 minutes per 30 minutes).
+      - Ad breaks must occur at natural narrative pauses, scene transitions, or act climaxes to avoid jarring mid-dialogue interruptions.
+      - Specify exact HH:MM:SS timestamps within 00:00:00 to 00:${String(durationMinutes).padStart(2, '0')}:00.
+
+      Return output strictly as JSON matching this schema:
+      {
+        "recommendedCuePoints": [
+          {
+            "timecode": "00:10:30",
+            "rationale": "Clear 2-sentence narrative explanation",
+            "energyLevel": "low" | "medium" | "fade-to-black",
+            "breakDurationSec": 90
+          }
+        ],
+        "totalAdMinutes": number,
+        "adLoadPercentage": "12%"
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.3,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      recommendedCuePoints: parsed.recommendedCuePoints || [],
+      totalAdMinutes: parsed.totalAdMinutes || 4,
+      adLoadPercentage: parsed.adLoadPercentage || "13%",
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini ad-break optimization error:", error);
+    res.status(500).json({ error: "Failed to optimize ad breaks", message: error.message });
+  }
+});
+
+// 4. AI Subtitle & Multilingual Closed Caption Generator (CEA-708 / WebVTT)
+app.post("/api/ai/generate-subtitles", async (req, res) => {
+  const { title, description = "", scriptText = "", targetLanguages = ["en", "es", "fr"] } = req.body;
+  
+  const client = getGeminiClient();
+  if (!client) {
+    const defaultEn = `WEBVTT\n\n1\n00:00:01.000 --> 00:00:04.500\nWelcome to ${title}.\n\n2\n00:00:05.000 --> 00:00:09.200\nToday we explore fascinating perspectives and live reporting.\n\n3\n00:00:09.800 --> 00:00:14.000\nStay tuned as our broadcast unfolds on CastPilot Network.`;
+    const defaultEs = `WEBVTT\n\n1\n00:00:01.000 --> 00:00:04.500\nBienvenidos a ${title}.\n\n2\n00:00:05.000 --> 00:00:09.200\nHoy exploramos fascinantes perspectivas y reportajes en vivo.\n\n3\n00:00:09.800 --> 00:00:14.000\nSintonice mientras nuestra transmisión continúa en CastPilot.`;
+    const defaultFr = `WEBVTT\n\n1\n00:00:01.000 --> 00:00:04.500\nBienvenue dans ${title}.\n\n2\n00:00:05.000 --> 00:00:09.200\nAujourd'hui, nous explorons des perspectives fascinantes.\n\n3\n00:00:09.800 --> 00:00:14.000\nRestez à l'écoute sur le réseau CastPilot.`;
+    return res.json({
+      success: true,
+      vttEnglish: defaultEn,
+      translations: { es: defaultEs, fr: defaultFr },
+      cueCount: 3,
+      source: "local-vtt-engine"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are a Broadcast Subtitle & Closed Captioning Specialist complying with FCC Section 79.1 and CEA-708 / WebVTT specifications.
+      Generate synchronized, accurately timed WebVTT closed captions for this broadcast asset:
+      - Title: "${title}"
+      - Description/Script: "${scriptText || description || 'Broadcast overview'}"
+
+      Requirements:
+      1. Output clean standard WebVTT format for English.
+      2. Provide translated WebVTT subtitles for Spanish (es) and French (fr).
+      3. Format with sequential cue numbers and timestamps (HH:MM:SS.mmm --> HH:MM:SS.mmm).
+      4. Maximum 32 characters per line, max 2 lines per cue for optimal television screen readability.
+
+      Return output strictly as JSON matching this schema:
+      {
+        "vttEnglish": "WEBVTT\\n\\n1\\n00:00:01.000 --> 00:00:04.000\\nText...",
+        "translations": {
+          "es": "WEBVTT\\n\\n1\\n00:00:01.000 --> 00:00:04.000\\nTexto en español...",
+          "fr": "WEBVTT\\n\\n1\\n00:00:01.000 --> 00:00:04.000\\nTexte en français..."
+        },
+        "cueCount": number
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.3,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      vttEnglish: parsed.vttEnglish || "WEBVTT",
+      translations: parsed.translations || {},
+      cueCount: parsed.cueCount || 4,
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini subtitle generation error:", error);
+    res.status(500).json({ error: "Failed to generate subtitles", message: error.message });
+  }
+});
+
+// 5. AI Broadcast Schedule Harmonizer & Rundown Doctor
+app.post("/api/ai/harmonize-rundown", async (req, res) => {
+  const { channelName = "FAST Entertainment", currentSchedules } = req.body;
+  const items: ScheduleItem[] = currentSchedules || schedules.filter(s => s.channelName === channelName);
+
+  const client = getGeminiClient();
+  if (!client) {
+    return res.json({
+      success: true,
+      overallHealthScore: 94,
+      diagnostics: [
+        { type: "clock_drift", description: "Schedule clock alignment verified against top-of-hour boundaries.", severity: "info" },
+        { type: "demographic_clash", description: "Audience flow transitions smoothly across morning and afternoon blocks.", severity: "info" }
+      ],
+      tacticalRecommendations: [
+        "Maintain 12-minute maximum hourly commercial cap to comply with FAST programmatic best practices.",
+        "Insert a 15-second station identity promo right before top-of-hour join."
+      ],
+      source: "local-doctor"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are the Chief Playout Traffic Director & Rundown Doctor for television network "${channelName}".
+      Audit the following broadcast schedule rundown for structural integrity, viewer retention flow, and commercial compliance:
+
+      Current Lineup:
+      ${JSON.stringify(items.map(i => ({ startTime: i.startTime, title: i.title, type: i.type, duration: i.duration, targetAudience: i.targetAudience })), null, 2)}
+
+      Analyze for:
+      1. Timing Gaps or Dead Air Risk.
+      2. Demographic Clashes (e.g. jarring tonal shifts between consecutive shows).
+      3. Ad-break clustering fatigue (e.g. back-to-back commercials).
+      4. Recommendations to achieve perfect :00/:30 clock alignment.
+
+      Return output strictly as JSON matching this schema:
+      {
+        "overallHealthScore": number,
+        "diagnostics": [
+          {
+            "type": "gap" | "demographic_clash" | "ad_fatigue" | "clock_drift" | "optimal",
+            "description": "Clear explanation",
+            "severity": "info" | "warning" | "critical"
+          }
+        ],
+        "tacticalRecommendations": ["Action 1", "Action 2", "Action 3"]
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.3,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      overallHealthScore: parsed.overallHealthScore || 92,
+      diagnostics: parsed.diagnostics || [],
+      tacticalRecommendations: parsed.tacticalRecommendations || [],
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini schedule doctor error:", error);
+    res.status(500).json({ error: "Failed to harmonize rundown", message: error.message });
+  }
+});
+
+// 6. AI Live News Ticker, Audience Poll & Breaking Banner Synthesizer
+app.post("/api/ai/synthesize-engagement", async (req, res) => {
+  const { topic, channelName = "FAST Entertainment", breaking = false } = req.body;
+  if (!topic) {
+    return res.status(400).json({ error: "Missing topic" });
+  }
+
+  const client = getGeminiClient();
+  if (!client) {
+    return res.json({
+      success: true,
+      tickers: [
+        `🚨 BREAKING: ${topic.toUpperCase()} • Live coverage continues across the network`,
+        `📈 DEVELOPING: Analysts and field correspondents weigh in on latest developments`,
+        `💬 COMMUNITY CHAT: Have your say in our live interactive viewer poll below`
+      ],
+      poll: {
+        question: `What is your take on ${topic}?`,
+        options: [
+          { text: "Strongly Support / Optimistic", votes: 45 },
+          { text: "Neutral / Awaiting Details", votes: 28 },
+          { text: "Concerned / Skeptical", votes: 19 }
+        ]
+      },
+      bannerAlert: {
+        headline: `SPECIAL REPORT: ${topic.toUpperCase()}`,
+        subtext: "Continuous live updates streaming now on CastPilot Master Control",
+        level: breaking ? "breaking" : "normal"
+      },
+      source: "local-synthesizer"
+    });
+  }
+
+  try {
+    const prompt = `
+      You are the Interactive Engagement Director for live broadcast channel "${channelName}".
+      Generate live on-screen audience graphics and interactive elements for the following story/topic:
+      
+      Topic/Story: "${topic}"
+      Breaking Status: ${breaking ? "CRITICAL / BREAKING NEWS" : "Standard Live Programming"}
+
+      Requirements:
+      1. Generate 3 broadcast crawler ticker lines (concise, high-impact, punctuated with bullet dots "•").
+      2. Generate an audience engagement live poll with a compelling question and 3 distinct options.
+      3. Generate a high-priority Lower-Third Banner Alert with punchy headline and informative subtext.
+
+      Return output strictly as JSON matching this schema:
+      {
+        "tickers": ["Line 1", "Line 2", "Line 3"],
+        "poll": {
+          "question": "Question text?",
+          "options": [
+            { "text": "Option 1", "votes": 35 },
+            { "text": "Option 2", "votes": 42 },
+            { "text": "Option 3", "votes": 18 }
+          ]
+        },
+        "bannerAlert": {
+          "headline": "UPPERCASE HEADLINE",
+          "subtext": "1-sentence context",
+          "level": "breaking" | "normal" | "emergency"
+        }
+      }
+    `;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.6,
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    return res.json({
+      success: true,
+      tickers: parsed.tickers || [],
+      poll: parsed.poll || { question: `Opinions on ${topic}?`, options: [] },
+      bannerAlert: parsed.bannerAlert || { headline: topic.toUpperCase(), subtext: "Live updates", level: "normal" },
+      source: "gemini-api"
+    });
+  } catch (error: any) {
+    console.error("Gemini engagement synthesis error:", error);
+    res.status(500).json({ error: "Failed to synthesize engagement assets", message: error.message });
   }
 });
 

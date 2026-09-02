@@ -6,174 +6,412 @@ import {
   Cpu, 
   Layers, 
   MessageSquare, 
-  Terminal, 
   CheckCircle2, 
   Sparkles, 
   ShieldAlert, 
   Smartphone, 
-  Laptop, 
-  TrendingUp, 
+  ChevronRight, 
+  Zap, 
+  HelpCircle, 
+  Copy, 
+  Check, 
+  ShieldCheck,
+  Volume2,
+  Video,
+  Radio,
+  FileText,
+  AlertTriangle,
+  Sliders,
+  Play,
+  Flame,
   Award,
-  ChevronRight,
-  ExternalLink,
-  Zap,
-  HelpCircle,
-  Copy,
-  Check,
-  ShieldCheck
+  Printer,
+  Keyboard,
+  MonitorCheck,
+  Terminal,
+  Download
 } from 'lucide-react';
 
 interface UserManualProps {
   setActiveTab: (tabId: string) => void;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  onOpenHotkeys?: () => void;
 }
 
 interface ManualSection {
   id: string;
-  category: 'core' | 'advanced' | 'blueprints' | 'faq';
+  category: 'beginner' | 'playout' | 'scheduling' | 'ai' | 'standards' | 'glossary' | 'faq';
   title: string;
   description: string;
   icon: React.ReactNode;
   content: React.ReactNode;
 }
 
-export default function UserManual({ setActiveTab, addToast }: UserManualProps) {
+export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: UserManualProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | 'core' | 'advanced' | 'blueprints' | 'faq'>('all');
-  const [expandedSectionId, setExpandedSectionId] = useState<string | null>('get-started');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'beginner' | 'playout' | 'scheduling' | 'ai' | 'standards' | 'glossary' | 'faq'>('all');
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>('beginner-quick-start');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedCheatSheet, setCopiedCheatSheet] = useState<boolean>(false);
 
   const handleCopy = (code: string, id: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(id);
-    addToast("Code snippet copied to clipboard!", "success");
+    addToast("Copied to clipboard!", "success");
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleCopyCheatSheet = () => {
+    const cheatSheet = `# CASTPILOT LIVE — CONTROL ROOM QUICK REFERENCE
+## Master Control Switcher Shortcuts
+- Space : CUT / TAKE (Preview to Program)
+- 1 - 4 : Direct Cut to Camera 1, 2, 3, or 4
+- E : Emergency Slate Kill Switch (Panic Screen)
+- C : SCTE-35 30s Commercial Ad Splice
+- S : Skip to Next Queued Item
+- M : Master Audio Mute
+- R : Instant Replay (15s @ 0.5x slow-mo)
+- T : Teleprompter Mirror Glass Mode
+- G : On-Air Lower Thirds & Ticker
+- ? : Studio Hotkeys HUD
+
+## Standard Operating Procedures
+1. Schedule Rundown: TV Schedule -> Click "AI Rundown Doctor" to seal gaps.
+2. Playout Feed: Playout MCR -> Verify Program tally (Red = On-Air).
+3. Redundancy: Primary and Backup DR mirror automatically.
+4. OBS Overlay: Add Browser Source -> https://[URL]/?overlay=true
+5. Audio Safe: ITU-R BS.1770 / EBU R128 (-24 LKFS standard).`;
+
+    navigator.clipboard.writeText(cheatSheet);
+    setCopiedCheatSheet(true);
+    addToast("Copied 1-Page Control Room Reference Sheet!", "success");
+    setTimeout(() => setCopiedCheatSheet(false), 2500);
+  };
+
+  const handlePrintGuide = () => {
+    window.print();
   };
 
   const manualSections: ManualSection[] = [
     {
-      id: 'get-started',
-      category: 'core',
-      title: 'Getting Started: The CastPilot Architecture',
-      description: 'Learn the fundamentals of Linear Playout, Media Asset Management (MAM), and FAST Scheduling.',
-      icon: <BookOpen className="h-5 w-5 text-sky-400" />,
+      id: 'beginner-quick-start',
+      category: 'beginner',
+      title: '🌱 Absolute Beginner Quick Start: Launch Your Broadcast in 5 Steps',
+      description: 'Never broadcasted before? Follow this simple 5-step checklist to get your channel running in 5 minutes.',
+      icon: <Sparkles className="h-5 w-5 text-emerald-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          <p>
-            Welcome to the <strong>CastPilot Executive Producer Console</strong> by <strong>Perp Corp Media</strong>. CastPilot is an industry-leading, enterprise-grade Linear FAST (Free Ad-Supported Streaming TV) playout and scheduling orchestration system architected by <strong>Jesse Lepota</strong> for tier-1 television networks, global OTT syndicators, and digital broadcasting studios.
-          </p>
-          <p>
-            Engineered at <strong>Perp Corp Media</strong>, CastPilot operates as a <strong>continuous linear playout broadcast engine</strong>. It orchestrates automated TV channels with sub-frame timing precision, ANSI/SCTE-35 digital cue splicing, multi-target RTMP/SRT stream distribution, and live audience interaction.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2">
-            <div className="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-sky-400 block uppercase">1. Ingest Media</span>
-              <p className="text-[11px] text-slate-400">
-                Load video assets (programs, ads, bumpers) into the Media Library (MAM) with precise durations and metadata taggings.
-              </p>
-            </div>
-            <div className="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-emerald-400 block uppercase">2. Sequence with AI</span>
-              <p className="text-[11px] text-slate-400">
-                Use the AI Scheduling engine to automatically generate seamless timelines with zero gaps, resolving schedule blockages instantly.
-              </p>
-            </div>
-            <div className="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-purple-400 block uppercase">3. Syndicate & Engage</span>
-              <p className="text-[11px] text-slate-400">
-                Syndicate to custom RTMP / HLS manifests, deploy interactive viewer tickers and engagement polls, and track ad yields.
-              </p>
-            </div>
+          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300">
+            <h4 className="font-bold text-sm text-emerald-200 flex items-center gap-2 mb-1">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              Welcome to Television Broadcasting Made Simple!
+            </h4>
+            <p className="text-xs text-emerald-300/90 leading-normal">
+              You do not need to be an engineer or understand confusing television jargon to use CastPilot. Follow these five straightforward steps to program and run your channel.
+            </p>
           </div>
 
-          <div className="bg-sky-500/10 border-l-4 border-sky-500 p-3.5 rounded-r-lg text-sky-300">
-            <strong>Pro Tip:</strong> Want to fast-track your setup? Go to the <strong>AI Scheduling</strong> tab, enter your channel topic, select the program duration pacing, and click <strong>"Instruct Gemini to Generate Linear Schedule"</strong>.
+          <div className="space-y-3 pt-1">
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 text-xs flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-mono text-[11px] font-bold">1</span>
+                  Check Your Media Assets
+                </span>
+                <button 
+                  onClick={() => setActiveTab('mam')}
+                  className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold underline flex items-center gap-1"
+                >
+                  Open Media Library &rarr;
+                </button>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Head to the <strong>Media (MAM)</strong> tab. Here you will find pre-loaded programs, sponsor ads, and short station bumpers. You can click <strong>"PFL Audition"</strong> on any video to watch it privately on your headphones without showing it to viewers.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 text-xs flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-mono text-[11px] font-bold">2</span>
+                  Generate a 24-Hour Lineup with AI
+                </span>
+                <button 
+                  onClick={() => setActiveTab('scheduler')}
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold underline flex items-center gap-1"
+                >
+                  Open TV Schedule &rarr;
+                </button>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Click the <strong>TV Schedule</strong> tab. In the AI prompt box, type what your channel is about (e.g. <em>"Action-packed nature shows and science discoveries"</em>) and click <strong>"Generate Linear Schedule"</strong>. The AI automatically plans a whole day of shows and commercial breaks for you.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 text-xs flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono text-[11px] font-bold">3</span>
+                  Heal Your Lineup with the AI Rundown Doctor
+                </span>
+                <button 
+                  onClick={() => setActiveTab('scheduler')}
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold underline flex items-center gap-1"
+                >
+                  Run Rundown Doctor &rarr;
+                </button>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Above your schedule, click the <strong>"🩺 AI Rundown Doctor"</strong> button. The AI checks if any shows end early leaving an awkward blank screen. If it finds any gaps, it inserts station logos or sponsor bumpers to keep your channel rolling without a single black frame!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 text-xs flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-mono text-[11px] font-bold">4</span>
+                  Preview on the Playout Screen
+                </span>
+                <button 
+                  onClick={() => setActiveTab('playout')}
+                  className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold underline flex items-center gap-1"
+                >
+                  Open Playout MCR &rarr;
+                </button>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Go to the <strong>Playout MCR</strong> tab. Look at the big monitor in the center: your channel is playing live! You will see show countdowns, audio volume meters, and on-air graphics in real time.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 text-xs flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono text-[11px] font-bold">5</span>
+                  Go Live to the World
+                </span>
+                <button 
+                  onClick={() => setActiveTab('syndication')}
+                  className="text-[11px] text-rose-400 hover:text-rose-300 font-semibold underline flex items-center gap-1"
+                >
+                  Open Syndication &rarr;
+                </button>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Click the <strong>Syndication</strong> tab to toggle on streaming destinations (such as Pluto TV, Samsung TV Plus, YouTube, or your own website's video player). Congratulations, you are officially broadcasting!
+              </p>
+            </div>
           </div>
         </div>
       )
     },
     {
-      id: 'broadcast-standards-guide',
-      category: 'core',
-      title: 'Tier-1 Broadcast Standards & Big Studio Compliance Guide',
-      description: 'Understanding SMPTE ST 2110 IP, ST 2022-7 hitless redundancy, IEEE 1588 PTP, and EBU R128 loudness.',
-      icon: <ShieldCheck className="h-5 w-5 text-indigo-400" />,
+      id: 'what-is-linear-tv',
+      category: 'beginner',
+      title: '📺 What is CastPilot & Linear TV? (The Plain-English Concept)',
+      description: 'Understanding the difference between on-demand video (YouTube/Netflix) and continuous 24/7 TV channels.',
+      icon: <Tv className="h-5 w-5 text-sky-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            For enterprise deployment in tier-1 broadcast networks (BBC, NBCUniversal, Warner Bros Discovery, ESPN), playout systems must adhere to strict SMPTE, EBU, and AMWA engineering standards. CastPilot features an integrated <strong>Broadcast Standards Suite</strong> designed to pass comprehensive technical audits.
+            Most modern platforms like YouTube or Netflix are <strong>On-Demand (VOD)</strong>: a viewer searches for a video, clicks it, watches it, and then the video stops.
+          </p>
+          <p>
+            <strong>CastPilot is a Linear TV Playout System</strong>. That means it acts like a real television cable channel or broadcast network (like HBO, CNN, or ESPN). It runs 24 hours a day, 7 days a week on an exact clock.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">SMPTE ST 2110 & NMOS</span>
-              <p className="text-[11px] text-slate-400">
-                Separates video (-20), audio (-30), and ancillary metadata (-40) into discrete uncompressed IP essences. AMWA NMOS IS-04 / IS-05 enables automatic discovery and cross-vendor matrix routing.
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+              <span className="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">On-Demand (YouTube/Netflix)</span>
+              <ul className="space-y-1.5 text-[11px] text-slate-400 list-disc pl-4">
+                <li>Viewer must choose what to watch</li>
+                <li>Stops playing when the video ends</li>
+                <li>Awkward silence between videos</li>
+                <li>No synchronized live experience</li>
+              </ul>
             </div>
 
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">ST 2022-7 Hitless Merge</span>
-              <p className="text-[11px] text-slate-400">
-                Transmits simultaneous packet streams over dual independent fiber paths (Path Red and Path Blue). Packet-by-packet reconstruction guarantees 0 dropped frames during network severances.
-              </p>
-            </div>
-
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <span className="text-[10px] font-mono font-bold text-sky-400 uppercase">PTP IEEE 1588 / ST 2059-2</span>
-              <p className="text-[11px] text-slate-400">
-                Sub-microsecond phase locking (±0.038 µs) to GPS Grandmaster clocks replaces analog Blackburst/Tri-Level sync, ensuring frame-accurate live cuts.
-              </p>
-            </div>
-
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <span className="text-[10px] font-mono font-bold text-purple-400 uppercase">EBU R128 & CALM Act DSP</span>
-              <p className="text-[11px] text-slate-400">
-                Enforces continuous ITU-R BS.1770-4 loudness compliance (-23 LUFS / -24 LKFS) with automatic true-peak limiting, preventing FCC commercial loudness violation penalties.
-              </p>
+            <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+              <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">Linear FAST TV (CastPilot)</span>
+              <ul className="space-y-1.5 text-[11px] text-slate-400 list-disc pl-4">
+                <li>Instant playback the moment someone tunes in</li>
+                <li>Automated schedule moves from show to show</li>
+                <li>Automatic commercials and sponsor idents</li>
+                <li>Shared live experience across millions of screens</li>
+              </ul>
             </div>
           </div>
 
-          <div className="p-3 bg-indigo-950/40 rounded-lg border border-indigo-700/50 text-indigo-200">
-            <strong>How to audit:</strong> Open the <span className="text-indigo-300 font-bold underline cursor-pointer" onClick={() => setActiveTab('standards')}>Broadcast Standards</span> tab in the top navigation to view real-time PTP phase jitter, test hitless dual-path failovers, and download the official <strong>Broadcast Standards Audit Certificate</strong>.
+          <div className="p-3 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-300">
+            <strong>What does FAST stand for?</strong> FAST stands for <em>Free Ad-Supported Streaming TV</em>. These are the free live channels on Smart TVs (like Samsung TV Plus, LG Channels, Roku, and Pluto TV) where viewers watch continuous programming for free while automated commercials generate advertising revenue.
           </div>
         </div>
       )
     },
     {
-      id: 'ai-scheduling-guide',
-      category: 'core',
-      title: 'AI Scheduling & Timeline Harmonization',
-      description: 'Master the art of gap-free linear timelines, automatic filler insertions, and SCTE-35 ad insertions.',
+      id: 'playout-and-switcher',
+      category: 'playout',
+      title: '🎮 Playout Control Room & The Video Switcher',
+      description: 'Understand Program (PGM), Preview (PVW), the TAKE button, and the Emergency Kill Switch.',
+      icon: <Radio className="h-5 w-5 text-rose-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            The <strong>Playout Control Room</strong> is modeled after the master control room of a major television studio. It gives you complete command over what viewers see.
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-400 text-xs">🔴 PGM (Program Monitor)</strong>
+                <span className="text-[9px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono font-bold">ON AIR</span>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                This is what is actively broadcasting to your audience right now. Any video, graphic, or camera assigned to PGM is live.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <strong className="text-emerald-400 text-xs">🟢 PVW (Preview Monitor)</strong>
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold">NEXT UP</span>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Your private preparation screen. You can load the next camera angle or video here to check lighting and sound before showing it to viewers.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <strong className="text-sky-400 text-xs">⚡ TAKE Button</strong>
+                <span className="text-[9px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono font-bold">TRANSITION</span>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Clicking <strong>TAKE</strong> performs a broadcast cut or cross-dissolve, swapping Preview onto Program.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-rose-500/40 space-y-1">
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-400 text-xs flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  🚨 EMERGENCY SLATE (The Kill Switch)
+                </strong>
+                <span className="text-[9px] bg-rose-600 text-white px-2 py-0.5 rounded font-mono font-bold animate-pulse">PANIC BUTTON</span>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                If a guest says something inappropriate, a camera dies, or an accident happens on set, click <strong>"EMERGENCY SLATE"</strong>. The broadcast immediately cuts to a clean <em>"Technical Difficulties — Please Stand By"</em> card with music until your team fixes the issue and clicks <em>"Restore Live Feed"</em>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'multicam-studio-guide',
+      category: 'playout',
+      title: '🎥 Multi-Camera Studio: 4 Cameras, PTZ Joystick & Instant Replay',
+      description: 'Switch cameras, control motorized PTZ cameras with a joystick, and run slow-motion sports replays.',
+      icon: <Video className="h-5 w-5 text-indigo-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            The <strong>Multi-Camera Studio</strong> lets you run a professional multi-angle broadcast without needing a massive physical switcher.
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">Tally Lights (Red vs. Green)</strong>
+              <p className="text-slate-400 text-[11px]">
+                Every camera feed has a tally border: <strong>Red</strong> means that camera is live on air right now (tell your presenter to look at that camera!). <strong>Green</strong> means that camera is queued up in Preview and will be live next.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">PTZ Camera Joystick (Pan, Tilt, Zoom)</strong>
+              <p className="text-slate-400 text-[11px]">
+                Under the PTZ Controller, use the on-screen joystick or directional arrows to steer motorized cameras around your studio. Use the zoom slider to push in for an emotional close-up or pull out for a wide stage shot. You can also click the 4 Preset buttons (Wide, Host, Guest, Overhead) for instant movement.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">AI Auto-Framing Keyer</strong>
+              <p className="text-slate-400 text-[11px]">
+                When enabled, the AI acts as your robotic camera operator. It detects who is speaking on microphone and automatically pans and frames them without any manual intervention.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">Instant Replay Caster</strong>
+              <p className="text-slate-400 text-[11px]">
+                Click the <strong>"REPLAY"</strong> button to immediately play back the last 15 seconds of action at 0.5x slow motion with an authentic on-screen "INSTANT REPLAY" graphic bug.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'scheduling-and-doctor',
+      category: 'scheduling',
+      title: '🗓️ TV Scheduling & The AI Rundown Doctor',
+      description: 'Build gap-free daily lineups, export EPG TV guides, and let AI heal scheduling mismatches.',
       icon: <Layers className="h-5 w-5 text-emerald-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            Creating a linear schedule manually requires meticulous math to ensure that videos align precisely with hourly clocks. A single 1-second gap can cause video players to freeze or crash downstream.
+            In television, every hour has 60 minutes and 0 seconds. If your show is 42 minutes long, you need exactly 18 minutes of commercials and sponsor bumpers. If there is a single 1-second gap, digital TVs will freeze.
           </p>
-          <h4 className="text-white font-bold text-xs">How to use the AI Scheduler:</h4>
-          <ol className="list-decimal pl-4 space-y-2 text-slate-300">
-            <li>
-              Navigate to the <span className="text-sky-400 font-bold cursor-pointer" onClick={() => setActiveTab('scheduler')}>AI Scheduling</span> tab.
-            </li>
-            <li>
-              Enter a prompt in the AI Scheduler input (e.g., <em>"Create a premium prime-time sequence focusing on nature adventures with highly engaging sponsor bumps"</em>).
-            </li>
-            <li>
-              Set the <strong>Primary Vibe</strong> (Informative, High Energy, Retro/Vintage, etc.) and click <strong>Generate</strong>.
-            </li>
-            <li>
-              If any black screen or sequence gaps remain, click <strong>"Inject Curated Fillers"</strong>. This will run our gap-fill algorithm, querying your asset catalog to inject standard idents or commercial bumpers to fill the gaps perfectly.
-            </li>
-          </ol>
 
-          <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 flex items-start gap-2.5">
-            <span className="p-1 bg-emerald-500/10 rounded text-emerald-400 font-mono text-[9px] font-bold">ALGORITHM</span>
-            <div className="space-y-1">
-              <h5 className="font-semibold text-slate-200 text-xs">SCTE-35 Dynamic Ad Insertion (DAI)</h5>
+          <h4 className="text-white font-bold text-xs">How the AI Rundown Doctor Solves This:</h4>
+          <p className="text-slate-400">
+            Whenever you adjust your schedule, open the <strong>🩺 AI Rundown Doctor</strong>. It scans your lineup, detects gaps or timing overruns, calculates an overall Rundown Integrity Score, and suggests exact station bumpers and ad spots to make the schedule mathematically perfect.
+          </p>
+
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-[11px]">
+            <strong>Exporting Your TV Guide:</strong> Click <strong>"Export EPG (XMLTV)"</strong> to download an official XMLTV file. This is the industry-standard file uploaded to Smart TVs and cable operators so viewers can see show titles and descriptions on their TV Guide.
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'teleprompter-and-scripts',
+      category: 'playout',
+      title: '📜 Scriptwriting & Hardware Teleprompter Studio',
+      description: 'Generate speech-ready scripts, screen for FCC legal compliance, and use mirror-glass teleprompting.',
+      icon: <FileText className="h-5 w-5 text-indigo-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            The <strong>Script & Teleprompter Studio</strong> gives your on-air hosts confidence by displaying scrolling scripts right behind your camera lens.
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">AI Scriptwriting with Broadcast Tones</strong>
               <p className="text-slate-400 text-[11px]">
-                Our scheduling logic injects precise ad-markers before and after primary programs. The scheduler ensures that commercial blocks do not exceed 15% of total broadcast time to maintain high viewer retention.
+                Type your topic and pick a tone: <em>Authoritative News</em>, <em>Casual Friendly</em>, <em>Energetic Hype</em>, or <em>Retro Vintage</em>. Gemini writes natural anchor dialogue with built-in timing cues like <code>[PAUSE]</code> and <code>[LOOK TO CAM 2]</code>.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">AI Legal & Compliance Screening</strong>
+              <p className="text-slate-400 text-[11px]">
+                Before you go live, click <strong>"Compliance Audit"</strong>. The AI screens your script against FCC Title 47, OFCOM, and defamation laws to catch profanity, unverified medical claims, or undisclosed sponsorships.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">Mirror Glass Mode</strong>
+              <p className="text-slate-400 text-[11px]">
+                If you place an iPad or tablet under a real beam-splitter teleprompter glass, clicking <strong>"MIRROR GLASS"</strong> flips the text backwards so it reads completely normally in the glass reflection.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">Yellow-Coat Contrast Mode</strong>
+              <p className="text-slate-400 text-[11px]">
+                Switches the text to bright studio yellow on pure black, which reduces eye strain under bright studio keylights.
               </p>
             </div>
           </div>
@@ -181,113 +419,115 @@ export default function UserManual({ setActiveTab, addToast }: UserManualProps) 
       )
     },
     {
-      id: 'prompter-copilot',
-      category: 'core',
-      title: 'Live Scripting & Teleprompter Studio',
-      description: 'Utilize Gemini Showremarks to generate script copy and run the scrolling hardware-prompter overlay.',
-      icon: <Cpu className="h-5 w-5 text-indigo-400" />,
-      content: (
-        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          <p>
-            For live linear channels featuring live hosts, introducing upcoming segments or sponsor promos with polished scripts is paramount. The <strong>Show Scripts & Prompter</strong> suite gives you high-fidelity teleprompting tools right in your browser.
-          </p>
-          
-          <h4 className="text-white font-bold text-xs">Acing the Teleprompter Workflow:</h4>
-          <ul className="list-disc pl-4 space-y-1.5 text-slate-300">
-            <li>
-              <strong>AI Script Drafting:</strong> Input your upcoming segment topic in the <strong>Gemini Showremark Copilot</strong> panel, select your presenter vibe (Casual, News, Retro), and hit generate. Gemini will write speech-optimized, high-conversion presenter scripts.
-            </li>
-            <li>
-              <strong>On-Air Sync:</strong> If a segment is currently playing on-air, click <strong>"Import On-Air segment"</strong> to pull metadata (title, category, tags) directly into a script draft layout.
-            </li>
-            <li>
-              <strong>Launching the Prompter:</strong> Click <strong>"Launch Hardware Teleprompter"</strong>. This launches a full-screen, high-contrast, distraction-free stage.
-            </li>
-            <li>
-              <strong>Beam-Splitter Rig Integration:</strong> If you are using physical teleprompter glass mirrors, click <strong>"MIRROR GLASS"</strong> to reverse the text horizontally, matching hardware beam-splitters. Turn on <strong>"YELLOW COAT"</strong> for eye-safe yellow-on-black high contrast.
-            </li>
-          </ul>
-        </div>
-      )
-    },
-    {
-      id: 'audience-overlays',
-      category: 'core',
-      title: 'Audience Alerts & Graphics Studio',
-      description: 'Deploy real-time live overlays, polling widgets, and customized crawlers to simulate OTT broadcast experiences.',
+      id: 'audience-graphics-overlays',
+      category: 'playout',
+      title: '💬 Audience Graphics, Tickers, Live Polls & Soundboard',
+      description: 'Overlay scrolling news tickers, interactive viewer voting polls, and on-air breaking alerts.',
       icon: <MessageSquare className="h-5 w-5 text-sky-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            Static linear streams can experience high viewer drop-off. By adding interactive graphic overlays—such as breaking news ticker tapes, live engagement polls, and viewer alert pops—you can increase average viewer session durations by up to <strong>40%</strong>.
+            Static video without graphics feels empty. CastPilot includes an entire on-air graphics department to engage your audience:
           </p>
 
-          <h4 className="text-white font-bold text-xs">Simulating Live Engagement:</h4>
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <span className="h-5 w-5 rounded bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 font-bold font-mono">1</span>
-              <div>
-                <strong className="text-slate-200">Interactive Tickers:</strong> Use the "News Ticker Tape" customizer to create scrolling text updates spanning the bottom layout of your stream monitor in real-time. Use this for emergency alerts or coupon call-to-actions.
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="h-5 w-5 rounded bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 font-bold font-mono">2</span>
-              <div>
-                <strong className="text-slate-200">Live Interactive Polling:</strong> Program poll questions and custom answers. Simulate active audience input, letting viewers feel integrated in your linear programming.
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="h-5 w-5 rounded bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 font-bold font-mono">3</span>
-              <div>
-                <strong className="text-slate-200">Soundboard Alerts:</strong> Use the live soundboard triggers to simulate follower alerts, new subscriber animations, or direct sponsorships, with bouncy animations over the stream view.
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="h-5 w-5 rounded bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0 font-bold font-mono">4</span>
-              <div>
-                <strong className="text-slate-200">Urgent On-Air Bulletins:</strong> Broadcast critical service messages (e.g., programming interruptions, schedule shifts, technical faults) immediately. Under the <strong>Urgent Bulletins</strong> customizer, compose your text, select an overlay theme (<em>Breaking News</em>, <em>Urgent Alert</em>, or <em>Technical Bulletin</em>), and toggle <strong>ON-AIR ACTIVE</strong>. You can even trigger synthesized voice alarms using browser Text-to-Speech (TTS) technology.
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'diagnostics-alarms',
-      category: 'advanced',
-      title: 'Diagnostic Alarms & Blockage Resolutions',
-      description: 'Understanding linear warnings: overlapping assets, resource lockouts, and compliance conflicts.',
-      icon: <ShieldAlert className="h-5 w-5 text-rose-400" />,
-      content: (
-        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          <p>
-            Linear broadcasting operates on strict rules. Our real-time <strong>Diagnostic Alarms & Blockages</strong> engine monitors your schedule and alerts you when compliance or resource boundaries are breached.
-          </p>
-
-          <div className="space-y-2">
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-rose-400 text-xs">High-Priority Alarm: Shared Resource Overlap</span>
-                <span className="text-[9px] bg-rose-500/10 text-rose-400 px-1.5 rounded uppercase font-mono font-bold">AL-109</span>
-              </div>
-              <p className="text-slate-400 text-[11px] mt-1">
-                Triggered when a primary server attempts to render high-bitrate programs while secondary backup encoders are locked out or exceeding GPU capacity.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-sky-300 text-xs">Scrolling News Ticker</strong>
+              <p className="text-slate-400 text-[11px]">
+                Displays smooth scrolling headlines, sports scores, and website announcements along the bottom edge of your video, just like CNN or BBC.
               </p>
-              <div className="mt-2 text-[10px] text-slate-400 bg-black/40 p-2 rounded">
-                <strong className="text-sky-400">Resolution:</strong> Go to the <strong>Resource Allocator</strong>, allocate extra GPU nodes to the primary cluster, or click <strong>Apply Correction</strong> on the dashboard alarm card to hot-swap to lower bitrate rendering profiles.
-              </div>
             </div>
 
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-amber-400 text-xs">Compliance Warning: Licensing SCTE Ad Breach</span>
-                <span className="text-[9px] bg-amber-500/10 text-amber-400 px-1.5 rounded uppercase font-mono font-bold">AL-112</span>
-              </div>
-              <p className="text-slate-400 text-[11px] mt-1">
-                Triggered when consecutive commercial intervals contain the exact same sponsor brand, violating linear brand-exclusivity clauses.
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-emerald-300 text-xs">Live Interactive Polls</strong>
+              <p className="text-slate-400 text-[11px]">
+                Ask viewers a question with multiple choices. The percentage bars update live with animated graphics over your video.
               </p>
-              <div className="mt-2 text-[10px] text-slate-400 bg-black/40 p-2 rounded">
-                <strong className="text-sky-400">Resolution:</strong> Use the <strong>AI Sequence Builder</strong> to shuffle commercial rotations, or manual-delete duplicate assets under the scheduling calendar grid.
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-purple-300 text-xs">Soundboard & Follow Alerts</strong>
+              <p className="text-slate-400 text-[11px]">
+                Trigger cheering, applause, or sponsor chimes with animated graphic badges when viewers subscribe or follow your stream.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-rose-300 text-xs">Urgent On-Air Bulletins</strong>
+              <p className="text-slate-400 text-[11px]">
+                Display bold banners across the top of the screen for breaking news or weather advisories, with built-in voice narration (TTS).
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'gemini-ai-features-guide',
+      category: 'ai',
+      title: '🤖 Gemini 3.8 Flash AI Suite: Your Digital Co-Producer',
+      description: 'A complete overview of all 7 specialized broadcast AI capabilities built into CastPilot.',
+      icon: <Cpu className="h-5 w-5 text-purple-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            CastPilot features dedicated broadcast intelligence endpoints powered by Google Gemini 3.8 Flash to automate editorial, legal, and operational workflows:
+          </p>
+
+          <div className="space-y-2.5">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">1</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI Scriptwriter Copilot (Teleprompter Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Synthesizes anchor dialogue formatted with stage directions and pacing markers.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">2</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI S&P Compliance Auditor (Teleprompter Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Scans scripts against FCC Part 73, OFCOM, and defamation standards with a detailed report.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">3</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI Rundown Doctor (TV Schedule Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Detects timing drift and fills empty schedule slots with precision bumpers for zero-frame black screen playout.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">4</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI SCTE-35 Ad Break Finder (Media MAM Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Finds natural narrative scene transitions so commercial breaks never cut someone off mid-sentence.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">5</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI Multilingual Subtitle Generator (Media MAM Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Produces CEA-708 closed captions in English, Spanish, and French with direct WebVTT file download.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">6</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI Engagement Synthesizer (Overlays Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Creates 5 news crawl ticker headlines, interactive voting polls, and broadcast trivia quizzes based on any topic.</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">7</span>
+              <div>
+                <strong className="text-slate-100 text-xs">AI MAM Video Auto-Enricher (Media MAM Tab)</strong>
+                <p className="text-slate-400 text-[11px] mt-0.5">Writes TV Guide synopses, technical keywords, and calculates official TV ratings (TV-G, TV-PG, TV-14, TV-MA).</p>
               </div>
             </div>
           </div>
@@ -295,295 +535,45 @@ export default function UserManual({ setActiveTab, addToast }: UserManualProps) 
       )
     },
     {
-      id: 'packaging-native',
-      category: 'advanced',
-      title: 'Compiling to Native APKs & Electron Desktop',
-      description: 'Instructions to export and package CastPilot as standalone local applications.',
-      icon: <Terminal className="h-5 w-5 text-sky-400" />,
+      id: 'sound-and-standards',
+      category: 'standards',
+      title: '🛡️ Sound Normalization & Broadcast Standards',
+      description: 'Why your commercials won’t blast viewers’ ears (CALM Act) and how PTP clocks keep video smooth.',
+      icon: <ShieldCheck className="h-5 w-5 text-emerald-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            To deploy CastPilot on physical devices (such as Android TV tablets, production PCs, or teleprompter monitors), packaging the web codebase into a native shell is optimal.
-          </p>
-
-          <h4 className="text-white font-bold text-xs">1. Desktop Standalone: Electron Application</h4>
-          <p className="text-slate-400">
-            Our codebase is pre-configured with a dual entry-point structure (`electron.js` and `preload.js`). Run the following locally:
-          </p>
-          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px]">
-            <button
-              onClick={() => handleCopy("npm install -D electron electron-builder\nnpx electron .", "elec-code")}
-              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
-            >
-              {copiedCode === "elec-code" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            <pre>
-{`# Install Electron dependencies
-npm install -D electron electron-builder
-
-# Run the live desktop app in dev mode
-npx electron .
-
-# Package into .exe, .dmg, or .AppImage binaries
-npx electron-builder build`}
-            </pre>
-          </div>
-
-          <h4 className="text-white font-bold text-xs mt-3">2. Mobile Creator App: Capacitor & Gradle APK</h4>
-          <p className="text-slate-400">
-            Package into a physical, signed APK to run on mobile phones or tablet teleprompting stands.
-          </p>
-          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px]">
-            <button
-              onClick={() => handleCopy("npm install -D @capacitor/core @capacitor/cli @capacitor/android\nnpx cap init \"CastPilot\" \"com.castpilot.studio\"\nnpm run build\nnpx cap add android\nnpx cap sync", "cap-code")}
-              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
-            >
-              {copiedCode === "cap-code" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            <pre>
-{`# Install Capacitor wrappers
-npm install -D @capacitor/core @capacitor/cli @capacitor/android
-
-# Sync configuration & build production assets
-npm run build
-npx cap add android
-npx cap sync android
-
-# Open in Android Studio to build APK
-npx cap open android`}
-            </pre>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'website-embed-guide',
-      category: 'advanced',
-      title: 'Direct Website Embed & Web Player Integration',
-      description: 'Deploy the HTML5 video player on your custom blogs, websites, and CMS systems using HLS.',
-      icon: <Tv className="h-5 w-5 text-sky-400 animate-pulse" />,
-      content: (
-        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          <p>
-            With the <strong>Direct Website Embed (HLS Feed)</strong>, you can stream your live scheduled linear stream directly to any browser, website, or customer-facing portal.
-          </p>
-
-          <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1.5 font-mono text-[11px]">
-            <div className="flex justify-between">
-              <span className="text-slate-400 font-semibold">Active Stream URL:</span>
-              <span className="text-sky-400 font-bold">HLS (.m3u8)</span>
-            </div>
-            <p className="text-white bg-black/40 p-2 rounded break-all select-all">
-              https://edge-hls.castpilot.live/live/stream.m3u8
-            </p>
-            <div className="flex justify-between text-[10px] text-slate-500 pt-1">
-              <span>Token Verification ID: CP-WEB-7739</span>
-              <span>Bitrate: ~4500 Kbps Adaptive</span>
-            </div>
-          </div>
-
-          <h4 className="text-white font-bold text-xs mt-3">Option A: Standard HTML5 Embed (hls.js Web Player)</h4>
-          <p className="text-slate-400">
-            For standard vanilla HTML/CSS sites, copy this production-ready player template. It automatically falls back to native HLS on Safari and iOS devices, and loads the high-performance <code>hls.js</code> engine on Chrome, Edge, and Firefox.
-          </p>
-
-          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px] overflow-x-auto">
-            <button
-              onClick={() => handleCopy(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>CastPilot Live Embedded Stream</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
-    <style>
-        .player-container { max-width: 800px; margin: 40px auto; background: #020617; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        video { width: 100%; aspect-ratio: 16/9; display: block; outline: none; }
-        .player-bar { padding: 12px 16px; background: #090d16; color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
-        .live-tag { background: #ef4444; color: #fff; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-    </style>
-</head>
-<body>
-    <div class="player-container">
-        <video id="video-feed" controls autoplay muted playsinline></video>
-        <div class="player-bar">
-            <span>🔴 <strong style="color: #38bdf8;">CastPilot Live</strong> Playout Feed</span>
-            <span class="live-tag">Live Broadcast</span>
-        </div>
-    </div>
-    <script>
-        const video = document.getElementById('video-feed');
-        const hlsUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
-        if (Hls.isSupported()) {
-            const hls = new Hls({ lowLatencyMode: true });
-            hls.loadSource(hlsUrl);
-            hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = hlsUrl;
-        }
-    </script>
-</body>
-</html>`, "vanilla-embed")}
-              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
-            >
-              {copiedCode === "vanilla-embed" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            <pre>
-{`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>CastPilot Live Embedded Stream</title>
-    <!-- Include high-performance HLS.js polyfill CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
-</head>
-<body>
-    <div class="player-container">
-        <video id="video-feed" controls autoplay muted playsinline></video>
-    </div>
-    <script>
-        const video = document.getElementById('video-feed');
-        const hlsUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
-        
-        if (Hls.isSupported()) {
-            const hls = new Hls({ lowLatencyMode: true });
-            hls.loadSource(hlsUrl);
-            hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Native HLS playback for Apple Safari & iOS
-            video.src = hlsUrl;
-        }
-    </script>
-</body>
-</html>`}
-            </pre>
-          </div>
-
-          <h4 className="text-white font-bold text-xs mt-4">Option B: Responsive React Component Wrapper</h4>
-          <p className="text-slate-400">
-            For Next.js, Vite, or Gatsby React setups, use this custom hook-based integration component with dynamic lifecycle destruction to completely prevent connection leaks.
-          </p>
-
-          <div className="bg-slate-900 rounded-lg p-3 relative font-mono text-[11px] overflow-x-auto">
-            <button
-              onClick={() => handleCopy(`import React, { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
-
-export default function EmbeddedLivePlayer() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
-
-  useEffect(() => {
-    let hls: Hls | null = null;
-    if (videoRef.current) {
-      if (Hls.isSupported()) {
-        hls = new Hls({
-          lowLatencyMode: true,
-          backBufferLength: 90
-        });
-        hls.loadSource(streamUrl);
-        hls.attachMedia(videoRef.current);
-      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.current.src = streamUrl;
-      }
-    }
-    return () => {
-      if (hls) {
-        hls.destroy();
-      }
-    };
-  }, []);
-
-  return (
-    <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
-      <video ref={videoRef} controls autoPlay muted playsInline className="w-full aspect-video block" />
-      <div className="p-4 bg-slate-900/60 flex items-center justify-between text-xs text-slate-300">
-        <span className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
-          <strong>CastPilot Stream Embed</strong>
-        </span>
-        <span className="font-mono text-slate-500 text-[10px]">VERIFIED HLS LIVE</span>
-      </div>
-    </div>
-  );
-}`, "react-embed")}
-              className="absolute top-2.5 right-2.5 p-1 bg-slate-950/80 hover:bg-slate-950 rounded text-slate-400 hover:text-white transition"
-            >
-              {copiedCode === "react-embed" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            <pre>
-{`import React, { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
-
-export default function EmbeddedLivePlayer() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamUrl = 'https://edge-hls.castpilot.live/live/stream.m3u8';
-
-  useEffect(() => {
-    let hls: Hls | null = null;
-    if (videoRef.current) {
-      if (Hls.isSupported()) {
-        hls = new Hls({ lowLatencyMode: true });
-        hls.loadSource(streamUrl);
-        hls.attachMedia(videoRef.current);
-      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.current.src = streamUrl;
-      }
-    }
-    return () => {
-      if (hls) hls.destroy(); // Prevent memory & connection leaks
-    };
-  }, []);
-
-  return (
-    <div className="w-full max-w-4xl mx-auto rounded-xl overflow-hidden border border-slate-850">
-      <video ref={videoRef} controls autoPlay muted playsInline className="w-full aspect-video" />
-    </div>
-  );
-}`}
-            </pre>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'success-blueprints',
-      category: 'blueprints',
-      title: 'Success Blueprints: Maximizing Yield & Reach',
-      description: 'Read the playbooks of top-performing linear channels and monetized FAST streams.',
-      icon: <TrendingUp className="h-5 w-5 text-emerald-400" />,
-      content: (
-        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          <p>
-            To achieve sustainable audience growth and maximized programmatic revenues, apply these three specialized linear operation blueprints:
+            Professional television is strictly regulated by law to protect viewers from deafening volume changes and video glitches:
           </p>
 
           <div className="space-y-3">
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <h5 className="font-bold text-white text-xs flex items-center gap-1">
-                <Smartphone className="h-3.5 w-3.5 text-emerald-400" />
-                Blueprint A: The Multi-Device Mobile Presenter Setup
-              </h5>
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-emerald-400 text-xs flex items-center gap-1.5">
+                <Volume2 className="h-4 w-4" />
+                Audio Loudness Normalization (CALM Act / ITU-R BS.1770)
+              </strong>
               <p className="text-slate-400 text-[11px]">
-                Ideal for independent podcasters or live creators. Run your linear streaming feed on a primary studio PC. Open the <strong>Show Scripts & Teleprompter</strong> console on an iPad placed directly on a physical camera ring-light. Use an Android phone opened to the <strong>Audience Alerts & Graphics Studio</strong> tab to monitor chat, deploy polls, and click simulated superchat alerts as your broadcast streams live.
+                Under federal law in the US (the CALM Act) and Europe (EBU R128), TV commercials cannot be louder than the show they air during. CastPilot automatically monitors audio and normalizes all programs and commercials to <strong>-24 LKFS / -23 LUFS</strong>. Viewers will never have to rush to turn down the volume during ad breaks!
               </p>
             </div>
 
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <h5 className="font-bold text-white text-xs flex items-center gap-1">
-                <Tv className="h-3.5 w-3.5 text-sky-400" />
-                Blueprint B: The Max-Revenue FAST Network Schedule
-              </h5>
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-indigo-400 text-xs flex items-center gap-1.5">
+                <Sliders className="h-4 w-4" />
+                PTP Clock Synchronization (SMPTE ST 2059-2)
+              </strong>
               <p className="text-slate-400 text-[11px]">
-                To maximize your programmatic ad-yield metrics (which you can monitor under the <strong>Programmatic Ad Yield Dashboard</strong>): structure your schedule around <strong>45-minute programs</strong>, preceded by a <strong>30-second Sponsor Ident</strong>, followed by exactly <strong>5 minutes of programmatic SCTE-35 ad spots</strong>. Keep your fill rates high. Go to the <strong>Resource Allocator</strong> and configure <strong>High Bandwidth CDN profiles</strong> to completely eradicate frame-buffering on-air.
+                In television studios, every camera and video server must be synchronized down to the microsecond. CastPilot locks to a master PTP clock so that when you switch cameras or cut to a commercial, there is zero screen tearing or jitter.
               </p>
             </div>
 
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-              <h5 className="font-bold text-white text-xs flex items-center gap-1">
-                <Award className="h-3.5 w-3.5 text-yellow-400" />
-                Blueprint C: Corporate Stream Syndication Broadcast
-              </h5>
+            <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-sky-400 text-xs flex items-center gap-1.5">
+                <Radio className="h-4 w-4" />
+                Hitless Dual-Path Redundancy (SMPTE ST 2022-7)
+              </strong>
               <p className="text-slate-400 text-[11px]">
-                For scheduled continuous corporate webinars: ingest your training modules under the Media Library (MAM), tag with target departments, and syndicate your live output concurrently to YouTube Live, Twitch, and a secure internal corporate RTMP server using the <strong>Streaming & VOD</strong> manager. Maintain zero timeline gaps with active internal branding idents as filler.
+                Sends your broadcast through two separate network routes at the same time. If one internet line experiences packet loss or drops, the system seamlessly uses the other with 0 dropped frames.
               </p>
             </div>
           </div>
@@ -591,37 +581,285 @@ export default function EmbeddedLivePlayer() {
       )
     },
     {
-      id: 'faq-guide',
+      id: 'plain-english-glossary',
+      category: 'glossary',
+      title: '📖 Broadcast Terms Demystified (Plain-English Glossary)',
+      description: 'A beginner-friendly dictionary explaining SCTE-35, PGM/PVW, NDI, PTZ, CALM Act, and FAST in everyday terms.',
+      icon: <BookOpen className="h-5 w-5 text-amber-400" />,
+      content: (
+        <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+          <p className="text-slate-400 mb-2">
+            Click on any term or search below to understand the industry abbreviations used in broadcast control rooms:
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-sky-300 font-mono text-[11px] block">PGM (Program)</strong>
+              <span className="text-slate-400 text-[11px]">What is actively on-air and seen by your viewers.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-emerald-300 font-mono text-[11px] block">PVW (Preview)</strong>
+              <span className="text-slate-400 text-[11px]">Your private rehearsal screen to preview content before taking it live.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-purple-300 font-mono text-[11px] block">FAST</strong>
+              <span className="text-slate-400 text-[11px]">Free Ad-Supported Streaming TV channels (like Pluto TV, Samsung TV Plus, Roku).</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-amber-300 font-mono text-[11px] block">SCTE-35</strong>
+              <span className="text-slate-400 text-[11px]">Digital cue markers in video streams telling platforms to insert localized commercials.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-indigo-300 font-mono text-[11px] block">NDI</strong>
+              <span className="text-slate-400 text-[11px]">Transmitting studio video over standard computer network cables.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-rose-300 font-mono text-[11px] block">PTZ</strong>
+              <span className="text-slate-400 text-[11px]">Pan, Tilt, Zoom. Motorized cameras controlled with a joystick.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-emerald-300 font-mono text-[11px] block">CALM Act</strong>
+              <span className="text-slate-400 text-[11px]">Law forbidding TV commercials from being louder than normal TV shows.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-sky-300 font-mono text-[11px] block">PFL (Pre-Fade Listen)</strong>
+              <span className="text-slate-400 text-[11px]">Listening to a video in your private headphones without playing it on the live stream.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-amber-300 font-mono text-[11px] block">EPG / XMLTV</strong>
+              <span className="text-slate-400 text-[11px]">The electronic on-screen TV Guide file that shows what plays when.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-rose-300 font-mono text-[11px] block">As-Run Log</strong>
+              <span className="text-slate-400 text-[11px]">The legal proof log given to advertisers proving their commercial actually aired.</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'faq-and-troubleshooting',
       category: 'faq',
-      title: 'Frequently Asked Questions & Support',
-      description: 'Quick diagnostics: why is the stream buffering? How to change resolution? SCTE integration.',
-      icon: <HelpCircle className="h-5 w-5 text-indigo-400" />,
+      title: '❓ Frequently Asked Questions & Emergency Response',
+      description: 'Quick solutions for common questions: timeline gaps, stream buffering, and accidental on-air incidents.',
+      icon: <HelpCircle className="h-5 w-5 text-sky-400" />,
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <div className="space-y-3">
-            <div>
-              <strong className="text-white block font-sans text-xs">Q: Why am I seeing "Overlapping Timeline Gaps" in the Alarms section?</strong>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                A: This means your scheduled content does not line up sequentially. Go to the <strong>AI Scheduling</strong> tab and click the <strong>"Fill Playlist Gaps"</strong> button. The system will search your asset inventory and auto-fill gaps with bumpers.
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: What should I do if something inappropriate happens live on air?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: Immediately press the bright red <strong>"🚨 EMERGENCY SLATE"</strong> button in the Playout MCR tab. It cuts away to an attractive <em>"Technical Difficulties"</em> screen with music until you resolve the issue on set and click <em>"Restore Live Feed"</em>.
               </p>
             </div>
-            <div className="border-t border-slate-900 pt-2.5">
-              <strong className="text-white block font-sans text-xs">Q: Can I stream in 4K resolution?</strong>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                A: Yes! Go to the <strong>Setup & Logins</strong> tab, modify the <strong>Default Feed Quality</strong> dropdown to <strong>4K UHD (2160p)</strong>, and click <strong>"Update Profile Credentials"</strong> to sync with high-bitrate encoders.
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: Why is there a red warning about a "Timeline Gap" in my schedule?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: This means your scheduled shows leave an empty gap before the next program. Go to the <strong>TV Schedule</strong> tab, click <strong>"🩺 AI Rundown Doctor"</strong>, and it will automatically fill the gap with station logos or short videos so your screen never goes black.
               </p>
             </div>
-            <div className="border-t border-slate-900 pt-2.5">
-              <strong className="text-white block font-sans text-xs">Q: What is the purpose of SCTE-35 ad markers?</strong>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                A: SCTE-35 markers are digital cues injected into live streams indicating exact start and end points of commercial spots, prompting OTT players to substitute live localized ads.
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: How do I put the live graphics over my OBS Studio stream?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: In OBS Studio, add a new <strong>Browser Source</strong> and set the URL to <code>https://your-app-url/?overlay=true</code>. Your news ticker, live polls, and on-air alerts will appear over your video with a 100% transparent background!
               </p>
             </div>
-            <div className="border-t border-slate-900 pt-2.5">
-              <strong className="text-white block font-sans text-xs">Q: How do I display an announcement informing viewers that the next program is interrupted or delayed due to technical issues?</strong>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                A: Navigate to the <strong>Viewer Engagement</strong> tab, look for the <strong>Overlay Graphic Studio</strong> card, and select the <strong>🚨 Urgent Bulletins</strong> customizer sub-tab. Here you can write your broadcast message, choose a fitting visual theme (e.g., <em>Technical Bulletin</em> or <em>Urgent Alert</em>), and click <strong>○ PUSH TO ON-AIR</strong> to display it instantly. Toggle it off when regular programming resumes.
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: How do I switch between Day Studio and Night Control Room modes?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: Click the Sun/Moon icon in the top header bar next to the clock. Day Studio mode provides a clean, bright layout for daylight offices, while Night mode uses deep navy tones to reduce eye strain in darkened control rooms.
               </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'keyboard-shortcuts-hotkeys',
+      category: 'playout',
+      title: '⌨️ Master Control Keyboard Hotkeys HUD',
+      description: 'Drive video cuts, camera switches, SCTE-35 ad breaks, and panic slates with instant physical hotkeys.',
+      icon: <Keyboard className="h-5 w-5 text-sky-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            During live high-pressure television broadcasts, reaching for a mouse can cause missed cues. CastPilot provides instant physical keyboard shortcuts for directors and master control operators:
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">CUT / TAKE Switch</strong>
+                <span className="text-slate-400 text-[11px]">Swap Preview source into live on-air Program</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                Space
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">Direct Camera Cut</strong>
+                <span className="text-slate-400 text-[11px]">Instantly switch to Camera 1, 2, 3, or 4</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                1 - 4
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-rose-400 block text-xs">Emergency Kill Slate</strong>
+                <span className="text-slate-400 text-[11px]">Cut live feed to "Technical Difficulties" card</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-rose-400 font-bold text-xs">
+                E
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-amber-300 block text-xs">SCTE-35 Commercial Splice</strong>
+                <span className="text-slate-400 text-[11px]">Trigger automated 30s ad break marker</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-amber-400 font-bold text-xs">
+                C
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">Instant Replay Caster</strong>
+                <span className="text-slate-400 text-[11px]">Cue last 15 seconds at 0.5x slow motion</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                R
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">Master Audio Mute</strong>
+                <span className="text-slate-400 text-[11px]">Silence main transmission audio cleanly</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                M
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">Teleprompter Mirror Mode</strong>
+                <span className="text-slate-400 text-[11px]">Reverse text for beam-splitter prompter glass</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                T
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-white block text-xs">Hotkeys HUD Overlay</strong>
+                <span className="text-slate-400 text-[11px]">Display or dismiss on-screen shortcut guide</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-emerald-400 font-bold text-xs">
+                ?
+              </kbd>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'advanced-troubleshooting-logs',
+      category: 'standards',
+      title: '🛠️ Diagnostics, System Health & As-Run Audit Logs',
+      description: 'Inspect real-time PTP sync jitter, SMPTE 2022-7 redundancy, and export official advertiser As-Run proof logs.',
+      icon: <Terminal className="h-5 w-5 text-indigo-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            When delivering linear television feeds to cable headends, satellite uplinks, and OTT platforms, broadcast engineers require rigorous proof of signal delivery and compliance:
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">PTP IEEE 1588 Precision Time Protocol</strong>
+              <p className="text-slate-400 text-[11px]">
+                CastPilot locks to atomic master clocks (Grandmaster PTP) with sub-microsecond jitter accuracy. If a camera drifts out of frame phase, check the <strong>Broadcast Standards</strong> tab to trigger an instantaneous <em>Resync PTP Engine</em> command.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-emerald-300 text-xs">SMPTE 2022-7 Hitless Redundancy</strong>
+              <p className="text-slate-400 text-[11px]">
+                Video packets are mirrored across two independent network paths (Path A and Path B). If a physical network cable is severed or an uplink fails, CastPilot reconstitutes the stream with zero dropped video frames and zero on-air glitches.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-amber-300 text-xs">As-Run Log Verification & CSV Export</strong>
+              <p className="text-slate-400 text-[11px]">
+                Every single show and commercial broadcast logs an immutable As-Run entry timestamped down to the millisecond. Go to <strong>Broadcast Standards &rarr; As-Run Compliance</strong> and click <strong>"Export As-Run CSV"</strong> to provide verified billing proof to advertisers.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'system-requirements-hardware',
+      category: 'beginner',
+      title: '💻 System Requirements & Dual-Monitor Setup',
+      description: 'Recommended browser versions, multi-monitor control room configurations, and network bandwidth for NDI streams.',
+      icon: <MonitorCheck className="h-5 w-5 text-emerald-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            CastPilot is engineered to run in standard high-performance web browsers without requiring proprietary PCIe capture cards:
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-white block text-xs">Supported Browsers</strong>
+              <ul className="text-slate-400 text-[11px] space-y-1 list-disc list-inside">
+                <li>Google Chrome (v110+)</li>
+                <li>Microsoft Edge (v110+)</li>
+                <li>Mozilla Firefox (v115+)</li>
+                <li>Apple Safari (v16.4+)</li>
+              </ul>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-white block text-xs">Control Room Setup</strong>
+              <ul className="text-slate-400 text-[11px] space-y-1 list-disc list-inside">
+                <li>Display 1: CastPilot Master Control</li>
+                <li>Display 2: Fullscreen Multi-Viewer / PGM</li>
+                <li>Display 3: Teleprompter / Guest Stage</li>
+                <li>1080p or 4K display resolution</li>
+              </ul>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+              <strong className="text-white block text-xs">Network & Bandwidth</strong>
+              <ul className="text-slate-400 text-[11px] space-y-1 list-disc list-inside">
+                <li>Gigabit Ethernet LAN for NDI-HB</li>
+                <li>15+ Mbps uplink for 1080p60 SRT/RTMP</li>
+                <li>30+ Mbps uplink for 4K UHD streaming</li>
+                <li>WebRTC low-latency STUN/TURN</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -641,146 +879,184 @@ export default function EmbeddedLivePlayer() {
       
       {/* Academy Banner */}
       <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-sky-500/5 to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-sky-500/10 to-transparent pointer-events-none" />
         <div className="z-10">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="flex h-2 w-2 rounded-full bg-sky-400" />
-            <span className="text-[10px] font-mono tracking-widest text-sky-400 font-semibold uppercase">Knowledge Base</span>
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-mono tracking-widest text-emerald-400 font-semibold uppercase">Beginner-Friendly Field Guide</span>
           </div>
           <h2 className="text-lg font-bold font-display text-white tracking-tight flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-sky-400" />
-            CastPilot Live - Executive Producer Academy & Manual
+            CastPilot Live — User Manual & Field Guide
           </h2>
           <p className="text-xs text-slate-400 max-w-2xl mt-1 leading-normal">
-            Master the controls of linear television playout scheduling, live dynamic overlays, AI script writing, and custom native APK/desktop application packaging.
+            Step-by-step instructions written in simple, clear language so anyone can schedule 24/7 TV channels, switch live multi-camera angles, run teleprompters, and monetize FAST streams.
           </p>
         </div>
 
-        <div className="flex gap-2 shrink-0 z-10 self-start md:self-center">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 z-10 self-start md:self-center">
           <button
             onClick={() => {
-              setActiveTab('scheduler');
-              addToast("Redirecting to AI Scheduler...", "info");
+              setActiveCategory('beginner');
+              setExpandedSectionId('beginner-quick-start');
+              addToast("Opened Beginner Quick Start!", "info");
             }}
-            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-800 rounded-lg text-xs font-semibold transition flex items-center gap-1"
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/40"
           >
-            <Zap className="h-3.5 w-3.5 text-sky-400" />
-            Launch AI Scheduler
+            <Sparkles className="h-3.5 w-3.5" />
+            Quick Start
           </button>
+          <button
+            onClick={handleCopyCheatSheet}
+            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+            title="Copy 1-page control room cheat sheet"
+          >
+            {copiedCheatSheet ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-sky-400" />}
+            {copiedCheatSheet ? 'Copied!' : 'Cheat Sheet'}
+          </button>
+          <button
+            onClick={handlePrintGuide}
+            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+            title="Print or export field guide to PDF"
+          >
+            <Printer className="h-3.5 w-3.5 text-amber-400" />
+            Print Guide
+          </button>
+          {onOpenHotkeys && (
+            <button
+              onClick={onOpenHotkeys}
+              className="px-3 py-1.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+              title="Show physical keyboard shortcuts HUD"
+            >
+              <Keyboard className="h-3.5 w-3.5" />
+              Hotkeys ( ? )
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Main Grid: Controls + Details */}
+      {/* Main Grid: Categories + Section Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left hand Filter Controls (3 cols) */}
-        <div className="lg:col-span-3 space-y-4">
+        {/* Left hand Filter Controls (4 cols on lg) */}
+        <div className="lg:col-span-4 space-y-4">
           
           {/* Search bar */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4.5 space-y-3">
-            <h4 className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">Search Guide</h4>
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2.5">
+            <h4 className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">Search The Manual</h4>
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
               <input
                 type="text"
-                placeholder="Search topics..."
+                placeholder="Search topics (e.g. teleprompter, audio, ads)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none"
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
               />
             </div>
           </div>
 
           {/* Categories select list */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4.5 space-y-2">
-            <h4 className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400 mb-2">Manual categories</h4>
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-1">
+            <h4 className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400 px-2 py-1 mb-1">Topics & Guides</h4>
             {[
-              { id: 'all', label: 'All Manual Chapters' },
-              { id: 'core', label: 'Core Broadcasting' },
-              { id: 'advanced', label: 'Advanced Native Apps' },
-              { id: 'blueprints', label: 'Revenue & Success Blueprints' },
-              { id: 'faq', label: 'FAQ & Support' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id as any)}
-                className={`w-full p-2.5 rounded-lg text-left text-xs font-semibold transition flex items-center justify-between ${
-                  activeCategory === cat.id
-                    ? 'bg-sky-500/10 text-sky-400 font-bold border border-sky-500/20'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent'
-                }`}
-              >
-                <span>{cat.label}</span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-40 shrink-0" />
-              </button>
-            ))}
+              { id: 'all', label: 'All Manual Chapters', icon: BookOpen },
+              { id: 'beginner', label: '🌱 Beginner Quick Start (Start Here!)', icon: Sparkles },
+              { id: 'playout', label: '📺 Playout & Multi-Cam Studio', icon: Radio },
+              { id: 'scheduling', label: '🗓️ TV Scheduling & Rundowns', icon: Layers },
+              { id: 'ai', label: '🤖 Gemini 3.8 Flash AI Suite', icon: Cpu },
+              { id: 'standards', label: '🛡️ Standards & Sound Normalizer', icon: ShieldCheck },
+              { id: 'glossary', label: '📖 Plain-English Glossary', icon: Award },
+              { id: 'faq', label: '❓ FAQ & Emergency Response', icon: HelpCircle }
+            ].map(cat => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id as any)}
+                  className={`w-full px-3 py-2 rounded-lg text-left text-xs font-semibold transition flex items-center justify-between ${
+                    activeCategory === cat.id
+                      ? 'bg-sky-500/15 text-sky-400 font-bold border border-sky-500/30'
+                      : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    <Icon className="h-3.5 w-3.5 shrink-0 opacity-80" />
+                    <span>{cat.label}</span>
+                  </span>
+                  <ChevronRight className="h-3.5 w-3.5 opacity-40 shrink-0" />
+                </button>
+              );
+            })}
           </div>
 
-          {/* System Specs panel */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4.5 space-y-2 text-[11px] text-slate-400">
-            <h4 className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-300 flex items-center gap-1 mb-1">
-              <Terminal className="h-3.5 w-3.5 text-emerald-400" />
-              Console Specifications
-            </h4>
-            <div className="flex justify-between py-1 border-b border-slate-900">
-              <span>Engine Status:</span>
-              <span className="text-emerald-400 font-bold">ONLINE</span>
+          {/* Quick Help Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2 text-xs">
+            <div className="flex items-center gap-2 text-slate-200 font-bold">
+              <HelpCircle className="h-4 w-4 text-sky-400" />
+              Need Quick Help?
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-900">
-              <span>Bitrate Target:</span>
-              <span className="text-slate-200 font-mono">1080p60 (CBR 6.5M)</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-900">
-              <span>Playout Buffer:</span>
-              <span className="text-slate-200 font-mono">0.05 seconds (Ultra Low)</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>AI Engine:</span>
-              <span className="text-sky-400 font-bold">Gemini 3.5 Flash SDK</span>
-            </div>
+            <p className="text-[11px] text-slate-400 leading-normal">
+              Press <kbd className="bg-slate-900 border border-slate-800 px-1 py-0.5 rounded text-sky-300 font-mono">Enter</kbd> in the top search bar anytime to instantly jump to any show, camera, or tool in the entire suite.
+            </p>
           </div>
-
         </div>
 
-        {/* Right hand Accordion Content (9 cols) */}
-        <div className="lg:col-span-9 space-y-4">
-          
+        {/* Right hand Manual Chapters (8 cols on lg) */}
+        <div className="lg:col-span-8 space-y-4">
           {filteredSections.length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-12 text-center text-slate-500 text-xs">
-              No manual chapters match your search query. Try typing other keywords such as "APK", "SCTE", "Teleprompter", or "Scheduler".
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-8 text-center space-y-3">
+              <Search className="h-8 w-8 text-slate-600 mx-auto" />
+              <p className="text-xs text-slate-400">
+                No manual chapters match your search query. Try searching for "teleprompter", "audio", "ads", or "schedule".
+              </p>
+              <button 
+                onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-sky-400 text-xs rounded-lg border border-slate-800 font-semibold"
+              >
+                Reset Search
+              </button>
             </div>
           ) : (
             filteredSections.map(section => {
               const isExpanded = expandedSectionId === section.id;
               return (
                 <div 
-                  key={section.id}
+                  key={section.id} 
                   className={`rounded-xl border transition-all ${
                     isExpanded 
-                      ? 'bg-slate-950 border-slate-700/80 shadow-xl' 
-                      : 'bg-slate-950/70 border-slate-850 hover:bg-slate-950/90'
+                      ? 'border-sky-500/40 bg-slate-950 shadow-xl' 
+                      : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
                   }`}
                 >
-                  {/* Collapsible Header */}
                   <button
                     onClick={() => setExpandedSectionId(isExpanded ? null : section.id)}
-                    className="w-full p-5 text-left flex items-start gap-4"
+                    className="w-full p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3 text-left transition"
                   >
-                    <div className={`p-2.5 rounded-lg shrink-0 ${isExpanded ? 'bg-sky-500/10' : 'bg-slate-900'}`}>
-                      {section.icon}
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className={`p-2 rounded-lg border ${
+                        isExpanded 
+                          ? 'bg-sky-500/10 border-sky-500/30' 
+                          : 'bg-slate-900 border-slate-800'
+                      }`}>
+                        {section.icon}
+                      </div>
+                      <div>
+                        <h3 className={`text-sm font-bold tracking-tight ${isExpanded ? 'text-white' : 'text-slate-200'}`}>
+                          {section.title}
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5 leading-normal">
+                          {section.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="text-sm font-bold text-white font-display tracking-tight leading-snug">{section.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1 leading-normal">{section.description}</p>
+                    <div className="shrink-0 p-1 text-slate-500">
+                      <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-sky-400' : ''}`} />
                     </div>
-                    <span className="text-slate-500 font-bold self-center text-lg shrink-0">
-                      {isExpanded ? '−' : '+'}
-                    </span>
                   </button>
 
-                  {/* Expanded Body Content */}
                   {isExpanded && (
-                    <div className="px-5 pb-5 pt-1.5 border-t border-slate-900">
+                    <div className="px-4 pb-5 sm:px-5 border-t border-slate-800/80 pt-4 animate-fadeIn">
                       {section.content}
                     </div>
                   )}
@@ -788,11 +1064,8 @@ export default function EmbeddedLivePlayer() {
               );
             })
           )}
-
         </div>
-
       </div>
-
     </div>
   );
 }
