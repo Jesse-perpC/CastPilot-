@@ -19,7 +19,8 @@ import {
   Zap,
   HelpCircle,
   Copy,
-  Check
+  Check,
+  ShieldCheck
 } from 'lucide-react';
 
 interface UserManualProps {
@@ -88,6 +89,54 @@ export default function UserManual({ setActiveTab, addToast }: UserManualProps) 
 
           <div className="bg-sky-500/10 border-l-4 border-sky-500 p-3.5 rounded-r-lg text-sky-300">
             <strong>Pro Tip:</strong> Want to fast-track your setup? Go to the <strong>AI Scheduling</strong> tab, enter your channel topic, select the program duration pacing, and click <strong>"Instruct Gemini to Generate Linear Schedule"</strong>.
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'broadcast-standards-guide',
+      category: 'core',
+      title: 'Tier-1 Broadcast Standards & Big Studio Compliance Guide',
+      description: 'Understanding SMPTE ST 2110 IP, ST 2022-7 hitless redundancy, IEEE 1588 PTP, and EBU R128 loudness.',
+      icon: <ShieldCheck className="h-5 w-5 text-indigo-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <p>
+            For enterprise deployment in tier-1 broadcast networks (BBC, NBCUniversal, Warner Bros Discovery, ESPN), playout systems must adhere to strict SMPTE, EBU, and AMWA engineering standards. CastPilot features an integrated <strong>Broadcast Standards Suite</strong> designed to pass comprehensive technical audits.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">SMPTE ST 2110 & NMOS</span>
+              <p className="text-[11px] text-slate-400">
+                Separates video (-20), audio (-30), and ancillary metadata (-40) into discrete uncompressed IP essences. AMWA NMOS IS-04 / IS-05 enables automatic discovery and cross-vendor matrix routing.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">ST 2022-7 Hitless Merge</span>
+              <p className="text-[11px] text-slate-400">
+                Transmits simultaneous packet streams over dual independent fiber paths (Path Red and Path Blue). Packet-by-packet reconstruction guarantees 0 dropped frames during network severances.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-sky-400 uppercase">PTP IEEE 1588 / ST 2059-2</span>
+              <p className="text-[11px] text-slate-400">
+                Sub-microsecond phase locking (±0.038 µs) to GPS Grandmaster clocks replaces analog Blackburst/Tri-Level sync, ensuring frame-accurate live cuts.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-purple-400 uppercase">EBU R128 & CALM Act DSP</span>
+              <p className="text-[11px] text-slate-400">
+                Enforces continuous ITU-R BS.1770-4 loudness compliance (-23 LUFS / -24 LKFS) with automatic true-peak limiting, preventing FCC commercial loudness violation penalties.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-indigo-950/40 rounded-lg border border-indigo-700/50 text-indigo-200">
+            <strong>How to audit:</strong> Open the <span className="text-indigo-300 font-bold underline cursor-pointer" onClick={() => setActiveTab('standards')}>Broadcast Standards</span> tab in the top navigation to view real-time PTP phase jitter, test hitless dual-path failovers, and download the official <strong>Broadcast Standards Audit Certificate</strong>.
           </div>
         </div>
       )

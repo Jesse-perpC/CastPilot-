@@ -22,8 +22,25 @@ import {
   Gauge,
   Layers,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Edit2,
+  Check,
+  X,
+  Tag,
+  Compass,
+  Crosshair,
+  Shuffle,
+  Scissors,
+  Film,
+  Headphones,
+  Users
 } from 'lucide-react';
+import PtzCameraController from './multicam/PtzCameraController';
+import MasterRoutingMatrix from './multicam/MasterRoutingMatrix';
+import AiAutoFramingKeyer from './multicam/AiAutoFramingKeyer';
+import InstantReplayCaster from './multicam/InstantReplayCaster';
+import IntercomTalkbackMatrix from './multicam/IntercomTalkbackMatrix';
+import RealTimeThumbnailPreview from './multicam/RealTimeThumbnailPreview';
 
 export interface VideoFeed {
   id: string;
@@ -385,6 +402,8 @@ const INITIAL_FEEDS: VideoFeed[] = [
   }
 ];
 
+const STORAGE_KEY_FEED_NAMES = 'ndi_ingestion_feed_custom_names_v1';
+
 // Helper: Convert 0-100 linear percentage to accurate True Peak dBFS scale (-60 to 0 dBFS)
 function percentToDbfs(pct: number): number {
   if (pct <= 0) return -60.0;
@@ -395,12 +414,54 @@ function percentToDbfs(pct: number): number {
 
 interface MultiCamNdiIngestionProps {
   addToast?: (message: string, type?: 'success' | 'info' | 'error') => void;
+  activePgmCameraId?: string;
+  activePvwCameraId?: string;
+  onSelectPgmCamera?: (feedId: string) => void;
+  onSelectPvwCamera?: (feedId: string) => void;
 }
 
-export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionProps) {
-  const [feeds, setFeeds] = useState<VideoFeed[]>(INITIAL_FEEDS);
+export default function MultiCamNdiIngestion({
+  addToast,
+  activePgmCameraId = 'feed-1',
+  activePvwCameraId = 'feed-2',
+  onSelectPgmCamera,
+  onSelectPvwCamera
+}: MultiCamNdiIngestionProps) {
+  const [feeds, setFeeds] = useState<VideoFeed[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_FEED_NAMES);
+      if (saved) {
+        const customNamesMap: Record<string, string> = JSON.parse(saved);
+        return INITIAL_FEEDS.map(f => ({
+          ...f,
+          name: customNamesMap[f.id] || f.name,
+          tallyState: f.id === activePgmCameraId ? 'pgm' : f.id === activePvwCameraId ? 'pvw' : 'standby'
+        }));
+      }
+    } catch {
+      // Ignore localStorage parse errors
+    }
+    return INITIAL_FEEDS.map(f => ({
+      ...f,
+      tallyState: f.id === activePgmCameraId ? 'pgm' : f.id === activePvwCameraId ? 'pvw' : 'standby'
+    }));
+  });
+
+  // Sync tally state with Master Playout Controller
+  useEffect(() => {
+    if (activePgmCameraId || activePvwCameraId) {
+      setFeeds(prev => prev.map(f => {
+        let tally: 'pgm' | 'pvw' | 'standby' = 'standby';
+        if (f.id === activePgmCameraId) tally = 'pgm';
+        else if (f.id === activePvwCameraId) tally = 'pvw';
+        return f.tallyState !== tally ? { ...f, tallyState: tally } : f;
+      }));
+    }
+  }, [activePgmCameraId, activePvwCameraId]);
+  const [studioToolMode, setStudioToolMode] = useState<'feeds' | 'ptz' | 'matrix' | 'ai_framing' | 'replay' | 'intercom'>('feeds');
   const [activeLayout, setActiveLayout] = useState<'8-grid' | 'quad' | 'solo'>('8-grid');
   const [soloFeedId, setSoloFeedId] = useState<string>('feed-1');
+  const [selectedCameraId, setSelectedCameraId] = useState<string>(activePgmCameraId || 'feed-1');
   const [activeCalibratingFeed, setActiveCalibratingFeed] = useState<VideoFeed | null>(null);
   const [activeSignalDetailsFeed, setActiveSignalDetailsFeed] = useState<VideoFeed | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -586,16 +647,89 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
 
   // Toggle Tally state (PGM / PVW / Standby)
   const handleCycleTally = (feedId: string) => {
+    const currentFeed = feeds.find(f => f.id === feedId);
+    if (!currentFeed) return;
+    const nextTally = currentFeed.tallyState === 'standby' ? 'pvw' : currentFeed.tallyState === 'pvw' ? 'pgm' : 'standby';
+    
+    if (nextTally === 'pgm') {
+      onSelectPgmCamera?.(feedId);
+    } else if (nextTally === 'pvw') {
+      onSelectPvwCamera?.(feedId);
+    }
+
     setFeeds(prev =>
       prev.map(f => {
         if (f.id === feedId) {
-          const nextTally = f.tallyState === 'standby' ? 'pvw' : f.tallyState === 'pvw' ? 'pgm' : 'standby';
-          toast(`${f.name} Tally state changed to ${nextTally.toUpperCase()}.`, 'info');
           return { ...f, tallyState: nextTally };
+        }
+        if (nextTally === 'pgm' && f.tallyState === 'pgm') {
+          return { ...f, tallyState: 'standby' };
+        }
+        if (nextTally === 'pvw' && f.tallyState === 'pvw') {
+          return { ...f, tallyState: 'standby' };
         }
         return f;
       })
     );
+    toast(`${currentFeed.name} Tally state changed to ${nextTally.toUpperCase()}.`, nextTally === 'pgm' ? 'success' : 'info');
+  };
+
+  const handleTakePgm = (feedId: string) => {
+    onSelectPgmCamera?.(feedId);
+    setFeeds(prev =>
+      prev.map(f => ({
+        ...f,
+        tallyState: f.id === feedId ? 'pgm' : f.tallyState === 'pgm' ? 'standby' : f.tallyState
+      }))
+    );
+    const target = feeds.find(f => f.id === feedId);
+    toast(`${target?.name || 'Camera'} routed LIVE to Master PGM Air!`, 'success');
+  };
+
+  const handleCuePvw = (feedId: string) => {
+    onSelectPvwCamera?.(feedId);
+    setFeeds(prev =>
+      prev.map(f => ({
+        ...f,
+        tallyState: f.id === feedId ? 'pvw' : f.tallyState === 'pvw' ? 'standby' : f.tallyState
+      }))
+    );
+    const target = feeds.find(f => f.id === feedId);
+    toast(`${target?.name || 'Camera'} cued to PVW Preview Channel.`, 'info');
+  };
+
+  // Rename source label & persist to localStorage
+  const handleRenameFeed = (feedId: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+
+    setFeeds(prev => {
+      const updated = prev.map(f => f.id === feedId ? { ...f, name: trimmed } : f);
+      try {
+        const namesMap: Record<string, string> = {};
+        updated.forEach(f => {
+          namesMap[f.id] = f.name;
+        });
+        localStorage.setItem(STORAGE_KEY_FEED_NAMES, JSON.stringify(namesMap));
+      } catch {
+        // Ignore localStorage quota errors
+      }
+      return updated;
+    });
+
+    toast(`Source label updated to "${trimmed}" (persisted).`, 'success');
+  };
+
+  // Reset all camera source names to defaults
+  const handleResetNames = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY_FEED_NAMES);
+    } catch {
+      // Ignore
+    }
+    const defaultMap = new Map(INITIAL_FEEDS.map(f => [f.id, f.name]));
+    setFeeds(prev => prev.map(f => ({ ...f, name: defaultMap.get(f.id) || f.name })));
+    toast('All camera source labels have been reset to factory defaults.', 'info');
   };
 
   // Filtered feeds
@@ -672,12 +806,130 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               <HardDrive className="h-4 w-4 text-rose-400" />
               {feeds.every(f => f.isoRecording) ? 'Disarm All ISO' : 'Arm All 8 ISO Tracks'}
             </button>
+
+            <button
+              onClick={handleResetNames}
+              title="Reset all camera names to default initial labels"
+              className="px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 font-semibold text-xs flex items-center gap-1.5 transition"
+              id="reset-feed-names-btn"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Reset Labels</span>
+            </button>
           </div>
         </div>
       </div>
 
+      {/* MultiCam Studio Tool Suite Navigation Bar */}
+      <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-950 border border-slate-800 overflow-x-auto shadow-md">
+        <button
+          onClick={() => setStudioToolMode('feeds')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'feeds'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-feeds-btn"
+        >
+          <Tv className="h-4 w-4" />
+          <span>Multi-Cam Feeds ({feeds.length})</span>
+        </button>
+
+        <button
+          onClick={() => setStudioToolMode('ptz')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'ptz'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-ptz-btn"
+        >
+          <Compass className="h-4 w-4" />
+          <span>PTZ Controller</span>
+        </button>
+
+        <button
+          onClick={() => setStudioToolMode('matrix')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'matrix'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-matrix-btn"
+        >
+          <Shuffle className="h-4 w-4" />
+          <span>Master Routing Matrix</span>
+        </button>
+
+        <button
+          onClick={() => setStudioToolMode('ai_framing')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'ai_framing'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-ai-framing-btn"
+        >
+          <Sparkles className="h-4 w-4" />
+          <span>AI Auto-Framing & Keyer</span>
+        </button>
+
+        <button
+          onClick={() => setStudioToolMode('replay')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'replay'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-replay-btn"
+        >
+          <Film className="h-4 w-4" />
+          <span>Instant Replay Caster</span>
+        </button>
+
+        <button
+          onClick={() => setStudioToolMode('intercom')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'intercom'
+              ? 'bg-sky-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900'
+          }`}
+          id="tab-intercom-btn"
+        >
+          <Headphones className="h-4 w-4" />
+          <span>Intercom & Talkback IFB</span>
+        </button>
+      </div>
+
+      {/* Sub-tool Components */}
+      {studioToolMode === 'ptz' && (
+        <PtzCameraController feeds={feeds} onToast={toast} />
+      )}
+
+      {studioToolMode === 'matrix' && (
+        <MasterRoutingMatrix feeds={feeds} onToast={toast} />
+      )}
+
+      {studioToolMode === 'ai_framing' && (
+        <AiAutoFramingKeyer
+          feeds={feeds}
+          onToast={toast}
+          onAutoSwitchCamera={(feedId) => handleCycleTally(feedId)}
+        />
+      )}
+
+      {studioToolMode === 'replay' && (
+        <InstantReplayCaster feeds={feeds} onToast={toast} />
+      )}
+
+      {studioToolMode === 'intercom' && (
+        <IntercomTalkbackMatrix feeds={feeds} onToast={toast} />
+      )}
+
       {/* Global Ingestion Telemetry & Health Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5">
+      {studioToolMode === 'feeds' && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5">
         <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-1.5 shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-400 uppercase">Active Feeds</span>
@@ -817,6 +1069,100 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
         </div>
       </div>
 
+      {/* Master Playout Tally Synchronization Bus Banner */}
+      <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-red-500 animate-ping" />
+            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+              Playout Controller Tally Sync
+            </span>
+          </div>
+          <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            AUTO SYNC LOCKED
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
+          {/* Active PGM Camera */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-950/60 border border-red-500/60 text-red-300">
+            <Radio className="h-3.5 w-3.5 text-red-400 animate-pulse" />
+            <span className="text-slate-400 text-[10px]">LIVE ON PGM:</span>
+            <strong className="text-white font-bold">
+              {feeds.find(f => f.tallyState === 'pgm')?.name || 'CAM 1 (Main Anchor Desk)'}
+            </strong>
+          </div>
+
+          {/* Active PVW Camera */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-950/40 border border-amber-500/50 text-amber-300">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="text-slate-400 text-[10px]">CUED PVW:</span>
+            <strong className="text-slate-200 font-bold">
+              {feeds.find(f => f.tallyState === 'pvw')?.name || 'CAM 2 (Co-Anchor)'}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      {/* Real-time Camera Snapshot Selector & Focus Bar */}
+      <div className="p-3 rounded-xl bg-slate-950 border border-sky-500/30 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-1.5 rounded-lg bg-sky-500/15 text-sky-400 border border-sky-500/30 shrink-0">
+            <Crosshair className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400">
+                ACTIVE FOCUS SNAPSHOT SOURCE
+              </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-950 text-sky-300 border border-sky-800">
+                CAM {feeds.find(f => f.id === selectedCameraId)?.camNumber || 1}
+              </span>
+            </div>
+            <p className="text-xs font-bold text-white truncate">
+              {feeds.find(f => f.id === selectedCameraId)?.name || 'CAM 1 • Main Anchor Desk'}
+            </p>
+          </div>
+        </div>
+
+        {/* 8-Camera Quick Selector Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          {feeds.map((f) => {
+            const isSelected = f.id === selectedCameraId;
+            return (
+              <button
+                key={f.id}
+                onClick={() => {
+                  setSelectedCameraId(f.id);
+                  toast(`Snapshot focus locked to ${f.name}`, 'info');
+                }}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold flex items-center gap-1.5 border transition whitespace-nowrap ${
+                  isSelected
+                    ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                    : f.tallyState === 'pgm'
+                    ? 'bg-red-950/70 text-red-300 border-red-700/80 hover:bg-red-900/80'
+                    : f.tallyState === 'pvw'
+                    ? 'bg-amber-950/70 text-amber-300 border-amber-700/80 hover:bg-amber-900/80'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800 hover:bg-slate-850'
+                }`}
+                title={`Focus preview thumbnail on ${f.name}`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${
+                  isSelected
+                    ? 'bg-slate-950'
+                    : f.tallyState === 'pgm'
+                    ? 'bg-red-400 animate-ping'
+                    : f.tallyState === 'pvw'
+                    ? 'bg-amber-400'
+                    : 'bg-slate-600'
+                }`} />
+                <span>CAM {f.camNumber}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Grid of 8 Video Feed Placeholders */}
       {activeLayout === '8-grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -824,13 +1170,21 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
             <FeedCard
               key={feed.id}
               feed={feed}
+              selectedCameraId={selectedCameraId}
+              selectedFeed={feeds.find(f => f.id === selectedCameraId)}
+              allFeeds={feeds}
+              onSelectCameraId={setSelectedCameraId}
+              onToast={toast}
               audioMeterMode={audioMeterMode}
+              onRename={(newName) => handleRenameFeed(feed.id, newName)}
               onCalibrate={() => handleCalibrateFeed(feed.id)}
               onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
               onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
               onReconnect={() => handleReconnectWebRTC(feed.id)}
               onToggleIso={() => handleToggleIso(feed.id)}
               onCycleTally={() => handleCycleTally(feed.id)}
+              onTakePgm={() => handleTakePgm(feed.id)}
+              onCuePvw={() => handleCuePvw(feed.id)}
               onSolo={() => {
                 setSoloFeedId(feed.id);
                 setActiveLayout('solo');
@@ -854,13 +1208,21 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               key={feed.id}
               feed={feed}
               isLarge
+              selectedCameraId={selectedCameraId}
+              selectedFeed={feeds.find(f => f.id === selectedCameraId)}
+              allFeeds={feeds}
+              onSelectCameraId={setSelectedCameraId}
+              onToast={toast}
               audioMeterMode={audioMeterMode}
+              onRename={(newName) => handleRenameFeed(feed.id, newName)}
               onCalibrate={() => handleCalibrateFeed(feed.id)}
               onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
               onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
               onReconnect={() => handleReconnectWebRTC(feed.id)}
               onToggleIso={() => handleToggleIso(feed.id)}
               onCycleTally={() => handleCycleTally(feed.id)}
+              onTakePgm={() => handleTakePgm(feed.id)}
+              onCuePvw={() => handleCuePvw(feed.id)}
               onSolo={() => {
                 setSoloFeedId(feed.id);
                 setActiveLayout('solo');
@@ -884,7 +1246,10 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
               <span className="text-xs font-mono text-slate-400">INSPECTING FEED:</span>
               <select
                 value={soloFeedId}
-                onChange={(e) => setSoloFeedId(e.target.value)}
+                onChange={(e) => {
+                  setSoloFeedId(e.target.value);
+                  setSelectedCameraId(e.target.value);
+                }}
                 className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2.5 py-1 font-semibold"
               >
                 {feeds.map(f => (
@@ -907,13 +1272,21 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
                 feed={feed}
                 isLarge
                 isSolo
+                selectedCameraId={selectedCameraId}
+                selectedFeed={feeds.find(f => f.id === selectedCameraId)}
+                allFeeds={feeds}
+                onSelectCameraId={setSelectedCameraId}
+                onToast={toast}
                 audioMeterMode={audioMeterMode}
+                onRename={(newName) => handleRenameFeed(feed.id, newName)}
                 onCalibrate={() => handleCalibrateFeed(feed.id)}
                 onOpenCalibrationModal={() => setActiveCalibratingFeed(feed)}
                 onOpenSignalDetails={() => setActiveSignalDetailsFeed(feed)}
                 onReconnect={() => handleReconnectWebRTC(feed.id)}
                 onToggleIso={() => handleToggleIso(feed.id)}
                 onCycleTally={() => handleCycleTally(feed.id)}
+                onTakePgm={() => handleTakePgm(feed.id)}
+                onCuePvw={() => handleCuePvw(feed.id)}
                 onSolo={() => {}}
                 onToggleMute={() => {
                   setFeeds(prev => prev.map(f => f.id === feed.id ? { ...f, isAudioMuted: !f.isAudioMuted } : f));
@@ -925,6 +1298,8 @@ export default function MultiCamNdiIngestion({ addToast }: MultiCamNdiIngestionP
             );
           })()}
         </div>
+      )}
+      </>
       )}
 
       {/* Signal Strength & RF Spectrum Inspector Modal */}
@@ -1173,13 +1548,21 @@ interface FeedCardProps {
   feed: VideoFeed;
   isLarge?: boolean;
   isSolo?: boolean;
+  selectedCameraId?: string;
+  selectedFeed?: VideoFeed;
+  allFeeds?: VideoFeed[];
+  onSelectCameraId?: (camId: string) => void;
+  onToast?: (message: string, type?: 'success' | 'info' | 'error') => void;
   audioMeterMode?: 'dbfs' | 'vu' | 'compact';
+  onRename: (newName: string) => void;
   onCalibrate: () => void;
   onOpenCalibrationModal: () => void;
   onOpenSignalDetails: () => void;
   onReconnect: () => void;
   onToggleIso: () => void;
   onCycleTally: () => void;
+  onTakePgm?: () => void;
+  onCuePvw?: () => void;
   onSolo: () => void;
   onToggleMute: () => void;
   onToggleFreeze: () => void;
@@ -1189,17 +1572,58 @@ function FeedCard({
   feed,
   isLarge,
   isSolo,
+  selectedCameraId = 'feed-1',
+  selectedFeed,
+  allFeeds = [],
+  onSelectCameraId = () => {},
+  onToast,
   audioMeterMode = 'dbfs',
+  onRename,
   onCalibrate,
   onOpenCalibrationModal,
   onOpenSignalDetails,
   onReconnect,
   onToggleIso,
   onCycleTally,
+  onTakePgm,
+  onCuePvw,
   onSolo,
   onToggleMute,
   onToggleFreeze
 }: FeedCardProps) {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(feed.name);
+
+  // Sync internal edit state when feed.name changes externally
+  useEffect(() => {
+    setEditedName(feed.name);
+  }, [feed.name]);
+
+  const handleSaveName = () => {
+    const trimmed = editedName.trim();
+    if (trimmed && trimmed !== feed.name) {
+      onRename(trimmed);
+    } else {
+      setEditedName(feed.name);
+    }
+    setIsEditingName(false);
+  };
+
+  const handleCancelName = () => {
+    setEditedName(feed.name);
+    setIsEditingName(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveName();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelName();
+    }
+  };
+
   // Latency color category
   const latencyBadgeColor =
     feed.latencyMs < 40
@@ -1208,43 +1632,109 @@ function FeedCard({
       ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
       : 'bg-rose-500/15 text-rose-300 border-rose-500/30';
 
-  // Tally border indicator
-  const tallyBorder =
+  // Tally border indicator & styling
+  const tallyCardStyle =
     feed.tallyState === 'pgm'
-      ? 'border-red-500 shadow-red-500/20'
+      ? 'border-red-500/90 ring-2 ring-red-500/40 shadow-xl shadow-red-500/20 bg-gradient-to-b from-red-950/30 via-slate-950 to-slate-950'
       : feed.tallyState === 'pvw'
-      ? 'border-amber-500 shadow-amber-500/20'
-      : 'border-slate-800 hover:border-slate-700';
+      ? 'border-amber-500/80 ring-1 ring-amber-500/30 shadow-lg shadow-amber-500/15 bg-gradient-to-b from-amber-950/20 via-slate-950 to-slate-950'
+      : 'border-slate-800 hover:border-slate-700 bg-slate-950';
 
   return (
     <div
-      className={`rounded-2xl bg-slate-950 border ${tallyBorder} p-4 shadow-xl flex flex-col justify-between space-y-3.5 transition-all relative ${
+      className={`rounded-2xl border ${tallyCardStyle} p-4 shadow-xl flex flex-col justify-between space-y-3.5 transition-all relative ${
         feed.isCalibrating ? 'ring-2 ring-amber-400/80 animate-pulse' : ''
       }`}
       id={`feed-card-${feed.id}`}
     >
+      {/* Top Edge Neon Tally Glow Light Bar */}
+      {feed.tallyState === 'pgm' && (
+        <div className="absolute -top-1 left-4 right-4 h-1 bg-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse z-20" />
+      )}
+      {feed.tallyState === 'pvw' && (
+        <div className="absolute -top-1 left-4 right-4 h-0.5 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)] z-20" />
+      )}
+
       {/* Header Info Bar */}
-      <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between border-b border-slate-900 pb-2.5 gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {/* Tally Pill */}
           <button
             onClick={onCycleTally}
             title="Click to cycle Tally state (PGM / PVW / Standby)"
-            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase transition border ${
+            className={`px-2 py-0.5 rounded text-[9px] font-mono font-black uppercase transition border shrink-0 flex items-center gap-1 shadow-sm ${
               feed.tallyState === 'pgm'
-                ? 'bg-red-600 text-white border-red-500 animate-pulse'
+                ? 'bg-red-600 text-white border-red-400 animate-pulse shadow-md shadow-red-600/40'
                 : feed.tallyState === 'pvw'
-                ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
-                : 'bg-slate-900 text-slate-400 border-slate-800'
+                ? 'bg-amber-500 text-slate-950 border-amber-300 font-black'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
             }`}
           >
-            {feed.tallyState.toUpperCase()}
+            {feed.tallyState === 'pgm' ? (
+              <>
+                <Radio className="h-2.5 w-2.5 animate-ping" />
+                <span>● ON AIR</span>
+              </>
+            ) : feed.tallyState === 'pvw' ? (
+              <span>● PVW</span>
+            ) : (
+              <span>STANDBY</span>
+            )}
           </button>
 
-          <div className="min-w-0">
-            <h4 className="text-xs font-bold text-white truncate flex items-center gap-1.5">
-              <span>{feed.name}</span>
-            </h4>
+          <div className="min-w-0 flex-1">
+            {isEditingName ? (
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleSaveName}
+                  autoFocus
+                  placeholder="e.g. Studio 1, Guest Camera..."
+                  className="w-full bg-slate-900 border border-sky-500 rounded px-2 py-0.5 text-xs text-white font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
+                  id={`edit-feed-name-input-${feed.id}`}
+                />
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSaveName();
+                  }}
+                  title="Save Label (Enter)"
+                  className="p-1 rounded bg-sky-500 hover:bg-sky-400 text-slate-950 shrink-0 transition"
+                >
+                  <Check className="h-3 w-3 stroke-[3]" />
+                </button>
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleCancelName();
+                  }}
+                  title="Cancel (Esc)"
+                  className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white shrink-0 transition"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="group/name flex items-center gap-1.5 min-w-0">
+                <h4
+                  onClick={() => setIsEditingName(true)}
+                  title="Click to rename this NDI camera source label"
+                  className="text-xs font-bold text-white truncate hover:text-sky-300 cursor-pointer transition flex items-center gap-1"
+                >
+                  <span className="truncate">{feed.name}</span>
+                </h4>
+                <button
+                  onClick={() => setIsEditingName(true)}
+                  title="Rename camera source label"
+                  className="opacity-0 group-hover/name:opacity-100 p-0.5 rounded text-slate-400 hover:text-sky-400 transition shrink-0"
+                >
+                  <Edit2 className="h-2.5 w-2.5" />
+                </button>
+              </div>
+            )}
             <p className="text-[10px] text-slate-400 font-mono truncate">{feed.location}</p>
           </div>
         </div>
@@ -1270,7 +1760,13 @@ function FeedCard({
       <div
         className={`relative ${
           isSolo ? 'h-96' : isLarge ? 'h-64' : 'h-44'
-        } rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center group`}
+        } rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center group transition ${
+          feed.tallyState === 'pgm'
+            ? 'ring-2 ring-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.45)]'
+            : feed.tallyState === 'pvw'
+            ? 'ring-1 ring-amber-400 shadow-[inset_0_0_12px_rgba(251,191,36,0.3)]'
+            : 'border border-slate-800'
+        }`}
       >
         {/* Talent / Scene Placeholder Background */}
         <img
@@ -1280,6 +1776,19 @@ function FeedCard({
             feed.isVideoFrozen ? 'filter grayscale brightness-75' : 'opacity-70 group-hover:opacity-85'
           }`}
         />
+
+        {/* Center Top LIVE / PVW Badge overlay on video */}
+        {feed.tallyState === 'pgm' && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 px-2.5 py-0.5 rounded bg-red-600/95 text-white border border-red-400 font-mono font-black text-[9px] tracking-wider flex items-center gap-1.5 shadow-lg shadow-red-600/50 backdrop-blur-sm animate-pulse">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+            <span>[LIVE ON PGM MASTER]</span>
+          </div>
+        )}
+        {feed.tallyState === 'pvw' && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 px-2 py-0.5 rounded bg-amber-500/95 text-slate-950 border border-amber-300 font-mono font-bold text-[8px] tracking-wider flex items-center gap-1 shadow backdrop-blur-sm">
+            <span>[CUED ON PREVIEW]</span>
+          </div>
+        )}
 
         {/* Camera Crosshairs & Safe Area Guides */}
         <div className="absolute inset-0 pointer-events-none border border-white/5 m-3 rounded">
@@ -1370,6 +1879,44 @@ function FeedCard({
             {feed.signalStrength}% (±{feed.jitterMs}ms)
           </span>
         </div>
+      </div>
+
+      {/* Real-time Thumbnail Preview Container with Active Feed Snapshot */}
+      <RealTimeThumbnailPreview
+        currentFeed={feed}
+        selectedCameraId={selectedCameraId}
+        selectedFeed={selectedFeed}
+        allFeeds={allFeeds}
+        onSelectCameraId={onSelectCameraId}
+        onToast={onToast}
+      />
+
+      {/* Quick Master Video Switcher Cut / Cue Bar */}
+      <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800">
+        <button
+          onClick={onTakePgm}
+          className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-mono font-black flex items-center justify-center gap-1 border transition ${
+            feed.tallyState === 'pgm'
+              ? 'bg-red-600 text-white border-red-400 shadow-md shadow-red-600/40 animate-pulse'
+              : 'bg-slate-950 hover:bg-red-600/20 text-slate-300 hover:text-red-400 border-slate-800'
+          }`}
+          title="Cut camera feed immediately to Master PGM Live Output"
+        >
+          <Radio className="h-3 w-3" />
+          {feed.tallyState === 'pgm' ? '● ON AIR (PGM)' : 'CUT TO PGM'}
+        </button>
+
+        <button
+          onClick={onCuePvw}
+          className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-mono font-bold flex items-center justify-center gap-1 border transition ${
+            feed.tallyState === 'pvw'
+              ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-sm font-black'
+              : 'bg-slate-950 hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 border-slate-800'
+          }`}
+          title="Cue camera feed to Preview (PVW)"
+        >
+          {feed.tallyState === 'pvw' ? '● CUED (PVW)' : 'CUE PVW'}
+        </button>
       </div>
 
       {/* Lip-Sync Calibration & Control Buttons */}

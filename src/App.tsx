@@ -33,6 +33,7 @@ import UserManual from './components/UserManual';
 import StandaloneOverlay from './components/StandaloneOverlay';
 import StandaloneChatPopout from './components/StandaloneChatPopout';
 import PflCueDeck from './components/PflCueDeck';
+import BroadcastStandardsSuite from './components/BroadcastStandardsSuite';
 import { ScheduleItem, ContentAsset, ResourceAsset, ConflictAlert, AdPerformance } from './types';
 import { useLanguage } from './i18n';
 
@@ -73,20 +74,51 @@ export default function App() {
   // Studio Pre-Fade Listen (PFL) Cue Channel State
   const [cuedMedia, setCuedMedia] = useState<any | null>(null);
 
+  // Master Broadcast PGM/PVW Tally Routing State (Synced between Playout and MultiCam)
+  const [activePgmCameraId, setActivePgmCameraId] = useState<string>('feed-1');
+  const [activePvwCameraId, setActivePvwCameraId] = useState<string>('feed-2');
+
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleSelectPgmCamera = async (feedId: string) => {
+    setActivePgmCameraId(feedId);
+    try {
+      await fetch('/api/playout/tally', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activePgmCameraId: feedId })
+      });
+    } catch {
+      // Local state fallback
+    }
+  };
+
+  const handleSelectPvwCamera = async (feedId: string) => {
+    setActivePvwCameraId(feedId);
+    try {
+      await fetch('/api/playout/tally', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activePvwCameraId: feedId })
+      });
+    } catch {
+      // Local state fallback
+    }
+  };
+
   // Fetch initial data from full-stack Express server
   const fetchAllData = async () => {
     try {
-      const [resSched, resAssets, resRes, resAlerts, resMonetization] = await Promise.all([
+      const [resSched, resAssets, resRes, resAlerts, resMonetization, resTally] = await Promise.all([
         fetch('/api/schedule'),
         fetch('/api/mam/assets'),
         fetch('/api/resources'),
         fetch('/api/conflicts'),
-        fetch('/api/monetization')
+        fetch('/api/monetization'),
+        fetch('/api/playout/tally').catch(() => null)
       ]);
 
       const dataSched = await resSched.json();
@@ -94,6 +126,12 @@ export default function App() {
       const dataRes = await resRes.json();
       const dataAlerts = await resAlerts.json();
       const dataMonetization = await resMonetization.json();
+
+      if (resTally && resTally.ok) {
+        const dataTally = await resTally.json();
+        if (dataTally.activePgmCameraId) setActivePgmCameraId(dataTally.activePgmCameraId);
+        if (dataTally.activePvwCameraId) setActivePvwCameraId(dataTally.activePvwCameraId);
+      }
 
       setSchedules(dataSched.schedules);
       setAssets(dataAssets.assets);
@@ -438,13 +476,25 @@ export default function App() {
         </div>
       )}
 
-      {/* Header component */}
+      {/* Header component with Global Search */}
       <Header
         alerts={alerts}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         primaryActive={primaryActive}
         setPrimaryActive={setPrimaryActive}
+        assets={assets}
+        schedules={schedules}
+        resources={resources}
+        onSelectAsset={(asset) => {
+          triggerToast(`Navigated to asset: ${asset.title}`, "info");
+        }}
+        onSelectSchedule={(sched) => {
+          triggerToast(`Navigated to schedule block: ${sched.title}`, "info");
+        }}
+        onSelectResource={(res) => {
+          triggerToast(`Navigated to resource: ${res.name}`, "info");
+        }}
       />
 
       {/* Core Body Container */}
@@ -483,6 +533,13 @@ export default function App() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                      <button
+                        onClick={() => setActiveTab('standards')}
+                        className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-indigo-600/25 border border-indigo-400/40"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-300" />
+                        SMPTE/EBU Standards
+                      </button>
                       <button
                         onClick={() => setActiveTab('mam')}
                         className="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-sky-500/20"
@@ -586,6 +643,10 @@ export default function App() {
                         schedules={schedules}
                         primaryActive={primaryActive}
                         onSkip={handlePlayoutSkip}
+                        activePgmCameraId={activePgmCameraId}
+                        activePvwCameraId={activePvwCameraId}
+                        onSelectPgmCamera={handleSelectPgmCamera}
+                        onSelectPvwCamera={handleSelectPvwCamera}
                       />
                     </div>
 
@@ -747,9 +808,18 @@ export default function App() {
                     schedules={schedules}
                     primaryActive={primaryActive}
                     onSkip={handlePlayoutSkip}
+                    activePgmCameraId={activePgmCameraId}
+                    activePvwCameraId={activePvwCameraId}
+                    onSelectPgmCamera={handleSelectPgmCamera}
+                    onSelectPvwCamera={handleSelectPvwCamera}
                   />
                 </div>
               </div>
+            )}
+
+            {/* Broadcast Standards & Compliance (SMPTE / EBU / ITU-R) Tab */}
+            {activeTab === 'standards' && (
+              <BroadcastStandardsSuite addToast={triggerToast} />
             )}
 
             {/* Media Library (MAM) Tab */}
@@ -789,6 +859,10 @@ export default function App() {
             {activeTab === 'multicam' && (
               <MultiCamNdiIngestion
                 addToast={(message, type) => triggerToast(message, type)}
+                activePgmCameraId={activePgmCameraId}
+                activePvwCameraId={activePvwCameraId}
+                onSelectPgmCamera={handleSelectPgmCamera}
+                onSelectPvwCamera={handleSelectPvwCamera}
               />
             )}
 

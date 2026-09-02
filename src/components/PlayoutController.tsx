@@ -6,7 +6,22 @@ interface PlayoutControllerProps {
   schedules: ScheduleItem[];
   primaryActive: boolean;
   onSkip: () => void;
+  activePgmCameraId?: string;
+  activePvwCameraId?: string;
+  onSelectPgmCamera?: (feedId: string) => void;
+  onSelectPvwCamera?: (feedId: string) => void;
 }
+
+const NDI_CAMERAS = [
+  { id: 'feed-1', num: 1, name: 'Main Anchor Desk', short: 'CAM 1', type: 'NDI-HB', res: '1080p60', location: 'Studio Desk A' },
+  { id: 'feed-2', num: 2, name: 'Co-Anchor & Panel', short: 'CAM 2', type: 'NDI-HB', res: '1080p60', location: 'Studio Desk B' },
+  { id: 'feed-3', num: 3, name: 'London Tech Bureau', short: 'CAM 3', type: 'WebRTC', res: '1080p60', location: 'London Hub' },
+  { id: 'feed-4', num: 4, name: 'Wall Street Markets', short: 'CAM 4', type: 'WebRTC', res: '1080p60', location: 'NYC Hub' },
+  { id: 'feed-5', num: 5, name: 'Tokyo Field Bureau', short: 'CAM 5', type: 'WebRTC', res: '4K UHD', location: 'Tokyo Bureau' },
+  { id: 'feed-6', num: 6, name: 'Paris Cultural Desk', short: 'CAM 6', type: 'NDI-HX3', res: '1080p60', location: 'Paris Desk' },
+  { id: 'feed-7', num: 7, name: '4K Skyline Drone', short: 'CAM 7', type: 'SRT', res: '4K UHD', location: 'Aerial Link' },
+  { id: 'feed-8', num: 8, name: 'Virtual Studio & Weather', short: 'CAM 8', type: 'NDI-HB', res: '1080p60', location: 'Chroma Stage' },
+];
 
 interface ChatMessage {
   id: string;
@@ -346,7 +361,15 @@ const MultiViewerTile: React.FC<MultiViewerTileProps> = ({
   );
 };
 
-export default function PlayoutController({ schedules, primaryActive, onSkip }: PlayoutControllerProps) {
+export default function PlayoutController({
+  schedules,
+  primaryActive,
+  onSkip,
+  activePgmCameraId = 'feed-1',
+  activePvwCameraId = 'feed-2',
+  onSelectPgmCamera,
+  onSelectPvwCamera
+}: PlayoutControllerProps) {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [progress, setProgress] = useState<number>(38); // percentage elapsed
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(684); // 11m 24s
@@ -354,6 +377,12 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
   const [scteStatus, setScteStatus] = useState<string>('Idle / Monitoring');
   const [engagementState, setEngagementState] = useState<OverlayState | null>(null);
   const [flickerTime, setFlickerTime] = useState<number>(0);
+
+  const activePgmCamera = NDI_CAMERAS.find(c => c.id === activePgmCameraId) || NDI_CAMERAS[0];
+  const activePvwCamera = NDI_CAMERAS.find(c => c.id === activePvwCameraId) || NDI_CAMERAS[1];
+
+  const activePgmCameraRef = useRef(activePgmCamera);
+  useEffect(() => { activePgmCameraRef.current = activePgmCamera; }, [activePgmCamera]);
 
   const currentlyPlaying = schedules.find((s) => s.status === 'playing') || {
     title: "Off-Air / Interstitial Slide",
@@ -1365,22 +1394,30 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
       }
 
       // ---------------- CORNER GENERAL HUD HUD ----------------
-      // Watermark indicator top-left
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
-      ctx.lineWidth = 1;
+      // Watermark indicator top-left with Live Camera PGM Tally
+      const pgmCam = activePgmCameraRef.current;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(50, 45, 230, 45, 6);
+      ctx.roundRect(50, 45, 275, 52, 6);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('CASTPILOT BROADCAST ENGINE', 62, 63);
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillText('CASTPILOT BROADCAST ENGINE', 62, 62);
+
+      // Blinking red tally dot
+      const tallyBlink = Math.floor(Date.now() / 500) % 2 === 0;
+      ctx.fillStyle = tallyBlink ? '#ef4444' : '#b91c1c';
       ctx.font = 'bold 9px monospace';
-      ctx.fillText('● PRIMARY ON-AIR STREAM', 62, 78);
+      ctx.fillText(`● PGM LIVE: [${pgmCam.short} • ${pgmCam.name.toUpperCase()}]`, 62, 77);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '8px monospace';
+      ctx.fillText(`FEED SYNC: ${pgmCam.type} • ${pgmCam.res} • ON-AIR`, 62, 88);
 
       // Real-time blinking UTC clock top-right
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
@@ -1590,11 +1627,11 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
 
               <MultiViewerTile
                 id="guest"
-                label="CAM 01: GUEST STAGE"
-                sublabel="SRT Low Latency (24ms)"
-                tallyType="standby"
-                tallyLabel="STANDBY"
-                bitrate="4.8 Mbps"
+                label={`${activePgmCamera.short}: ${activePgmCamera.name.toUpperCase()}`}
+                sublabel={`${activePgmCamera.type} • ${activePgmCamera.res} (${activePgmCamera.location})`}
+                tallyType="pgm"
+                tallyLabel="ON AIR (PGM)"
+                bitrate="8.2 Mbps"
                 currentlyPlaying={currentlyPlaying}
                 nextQueued={nextQueued}
                 adTriggered={adTriggered}
@@ -1654,6 +1691,99 @@ export default function PlayoutController({ schedules, primaryActive, onSkip }: 
             </div>
           </div>
         )}
+
+        {/* Master Live Video Switcher & NDI Camera Tally Matrix Bus */}
+        <div className="bg-slate-950 p-4 border-t border-slate-800 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping" />
+              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span>Master Video Switcher & NDI Camera Tally Matrix</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400 border border-red-500/30">
+                  LIVE PGM SYNC
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400">
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+                <strong className="text-red-400">PGM:</strong> {activePgmCamera.short} ({activePgmCamera.name})
+              </span>
+              <span className="text-slate-600">|</span>
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <strong className="text-amber-300">PVW:</strong> {NDI_CAMERAS.find(c => c.id === activePvwCameraId)?.short || 'CAM 2'}
+              </span>
+            </div>
+          </div>
+
+          {/* Crosspoint Switcher Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            {NDI_CAMERAS.map((cam) => {
+              const isPgm = cam.id === (activePgmCameraId || 'feed-1');
+              const isPvw = cam.id === (activePvwCameraId || 'feed-2');
+              return (
+                <div
+                  key={cam.id}
+                  className={`p-2 rounded-xl border transition-all flex flex-col justify-between space-y-1.5 relative ${
+                    isPgm
+                      ? 'bg-red-950/40 border-red-500 ring-2 ring-red-500/50 shadow-lg shadow-red-500/20'
+                      : isPvw
+                      ? 'bg-amber-950/30 border-amber-500 ring-1 ring-amber-500/40'
+                      : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {/* Tally Pill */}
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[9px] font-mono font-black px-1.5 py-0.5 rounded uppercase ${
+                      isPgm
+                        ? 'bg-red-600 text-white animate-pulse'
+                        : isPvw
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {isPgm ? '● PGM' : isPvw ? '● PVW' : 'STANDBY'}
+                    </span>
+                    <span className="text-[8px] font-mono text-slate-500">{cam.type}</span>
+                  </div>
+
+                  <div>
+                    <div className="text-[11px] font-bold text-white truncate">{cam.short}</div>
+                    <div className="text-[9px] text-slate-400 truncate">{cam.name}</div>
+                  </div>
+
+                  {/* Quick Cut & Cue Actions */}
+                  <div className="flex items-center gap-1 pt-1 border-t border-slate-800/80">
+                    <button
+                      onClick={() => onSelectPgmCamera?.(cam.id)}
+                      disabled={isPgm}
+                      className={`flex-1 py-1 rounded text-[9px] font-mono font-bold transition ${
+                        isPgm
+                          ? 'bg-red-600/30 text-red-300 cursor-default'
+                          : 'bg-red-600 hover:bg-red-500 text-white shadow-sm'
+                      }`}
+                      title={`Take ${cam.short} directly to PGM Live`}
+                    >
+                      {isPgm ? 'ON AIR' : 'CUT'}
+                    </button>
+                    <button
+                      onClick={() => onSelectPvwCamera?.(cam.id)}
+                      disabled={isPvw}
+                      className={`py-1 px-1.5 rounded text-[9px] font-mono font-bold transition ${
+                        isPvw
+                          ? 'bg-amber-500/20 text-amber-300 cursor-default'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                      }`}
+                      title={`Cue ${cam.short} to PVW`}
+                    >
+                      CUE
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Playback Controls & Command Bar */}
         <div className="bg-slate-900 px-6 py-4 border-t border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">

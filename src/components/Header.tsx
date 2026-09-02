@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone } from 'lucide-react';
-import { ConflictAlert } from '../types';
+import { ConflictAlert, ContentAsset, ScheduleItem, ResourceAsset } from '../types';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n';
 import { useTheme } from '../ThemeContext';
+import GlobalSearchBar from './GlobalSearchBar';
 
 interface HeaderProps {
   alerts: ConflictAlert[];
@@ -10,6 +11,12 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   primaryActive: boolean;
   setPrimaryActive: (active: boolean) => void;
+  assets?: ContentAsset[];
+  schedules?: ScheduleItem[];
+  resources?: ResourceAsset[];
+  onSelectAsset?: (asset: ContentAsset) => void;
+  onSelectSchedule?: (schedule: ScheduleItem) => void;
+  onSelectResource?: (resource: ResourceAsset) => void;
 }
 
 const RBAC_ROLES = [
@@ -26,7 +33,19 @@ const MCN_CHANNELS = [
   { id: 'music', name: 'Music Vault 4K', status: 'ON AIR', color: 'text-emerald-400' },
 ];
 
-export default function Header({ alerts, activeTab, setActiveTab, primaryActive, setPrimaryActive }: HeaderProps) {
+export default function Header({
+  alerts,
+  activeTab,
+  setActiveTab,
+  primaryActive,
+  setPrimaryActive,
+  assets = [],
+  schedules = [],
+  resources = [],
+  onSelectAsset,
+  onSelectSchedule,
+  onSelectResource,
+}: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [time, setTime] = useState<string>('');
@@ -111,92 +130,54 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
   };
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 sm:px-6 sm:py-4 sticky top-0 z-40">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Logo and Status */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] shrink-0">
-            <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse text-sky-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                CastPilot
-                <span className="text-slate-500 font-normal text-xs font-mono hidden md:inline">by</span>
-                <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent font-bold text-xs tracking-wider uppercase hidden md:inline">
-                  Perp Corp Media
-                </span>
-              </h1>
-              <span className="rounded bg-sky-950/80 px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-sky-300 border border-sky-800/60 font-semibold shadow-sm">
-                {t('versionBadge')}
-              </span>
+    <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 sm:px-6 sm:py-3.5 sticky top-0 z-40 space-y-3">
+      {/* Top Header Row: Brand, Global Search Bar, Quick System Indicators */}
+      <div className="mx-auto flex max-w-7xl flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        {/* Logo and Brand Title */}
+        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] shrink-0">
+              <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse text-sky-400" />
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1">
-              <span>{t('tagline')}</span>
-              <span className="text-slate-600 hidden sm:inline">•</span>
-              <span className="text-slate-300 font-medium hidden sm:inline">{t('authorAndSuite')}</span>
-            </p>
+            <div>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="font-display text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                  CastPilot
+                  <span className="text-slate-500 font-normal text-xs font-mono hidden md:inline">by</span>
+                  <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent font-bold text-xs tracking-wider uppercase hidden md:inline">
+                    Perp Corp Media
+                  </span>
+                </h1>
+                <span className="rounded bg-sky-950/80 px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-sky-300 border border-sky-800/60 font-semibold shadow-sm">
+                  {t('versionBadge')}
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1">
+                <span>{t('tagline')}</span>
+                <span className="text-slate-600 hidden sm:inline">•</span>
+                <span className="text-slate-300 font-medium hidden sm:inline">{t('authorAndSuite')}</span>
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Live system state counters */}
-        <div className="flex overflow-x-auto flex-nowrap items-center gap-2.5 text-xs w-full sm:w-auto pb-1 sm:pb-0 scroll-smooth no-scrollbar select-none" id="header-status-counters">
-          {/* RBAC Role Selector Dropdown */}
-          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
-            <UserCheck className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-slate-500 font-mono hidden md:inline">ROLE:</span>
-            <select
-              className="bg-transparent font-semibold text-slate-200 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
-              defaultValue="director"
-              onChange={(e) => {
-                const role = RBAC_ROLES.find(r => r.id === e.target.value);
-                if (role) {
-                  const evt = new CustomEvent('rbac-role-changed', { detail: role });
-                  window.dispatchEvent(evt);
-                }
-              }}
-            >
-              {RBAC_ROLES.map(r => (
-                <option key={r.id} value={r.id} className="bg-slate-900 text-slate-100">
-                  {r.badge} • {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Global Search Bar (Omnibox) */}
+        <div className="flex-1 max-w-full lg:max-w-xl mx-0 lg:mx-4">
+          <GlobalSearchBar
+            assets={assets}
+            schedules={schedules}
+            resources={resources}
+            alerts={alerts}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onSelectAsset={onSelectAsset}
+            onSelectSchedule={onSelectSchedule}
+            onSelectResource={onSelectResource}
+          />
+        </div>
 
-          {/* MCN Multi-Channel Network Active Channel Switcher */}
-          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
-            <Tv className="h-3.5 w-3.5 text-sky-400" />
-            <span className="text-slate-500 font-mono hidden md:inline">MCN:</span>
-            <select
-              className="bg-transparent font-semibold text-sky-300 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
-              defaultValue="fast"
-              onChange={(e) => {
-                const chan = MCN_CHANNELS.find(c => c.id === e.target.value);
-                if (chan) {
-                  const evt = new CustomEvent('mcn-channel-changed', { detail: chan });
-                  window.dispatchEvent(evt);
-                }
-              }}
-            >
-              {MCN_CHANNELS.map(c => (
-                <option key={c.id} value={c.id} className="bg-slate-900 text-slate-100">
-                  {c.name} ({c.status})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tally & Prompter Field App Companion Launcher */}
-          <button
-            onClick={() => setActiveTab('prompter')}
-            className="flex items-center gap-1 rounded-lg bg-indigo-950/80 border border-indigo-700/60 px-2.5 py-1 text-indigo-300 hover:text-white hover:bg-indigo-900 text-[10px] sm:text-xs font-semibold transition shrink-0"
-            title="Mobile Field Tally Light & Teleprompter Sync"
-          >
-            <Smartphone className="h-3.5 w-3.5 text-indigo-400" />
-            <span className="hidden xs:inline">Mobile Tally</span>
-          </button>
-
+        {/* Quick Utilities: Language, Theme, Alerts, Master Clock */}
+        <div className="flex items-center gap-2 text-xs self-end lg:self-auto shrink-0">
           {/* International Language Switcher Dropdown */}
           <div className="relative shrink-0" ref={langMenuRef}>
             <button
@@ -264,6 +245,88 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
             )}
           </button>
 
+          {/* Alarm Indicator */}
+          {unresolvedAlerts.length > 0 ? (
+            <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-rose-400 animate-pulse shrink-0 text-[10px] sm:text-xs">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              <span className="font-semibold">{unresolvedAlerts.length} {t('alertsCount')}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">{t('broadcastSafe')}</span>
+            </div>
+          )}
+
+          {/* Master Clock */}
+          <div className="rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 font-mono text-white text-[11px] sm:text-xs flex items-center gap-1.5 shrink-0 shadow-inner">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping"></span>
+            <span>{time || "00:00:00"} UTC</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Operational Telemetry Bar */}
+      <div className="mx-auto max-w-7xl flex overflow-x-auto flex-nowrap items-center justify-between gap-2.5 text-xs pb-0.5 scroll-smooth no-scrollbar select-none" id="header-status-counters">
+        <div className="flex items-center gap-2">
+          {/* RBAC Role Selector Dropdown */}
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
+            <UserCheck className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-slate-500 font-mono hidden md:inline">ROLE:</span>
+            <select
+              className="bg-transparent font-semibold text-slate-200 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
+              defaultValue="director"
+              onChange={(e) => {
+                const role = RBAC_ROLES.find(r => r.id === e.target.value);
+                if (role) {
+                  const evt = new CustomEvent('rbac-role-changed', { detail: role });
+                  window.dispatchEvent(evt);
+                }
+              }}
+            >
+              {RBAC_ROLES.map(r => (
+                <option key={r.id} value={r.id} className="bg-slate-900 text-slate-100">
+                  {r.badge} • {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* MCN Multi-Channel Network Active Channel Switcher */}
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">
+            <Tv className="h-3.5 w-3.5 text-sky-400" />
+            <span className="text-slate-500 font-mono hidden md:inline">MCN:</span>
+            <select
+              className="bg-transparent font-semibold text-sky-300 focus:outline-none cursor-pointer text-[10px] sm:text-xs"
+              defaultValue="fast"
+              onChange={(e) => {
+                const chan = MCN_CHANNELS.find(c => c.id === e.target.value);
+                if (chan) {
+                  const evt = new CustomEvent('mcn-channel-changed', { detail: chan });
+                  window.dispatchEvent(evt);
+                }
+              }}
+            >
+              {MCN_CHANNELS.map(c => (
+                <option key={c.id} value={c.id} className="bg-slate-900 text-slate-100">
+                  {c.name} ({c.status})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tally & Prompter Field App Companion Launcher */}
+          <button
+            onClick={() => setActiveTab('prompter')}
+            className="flex items-center gap-1 rounded-lg bg-indigo-950/80 border border-indigo-700/60 px-2.5 py-1 text-indigo-300 hover:text-white hover:bg-indigo-900 text-[10px] sm:text-xs font-semibold transition shrink-0"
+            title="Mobile Field Tally Light & Teleprompter Sync"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-indigo-400" />
+            <span className="hidden xs:inline">Mobile Tally</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
           {/* Playout Failover Status Toggle */}
           <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 p-1 border border-slate-800 shrink-0">
             <span className="px-1.5 font-medium text-slate-400 text-[10px] sm:text-xs">{t('streamLabel')}</span>
@@ -289,30 +352,21 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
           </div>
 
           {/* SCTE-35 & Regulatory compliance markers */}
-          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 border border-slate-800 text-slate-300 shrink-0 text-[10px] sm:text-xs">
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1 border border-slate-800 text-slate-300 shrink-0 text-[10px] sm:text-xs">
             <ShieldCheck className="h-3.5 w-3.5 text-sky-400" />
             <span>{t('scte35Status')}</span>
             <span className="font-mono text-emerald-400 font-semibold">{t('scte35Ready')}</span>
           </div>
 
-          {/* Alarm Indicator */}
-          {unresolvedAlerts.length > 0 ? (
-            <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-rose-400 animate-pulse shrink-0 text-[10px] sm:text-xs">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="font-semibold">{unresolvedAlerts.length} {t('alertsCount')}</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>{t('broadcastSafe')}</span>
-            </div>
-          )}
-
-          {/* Master Clock */}
-          <div className="rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 font-mono text-white text-[11px] sm:text-sm flex items-center gap-1.5 shrink-0">
-            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500 animate-ping"></span>
-            <span>{time || "00:00:00"} UTC</span>
-          </div>
+          {/* SMPTE / PTP Tier-1 Studio Readiness Telemetry Pill */}
+          <button
+            onClick={() => setActiveTab('standards')}
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-950/70 hover:bg-indigo-900/90 px-2.5 py-1 border border-indigo-700/60 text-indigo-300 shrink-0 text-[10px] sm:text-xs transition cursor-pointer"
+            title="SMPTE ST 2059-2 PTP Clock Genlock & ST 2022-7 Hitless Redundancy Status"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-mono font-bold tracking-tight">ST 2059 PTP: LOCKED</span>
+          </button>
         </div>
       </div>
 
@@ -352,6 +406,7 @@ export default function Header({ alerts, activeTab, setActiveTab, primaryActive,
             { id: 'dashboard', label: t('navDashboard') },
             { id: 'scheduler', label: t('navScheduler') },
             { id: 'playout', label: t('navPlayout') },
+            { id: 'standards', label: t('navStandards') },
             { id: 'mam', label: t('navMam') },
             { id: 'prompter', label: t('navPrompter') },
             { id: 'engagement', label: t('navEngagement') },

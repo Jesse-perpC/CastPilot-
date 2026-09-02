@@ -303,15 +303,15 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Location-based Currency Config Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-850 bg-slate-900/30 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border border-slate-850 bg-slate-900/30 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
             <Globe className="h-4 w-4 animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <span className="text-xs font-semibold text-slate-200">Dynamic Yield Localization</span>
               <span className={`text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
                 detectionSource === 'manual'
@@ -323,11 +323,11 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 {detectionSource === 'manual' ? 'Manual Override' : detectionSource === 'api' ? 'High Precision IP' : 'Timezone Estimate'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5">{detectedLocation}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono mt-0.5 truncate max-w-xs sm:max-w-md">{detectedLocation}</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+        <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-center justify-between sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/60 sm:border-t-0">
           <span className="text-[10px] font-mono uppercase text-slate-500">Currency:</span>
           <select
             value={selectedCurrency}
@@ -336,6 +336,7 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
               setDetectionSource('manual');
             }}
             className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-sky-500 hover:border-slate-700 transition font-medium cursor-pointer"
+            id="monetization-currency-select"
           >
             {Object.values(CURRENCIES).map((curr) => (
               <option key={curr.code} value={curr.code}>
@@ -346,89 +347,89 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
         </div>
       </div>
 
-      {/* Overview Cards row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Overview Cards row - Vertical stack on mobile, 2 cols on tablet, 4 cols on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Forecasted Revenue */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-5 shadow-lg flex items-center justify-between">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-medium tracking-wide">Forecasted Daily Ad Revenue</span>
-            <div className="font-display text-2xl font-bold text-white">
+            <div className="font-display text-xl sm:text-2xl font-bold text-white">
               {formatCurrency(totalRevenue, 0)}
             </div>
             <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
+              <TrendingUp className="h-3 w-3 shrink-0" />
               <span>+18.4% vs previous cycle</span>
             </p>
           </div>
-          <div className="h-11 w-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <span className="text-lg font-bold font-mono">{currentConfig.symbol}</span>
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <span className="text-base sm:text-lg font-bold font-mono">{currentConfig.symbol}</span>
           </div>
         </div>
 
         {/* Ad Fill Rate */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-5 shadow-lg flex items-center justify-between">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-medium tracking-wide">Average Ad Fill Rate</span>
-            <div className="font-display text-2xl font-bold text-white">
+            <div className="font-display text-xl sm:text-2xl font-bold text-white">
               {avgFillRate}%
             </div>
             <p className="text-[10px] text-sky-400 flex items-center gap-1">
               <span>99.7% Peak (Primetime Hour)</span>
             </p>
           </div>
-          <div className="h-11 w-11 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
-            <Percent className="h-5 w-5" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+            <Percent className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
         </div>
 
         {/* CPM Valuation */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-5 shadow-lg flex items-center justify-between">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-medium tracking-wide">Average Yield CPM</span>
-            <div className="font-display text-2xl font-bold text-white">
+            <div className="font-display text-xl sm:text-2xl font-bold text-white">
               {formatCurrency(avgCpm, 2)}
             </div>
             <p className="text-[10px] text-slate-400">
               Premium linear rates apply
             </p>
           </div>
-          <div className="h-11 w-11 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-            <TrendingUp className="h-5 w-5" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <TrendingUp className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
         </div>
 
         {/* Active SCTE Cue Slots */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-5 shadow-lg flex items-center justify-between">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-medium tracking-wide">SCTE-35 Active Cue Slots</span>
-            <div className="font-display text-2xl font-bold text-white">
+            <div className="font-display text-xl sm:text-2xl font-bold text-white">
               71
             </div>
             <p className="text-[10px] text-slate-400">
               Direct and Programmatic RTB ready
             </p>
           </div>
-          <div className="h-11 w-11 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-            <Database className="h-5 w-5" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+            <Database className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
         </div>
       </div>
 
-      {/* Recharts Analytics Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Recharts Analytics Grid - Stacks on mobile/tablet, 2-cols on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Yield Curve Graph (Area Chart) */}
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-5 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h3 className="font-display text-sm font-semibold text-white">Revenue Performance Curve</h3>
               <p className="text-xs text-slate-400">Programmatic real-time bidding yields across broadcast cycles</p>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-semibold">
+            <span className="self-start sm:self-auto px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-semibold">
               Live Forecasts
             </span>
           </div>
 
-          <div className="h-72 w-full">
+          <div className="h-60 sm:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={convertedAdData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <defs>
@@ -453,16 +454,16 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
         </div>
 
         {/* CPM & Fill Rates (Bar Chart) */}
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-5 shadow-lg">
+          <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h3 className="font-display text-sm font-semibold text-white">Fill Rate vs CPM Valuation</h3>
               <p className="text-xs text-slate-400">Ad slot inventory occupancy contrasted with cost-per-mille cost benchmarks</p>
             </div>
-            <BarChart3 className="h-4.5 w-4.5 text-sky-400" />
+            <BarChart3 className="h-4.5 w-4.5 text-sky-400 shrink-0" />
           </div>
 
-          <div className="h-72 w-full">
+          <div className="h-60 sm:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={convertedAdData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -488,20 +489,20 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
       </div>
 
       {/* SCTE-35 Splicer & Playout Automation Section */}
-      <div className="space-y-6 my-8">
+      <div className="space-y-4 sm:space-y-6 my-6 sm:my-8">
         {/* Full-width Stream Segment Map and Auto-Splicer Timeline */}
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-900">
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 pb-3 border-b border-slate-900">
             <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-sky-400" />
+              <Activity className="h-5 w-5 text-sky-400 shrink-0" />
               <div>
                 <h4 className="font-display text-xs font-bold text-white uppercase tracking-wider">Active Stream Timeline & Auto-Splicer Map</h4>
-                <p className="text-[11px] text-slate-500">Full-width live broadcast timeline mapping armed SCTE-35 segments with high readability</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500">Live broadcast timeline mapping armed SCTE-35 segments with high readability</p>
               </div>
             </div>
             
             {/* Live Status indicator */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
               <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Playout Splicer Status:</span>
               <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
                 {scteState.scteStatus}
@@ -509,58 +510,58 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
             </div>
           </div>
 
-          {/* Graphic Timeline Visualization */}
-          <div className="bg-slate-900/40 rounded-xl p-5 border border-slate-900">
+          {/* Graphic Timeline Visualization - Vertical stack on small mobile, row on tablet/desktop */}
+          <div className="bg-slate-900/40 rounded-xl p-3.5 sm:p-5 border border-slate-900">
             <div className="text-[10px] font-mono text-slate-400 uppercase mb-3.5 flex items-center justify-between font-bold">
               <span className="flex items-center gap-1.5"><Database className="h-4 w-4 text-sky-400" /> Stream Segment Map</span>
-              <span className="tracking-wide">Program Block Lifecycle</span>
+              <span className="tracking-wide hidden xs:inline">Program Block Lifecycle</span>
             </div>
 
-            <div className="flex flex-col md:flex-row items-stretch gap-2.5 min-h-[5rem] bg-slate-950 rounded-xl p-2.5 border border-slate-900 overflow-hidden shadow-inner">
+            <div className="flex flex-col md:flex-row items-stretch gap-2 sm:gap-2.5 min-h-[5rem] bg-slate-950 rounded-xl p-2.5 border border-slate-900 overflow-hidden shadow-inner">
               {/* Pre-Roll Segment */}
-              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-2.5 sm:p-3 transition-all ${
                 scteState.preRollEnabled 
                   ? 'bg-amber-500/10 border-2 border-amber-500/30 text-amber-400 shadow-md shadow-amber-500/5' 
                   : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
               }`}>
                 <span className="font-mono text-xs font-black tracking-wide">PRE-ROLL AD</span>
-                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-0.5 sm:mt-1">
                   {scteState.preRollEnabled ? `${scteState.preRollDuration}s Armed` : 'Disabled'}
                 </span>
               </div>
 
               {/* Main Program Segment 1 */}
-              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-3 text-sky-400 shadow-md shadow-sky-500/5">
+              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-2.5 sm:p-3 text-sky-400 shadow-md shadow-sky-500/5">
                 <span className="font-mono text-xs font-black tracking-wide">PRIMARY PROGRAM (PT. 1)</span>
-                <span className="text-[10px] font-mono text-slate-400 mt-1">Live Feed Payload</span>
+                <span className="text-[10px] font-mono text-slate-400 mt-0.5 sm:mt-1">Live Feed Payload</span>
               </div>
 
               {/* Mid-Roll Segment */}
-              <div className={`relative flex-[1.5] rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+              <div className={`relative flex-[1.5] rounded-lg flex flex-col items-center justify-center p-2.5 sm:p-3 transition-all ${
                 scteState.midRollEnabled 
                   ? 'bg-sky-500/10 border-2 border-sky-500/30 text-sky-400 shadow-md shadow-sky-500/5' 
                   : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
               }`}>
                 <span className="font-mono text-xs font-black tracking-wide">MID-ROLL AD</span>
-                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-0.5 sm:mt-1">
                   {scteState.midRollEnabled ? `${scteState.midRollDuration}s Armed` : 'Disabled'}
                 </span>
               </div>
 
               {/* Main Program Segment 2 */}
-              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-3 text-sky-400 shadow-md shadow-sky-500/5">
+              <div className="flex-[2.5] bg-sky-950/20 border-2 border-sky-500/20 rounded-lg flex flex-col items-center justify-center p-2.5 sm:p-3 text-sky-400 shadow-md shadow-sky-500/5">
                 <span className="font-mono text-xs font-black tracking-wide">PRIMARY PROGRAM (PT. 2)</span>
-                <span className="text-[10px] font-mono text-slate-400 mt-1">Live Feed Payload</span>
+                <span className="text-[10px] font-mono text-slate-400 mt-0.5 sm:mt-1">Live Feed Payload</span>
               </div>
 
               {/* Post-Roll Segment */}
-              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-3 transition-all ${
+              <div className={`relative flex-1 rounded-lg flex flex-col items-center justify-center p-2.5 sm:p-3 transition-all ${
                 scteState.postRollEnabled 
                   ? 'bg-rose-500/10 border-2 border-rose-500/30 text-rose-400 shadow-md shadow-rose-500/5' 
                   : 'bg-slate-900 text-slate-600 border border-slate-800 line-through opacity-45'
               }`}>
                 <span className="font-mono text-xs font-black tracking-wide">POST-ROLL AD</span>
-                <span className="text-[10px] font-mono font-semibold tracking-normal mt-1">
+                <span className="text-[10px] font-mono font-semibold tracking-normal mt-0.5 sm:mt-1">
                   {scteState.postRollEnabled ? `${scteState.postRollDuration}s Armed` : 'Disabled'}
                 </span>
               </div>
@@ -568,14 +569,14 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
 
             {/* Progress pointer if simulation is running */}
             {simRunning && (
-              <div className="mt-5 space-y-2">
+              <div className="mt-4 sm:mt-5 space-y-2">
                 <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-900 shadow-inner">
                   <div 
                     className="h-full bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all duration-200"
                     style={{ width: `${simProgress}%` }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-xs font-mono text-slate-400 font-bold">
+                <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 text-xs font-mono text-slate-400 font-bold">
                   <span>PLAYOUT ELAPSED: {Math.round(simProgress * 0.6)}s / 60.0s</span>
                   <span className="text-emerald-400 animate-pulse flex items-center gap-1.5 uppercase font-black">
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
@@ -587,20 +588,20 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
           </div>
         </div>
 
-        {/* Two-column control & diagnostics workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Side: Ad Placement Toggles & Core Config (7 Columns) */}
-          <div className="lg:col-span-7 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
+        {/* Two-column control & diagnostics workspace - Stacks on mobile/tablet, 12-col on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          {/* Left Side: Ad Placement Toggles & Core Config (7 Columns on desktop) */}
+          <div className="lg:col-span-7 rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-6 shadow-lg flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-900 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-900 mb-4 sm:mb-5">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-rose-500 animate-spin-slow" />
+                  <Settings className="h-5 w-5 text-rose-500 animate-spin-slow shrink-0" />
                   <div>
                     <h3 className="font-display text-sm font-semibold text-white">SCTE-35 Splicer Ad Insertion Policy</h3>
-                    <p className="text-[11px] text-slate-500">Configure pre-roll, mid-roll, and post-roll programmatic triggers</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500">Configure pre-roll, mid-roll, and post-roll programmatic triggers</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">
                   <span className={`h-2 w-2 rounded-full ${scteState.adTriggered ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
                   <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
                     {scteState.adTriggered ? "Splicing Active" : "Splicer Armed"}
@@ -608,21 +609,21 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Pre-Roll Card */}
-                <div className={`p-4 rounded-xl border transition-colors ${scteState.preRollEnabled ? 'bg-slate-900/40 border-amber-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.preRollEnabled ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl border transition-colors ${scteState.preRollEnabled ? 'bg-slate-900/40 border-amber-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 ${scteState.preRollEnabled ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-900 text-slate-500'}`}>
                         PRE
                       </span>
-                      <div>
-                        <h4 className="text-xs font-semibold text-slate-200">Pre-Roll Ad Slot Trigger</h4>
-                        <p className="text-[10px] text-slate-500">Automate commercial break insertion before stream playback begins</p>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-semibold text-slate-200 truncate">Pre-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500 truncate sm:whitespace-normal">Automate commercial break insertion before stream playback begins</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {/* Toggle */}
                       <button
                         onClick={() => updateScteConfig({ preRollEnabled: !scteState.preRollEnabled })}
@@ -634,7 +635,7 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                   </div>
 
                   {scteState.preRollEnabled && (
-                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                    <div className="mt-3 pt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2.5 animate-fadeIn">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
                         <select
@@ -661,19 +662,19 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 </div>
 
                 {/* Mid-Roll Card */}
-                <div className={`p-4 rounded-xl border transition-colors ${scteState.midRollEnabled ? 'bg-slate-900/40 border-sky-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.midRollEnabled ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl border transition-colors ${scteState.midRollEnabled ? 'bg-slate-900/40 border-sky-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 ${scteState.midRollEnabled ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-900 text-slate-500'}`}>
                         MID
                       </span>
-                      <div>
-                        <h4 className="text-xs font-semibold text-slate-200">Mid-Roll Ad Slot Trigger</h4>
-                        <p className="text-[10px] text-slate-500">Splice programmatic ad break at the calculated program midpoints</p>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-semibold text-slate-200 truncate">Mid-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500 truncate sm:whitespace-normal">Splice programmatic ad break at the calculated program midpoints</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {/* Toggle */}
                       <button
                         onClick={() => updateScteConfig({ midRollEnabled: !scteState.midRollEnabled })}
@@ -685,7 +686,7 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                   </div>
 
                   {scteState.midRollEnabled && (
-                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                    <div className="mt-3 pt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2.5 animate-fadeIn">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
                         <select
@@ -712,19 +713,19 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 </div>
 
                 {/* Post-Roll Card */}
-                <div className={`p-4 rounded-xl border transition-colors ${scteState.postRollEnabled ? 'bg-slate-900/40 border-rose-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${scteState.postRollEnabled ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-900 text-slate-500'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl border transition-colors ${scteState.postRollEnabled ? 'bg-slate-900/40 border-rose-500/20' : 'bg-slate-950/60 border-slate-900'}`}>
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <span className={`h-8 w-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 ${scteState.postRollEnabled ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-900 text-slate-500'}`}>
                         POST
                       </span>
-                      <div>
-                        <h4 className="text-xs font-semibold text-slate-200">Post-Roll Ad Slot Trigger</h4>
-                        <p className="text-[10px] text-slate-500">Inject SCTE markers immediately upon program playback ending</p>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-semibold text-slate-200 truncate">Post-Roll Ad Slot Trigger</h4>
+                        <p className="text-[10px] text-slate-500 truncate sm:whitespace-normal">Inject SCTE markers immediately upon program playback ending</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {/* Toggle */}
                       <button
                         onClick={() => updateScteConfig({ postRollEnabled: !scteState.postRollEnabled })}
@@ -736,7 +737,7 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                   </div>
 
                   {scteState.postRollEnabled && (
-                    <div className="mt-3 pt-3 border-t border-slate-905/60 flex items-center justify-between gap-4 animate-fadeIn">
+                    <div className="mt-3 pt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2.5 animate-fadeIn">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Duration</span>
                         <select
@@ -763,8 +764,8 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 </div>
               </div>
 
-              {/* General Splicer Parameters */}
-              <div className="mt-5 grid grid-cols-2 gap-4 pt-4 border-t border-slate-900 font-sans">
+              {/* General Splicer Parameters - Stacks vertically on small screens, 2-cols on sm+ */}
+              <div className="mt-4 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-slate-900 font-sans">
                 <div>
                   <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1.5 font-bold">Targeting Profile</label>
                   <select
@@ -795,11 +796,11 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
             </div>
           </div>
 
-          {/* Right Side: Diagnostics Logs & Test Controls (5 Columns) */}
-          <div className="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex flex-col justify-between">
+          {/* Right Side: Diagnostics Logs & Test Controls (5 Columns on desktop) */}
+          <div className="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-6 shadow-lg flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-900">
-                <Activity className="h-4.5 w-4.5 text-rose-500 animate-pulse" />
+              <div className="flex items-center gap-2 mb-3 sm:mb-4 pb-3 border-b border-slate-900">
+                <Activity className="h-4.5 w-4.5 text-rose-500 animate-pulse shrink-0" />
                 <div>
                   <h4 className="font-display text-xs font-bold text-white uppercase tracking-wider">Splicer Core Diagnostics</h4>
                   <p className="text-[10px] text-slate-500">Real-time SCTE-35 broadcast event stream logs</p>
@@ -807,15 +808,15 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
               </div>
 
               {/* Real-time Technical logs console */}
-              <div className="bg-black rounded-xl p-4 border border-slate-900">
-                <div className="text-[9px] font-mono text-slate-500 uppercase mb-3 flex items-center justify-between font-bold">
+              <div className="bg-black rounded-xl p-3 sm:p-4 border border-slate-900">
+                <div className="text-[9px] font-mono text-slate-500 uppercase mb-2.5 sm:mb-3 flex items-center justify-between font-bold">
                   <span>Core Event Stream</span>
                   <span className="text-emerald-400 font-bold animate-pulse flex items-center gap-1 uppercase">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     System Ready
                   </span>
                 </div>
-                <div className="h-[185px] overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1.5 select-text no-scrollbar">
+                <div className="h-[150px] sm:h-[185px] overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1.5 select-text no-scrollbar">
                   {simLogs.map((log, index) => (
                     <div 
                       key={index} 
@@ -833,14 +834,14 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
               </div>
             </div>
 
-            <div className="mt-6 flex gap-2">
+            <div className="mt-4 sm:mt-6 flex gap-2">
               {!simRunning ? (
                 <button
                   onClick={() => {
                     setSimRunning(true);
                     setSimProgress(0);
                   }}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-emerald-500 flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-emerald-500 flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Play className="h-4 w-4" />
                   Run Live Playout Ad Test
@@ -851,7 +852,7 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                     setSimRunning(false);
                     addLog("🛑 Playout test aborted manually.");
                   }}
-                  className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-rose-500 flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-rose-500 flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Square className="h-4 w-4" />
                   Abort Broadcast Test
@@ -863,9 +864,9 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
       </div>
 
       {/* Programmatic Direct Ad Connectors manual guide */}
-      <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-sky-400" />
+      <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-5 shadow-lg">
+        <div className="flex items-center gap-2 mb-2 sm:mb-3">
+          <Sparkles className="h-4 w-4 text-sky-400 shrink-0" />
           <h4 className="text-xs font-semibold text-white uppercase tracking-wider">AI programmatic traffic optimizer</h4>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
