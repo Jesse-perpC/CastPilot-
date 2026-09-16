@@ -1,12 +1,8 @@
-name: Fast Lint & Tests
+name: Fast Lint & Tests (PR Gate)
 
 on:
-  push:
-    branches: [ main ]
-    tags-ignore:
-      - 'v*'
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
   lint-and-test:

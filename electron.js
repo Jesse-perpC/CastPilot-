@@ -4,6 +4,7 @@
 
 import { app, BrowserWindow, screen } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,8 +14,9 @@ let mainWindow = null;
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const iconPath = path.join(__dirname, 'assets', 'icon.png');
 
-  mainWindow = new BrowserWindow({
+  const windowConfig = {
     width: Math.min(1280, width - 100),
     height: Math.min(800, height - 100),
     title: 'CastPilot Live - Executive Producer Console',
@@ -24,9 +26,14 @@ function createWindow() {
       contextIsolation: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, 'assets', 'icon.png'),
     autoHideMenuBar: true
-  });
+  };
+
+  if (fs.existsSync(iconPath)) {
+    windowConfig.icon = iconPath;
+  }
+
+  mainWindow = new BrowserWindow(windowConfig);
 
   // In production, we load the compiled static SPA.
   // In development, we load the Vite dev server URL.
