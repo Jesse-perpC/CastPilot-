@@ -162,18 +162,18 @@ export default function PlatformChatAggregator({
       </div>
 
       {/* Filter and Status Subbar */}
-      <div className="px-4 py-2 bg-slate-900/40 border-b border-slate-900 flex items-center justify-between gap-3 shrink-0 flex-wrap">
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <Filter className="h-3 w-3 text-slate-500" />
-          <span>Filter:</span>
-          <div className="flex gap-1">
+      <div className="px-3 sm:px-4 py-2 bg-slate-900/40 border-b border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 overflow-x-auto no-scrollbar py-0.5">
+          <Filter className="h-3 w-3 text-slate-500 shrink-0" />
+          <span className="shrink-0 text-[10px] sm:text-[11px]">Filter:</span>
+          <div className="flex flex-nowrap sm:flex-wrap gap-1 shrink-0">
             {['all', 'youtube', 'twitch', 'facebook_profile', 'facebook_group', 'website'].map(p => (
               <button
                 key={p}
                 onClick={() => setFilterPlatform(p)}
-                className={`px-2 py-0.5 rounded text-[9px] font-mono capitalize transition ${
+                className={`px-2 py-0.5 rounded text-[9px] font-mono capitalize transition whitespace-nowrap ${
                   filterPlatform === p 
-                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' 
+                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold' 
                     : 'bg-slate-950 text-slate-400 border border-slate-850 hover:text-slate-200'
                 }`}
               >
@@ -183,7 +183,7 @@ export default function PlatformChatAggregator({
           </div>
         </div>
 
-        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/30 font-bold uppercase">
+        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/30 font-bold uppercase self-start sm:self-auto shrink-0">
           Live feed active
         </span>
       </div>
@@ -357,11 +357,11 @@ export default function PlatformChatAggregator({
       </div>
 
       {/* Aggregated comment send panel */}
-      <form onSubmit={handleSend} className="p-3 border-t border-slate-900 bg-slate-950 shrink-0 flex items-center gap-2.5">
+      <form onSubmit={handleSend} className="p-2.5 sm:p-3 border-t border-slate-900 bg-slate-950 shrink-0 flex items-center gap-2 sm:gap-2.5">
         <select
           value={inputPlatform}
           onChange={(e: any) => setInputPlatform(e.target.value)}
-          className="bg-slate-900 border border-slate-800 text-slate-300 text-[11px] rounded-lg px-2 py-2 focus:outline-none shrink-0"
+          className="bg-slate-900 border border-slate-800 text-slate-300 text-[10px] sm:text-[11px] rounded-lg px-2 py-2 focus:outline-none shrink-0 max-w-[95px] sm:max-w-none"
           title="Select active identity channel"
         >
           <option value="youtube">📺 YouTube</option>
@@ -375,8 +375,8 @@ export default function PlatformChatAggregator({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Type a verified moderator response... (Simulates direct publishing to this platform)"
-          className="flex-1 bg-slate-900 border border-slate-850 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 placeholder-slate-650"
+          placeholder="Type a verified moderator response..."
+          className="flex-1 min-w-0 bg-slate-900 border border-slate-850 rounded-lg px-2.5 sm:px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 placeholder-slate-500"
         />
         
         <button

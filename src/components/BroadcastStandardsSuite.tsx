@@ -249,26 +249,26 @@ export default function BroadcastStandardsSuite({ addToast }: BroadcastStandards
         </div>
 
         {/* Real-time Status Micro-bar */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+        <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
             <span className="text-slate-400">PTP ST 2059-2:</span>
-            <strong className="text-emerald-400">LOCKED (±{ptpState?.phaseOffsetUs || 0.038} µs)</strong>
+            <strong className="text-emerald-400 truncate">LOCKED (±{ptpState?.phaseOffsetUs || 0.038} µs)</strong>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
             <span className="text-slate-400">ST 2022-7 Hitless:</span>
-            <strong className="text-emerald-400">0 DROPPED FRAMES</strong>
+            <strong className="text-emerald-400 truncate">0 DROPPED FRAMES</strong>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-sky-400" />
+            <span className="h-2 w-2 rounded-full bg-sky-400 shrink-0" />
             <span className="text-slate-400">Loudness Target:</span>
-            <strong className="text-sky-300">{loudnessState?.targetStandard.split(' ')[0]} ({loudnessState?.integratedLufs} LUFS)</strong>
+            <strong className="text-sky-300 truncate">{loudnessState?.targetStandard.split(' ')[0]} ({loudnessState?.integratedLufs} LUFS)</strong>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-purple-400" />
+            <span className="h-2 w-2 rounded-full bg-purple-400 shrink-0" />
             <span className="text-slate-400">As-Run Audit Hash:</span>
-            <strong className="text-purple-300">SHA-256 VERIFIED</strong>
+            <strong className="text-purple-300 truncate">SHA-256 VERIFIED</strong>
           </div>
         </div>
       </div>
@@ -1002,25 +1002,25 @@ export default function BroadcastStandardsSuite({ addToast }: BroadcastStandards
 
       {/* Audit Certificate Modal */}
       {showCertificate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-2xl rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-indigo-500/60 p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-3 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-amber-300 mb-2">
-                <Award className="h-8 w-8" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-indigo-500/60 p-4 sm:p-6 md:p-8 shadow-2xl space-y-4 sm:space-y-6">
+            <div className="text-center space-y-1.5 sm:space-y-2">
+              <div className="inline-flex p-2.5 sm:p-3 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-amber-300 mb-1 sm:mb-2">
+                <Award className="h-6 w-6 sm:h-8 sm:w-8" />
               </div>
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-white tracking-wide">
+              <h3 className="font-display text-lg sm:text-2xl font-bold text-white tracking-wide">
                 BROADCAST STANDARDS AUDIT CERTIFICATE
               </h3>
-              <p className="text-xs font-mono text-indigo-300 uppercase tracking-widest">
+              <p className="text-[10px] sm:text-xs font-mono text-indigo-300 uppercase tracking-widest break-all">
                 CERTIFICATE ID: SMPTE-2110-EBU-2026-CASTPILOT-986
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2.5 font-sans leading-relaxed text-slate-300">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2.5 font-sans leading-relaxed text-slate-300">
               <p>
                 This certifies that the <strong>CastPilot Enterprise Broadcast Operating System</strong> has been evaluated against Tier-1 National Television Network and FAST Cloud Playout specifications.
               </p>
-              <div className="grid grid-cols-2 gap-2 pt-2 font-mono text-[11px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 pt-2 font-mono text-[10px] sm:text-[11px]">
                 <div className="text-emerald-400">✓ SMPTE ST 2110 IP Transport</div>
                 <div className="text-emerald-400">✓ SMPTE ST 2022-7 Hitless Redundancy</div>
                 <div className="text-emerald-400">✓ IEEE 1588 / ST 2059-2 PTP Genlock</div>
@@ -1030,7 +1030,7 @@ export default function BroadcastStandardsSuite({ addToast }: BroadcastStandards
                 <div className="text-emerald-400">✓ AMWA NMOS IS-04 / IS-05</div>
                 <div className="text-emerald-400">✓ FCC EAS & CEA-708 Captions</div>
               </div>
-              <div className="pt-3 border-t border-slate-800 flex justify-between items-center text-[10px] font-mono text-slate-400">
+              <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-0 text-[10px] font-mono text-slate-400">
                 <span>Evaluated: {new Date().toISOString().split('T')[0]}</span>
                 <span>Compliance Score: <strong className="text-emerald-400">98.6% (Tier-1 Enterprise Class)</strong></span>
               </div>
@@ -1039,7 +1039,7 @@ export default function BroadcastStandardsSuite({ addToast }: BroadcastStandards
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowCertificate(false)}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-lg shadow-indigo-600/30"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-lg shadow-indigo-600/30 text-center"
               >
                 Close Certificate
               </button>

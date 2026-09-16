@@ -203,12 +203,24 @@ npx cap open android
 # That's it! Your physical APK will be generated inside:
 # android/app/build/outputs/apk/debug/app-debug.apk`;
 
-  const electronBuildSteps = `# Build your Desktop application locally:
-# 1. Run your React code inside the Electron shell in dev mode
+  const electronBuildSteps = `# 1. Run your React code inside the Electron shell in dev mode:
 npx electron .
 
-# 2. Package your desktop app for Windows/Mac/Linux
-npx electron-builder build`;
+# 2. Package desktop app locally (Windows/Mac/Linux):
+npm run dist:desktop
+
+# 3. AUTOMATED GITHUB ACTIONS CI/CD RELEASE (Zero local setup required):
+# Simply commit your changes and push a release tag:
+git add .
+git commit -m "Release v1.0.0"
+git tag v1.0.0
+git push origin v1.0.0
+
+# GitHub Actions will automatically:
+# - Run fast linters & TypeScript compilation tests (in < 45 seconds)
+# - Spin up macOS, Windows, and Ubuntu virtual machines in parallel
+# - Compile native .dmg, .zip, and .exe installers
+# - Publish and attach the finished downloadable installers to GitHub Releases!`;
 
   return (
     <div className="space-y-6" id="native-packaging-hub">

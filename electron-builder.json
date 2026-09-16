@@ -1,0 +1,36 @@
+{
+  "appId": "com.castpilot.studio",
+  "productName": "CastPilot Live Studio",
+  "copyright": "Copyright © 2026 Jesse Lepota / Perp Corp Media",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "electron.js",
+    "preload.js",
+    "package.json"
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.video",
+    "hardenedRuntime": false,
+    "gatekeeperAssess": false
+  },
+  "win": {
+    "target": ["nsis", "portable"]
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "category": "AudioVideo"
+  }
+}

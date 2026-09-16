@@ -357,18 +357,18 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Stage Video Frame Monitor (7 cols) */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-8 space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Monitor className="h-4 w-4 text-sky-400 animate-pulse" />
-              Main Stream Frame Layout Output Preview
+              <Monitor className="h-4 w-4 text-sky-400 animate-pulse shrink-0" />
+              <span>Main Stream Frame Output</span>
             </span>
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg overflow-x-auto no-scrollbar self-start sm:self-auto">
               {[
-                { id: 'grid', label: 'Grid 2x2', icon: <LayoutGrid className="h-3.5 w-3.5" /> },
-                { id: 'split', label: 'Split', icon: <LayoutGrid className="h-3.5 w-3.5" /> },
-                { id: 'speaker', label: 'Speaker', icon: <LayoutGrid className="h-3.5 w-3.5" /> },
-                { id: 'solo', label: 'Solo Focus', icon: <LayoutGrid className="h-3.5 w-3.5" /> }
+                { id: 'grid', label: 'Grid 2x2', icon: <LayoutGrid className="h-3.5 w-3.5 shrink-0" /> },
+                { id: 'split', label: 'Split', icon: <LayoutGrid className="h-3.5 w-3.5 shrink-0" /> },
+                { id: 'speaker', label: 'Speaker', icon: <LayoutGrid className="h-3.5 w-3.5 shrink-0" /> },
+                { id: 'solo', label: 'Solo Focus', icon: <LayoutGrid className="h-3.5 w-3.5 shrink-0" /> }
               ].map(lay => (
                 <button
                   key={lay.id}
@@ -376,7 +376,7 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
                     setActiveLayout(lay.id as any);
                     addToast(`Stream layout changed to ${lay.label}`, 'info');
                   }}
-                  className={`px-2.5 py-1 text-[10px] rounded font-semibold transition flex items-center gap-1 ${
+                  className={`px-2 sm:px-2.5 py-1 text-[10px] rounded font-semibold transition flex items-center gap-1 whitespace-nowrap ${
                     activeLayout === lay.id ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-slate-200'
                   }`}
                   title={lay.label}
@@ -389,7 +389,7 @@ export default function LiveGuestStage({ addToast }: LiveGuestStageProps) {
           </div>
 
           {/* Simulated Video canvas with selected background frame styling */}
-          <div className={`h-[380px] rounded-xl border-2 relative overflow-hidden flex flex-col justify-between p-4 ${
+          <div className={`h-[300px] sm:h-[380px] rounded-xl border-2 relative overflow-hidden flex flex-col justify-between p-3 sm:p-4 ${
             STREAM_BACKGROUNDS.find(b => b.id === selectedBg)?.style || 'bg-slate-950 border-slate-850'
           }`}>
             

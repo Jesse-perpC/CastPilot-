@@ -402,28 +402,28 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-900/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-              <Sparkles className="h-5 w-5" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800/80 bg-slate-900/50">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm text-white font-display">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="font-bold text-xs sm:text-sm text-white font-display">
                   1-Click Channel Archetype Presets
                 </h3>
-                <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[9px] sm:text-[10px] font-mono bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">
                   FAST LAUNCH
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
                 Instantly populate your station with a complete, professionally configured 24/7 broadcast channel.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0 ml-2"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -431,7 +431,7 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
         </div>
 
         {/* Modal Body: Two column selection & preview */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 max-h-[75vh] overflow-y-auto no-scrollbar">
+        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 max-h-[75vh] overflow-y-auto no-scrollbar">
           
           {/* Left Column: Archetype List */}
           <div className="md:col-span-5 space-y-2.5">
@@ -532,13 +532,13 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
             </div>
 
             {/* Apply Button */}
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-3">
-              <span className="text-[11px] text-slate-400">
+            <div className="pt-2.5 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+              <span className="text-[10px] sm:text-[11px] text-slate-400 text-center sm:text-left">
                 Replaces current active lineup & assets
               </span>
               <button
                 onClick={handleApply}
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20 flex items-center gap-2 transition"
+                className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 transition"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 Apply Preset & Launch
@@ -548,11 +548,13 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-slate-800/80 bg-slate-900/40 text-xs text-slate-400">
-          <span>All presets comply with FCC Part 73 and EBU R128 loudness standards.</span>
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 py-3 border-t border-slate-800/80 bg-slate-900/40 text-xs text-slate-400 gap-2 sm:gap-0">
+          <span className="text-[10px] sm:text-xs text-center sm:text-left text-slate-500 sm:text-slate-400">
+            All presets comply with FCC Part 73 and EBU R128 loudness standards.
+          </span>
           <button
             onClick={onClose}
-            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition"
+            className="w-full sm:w-auto px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition text-center"
           >
             Cancel
           </button>
