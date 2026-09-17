@@ -206,9 +206,9 @@ export default function ScheduleManager({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-w-0 max-w-full">
       {/* Left controls sidebar (4 Cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 min-w-0 max-w-full">
         {/* Channel Selector */}
         <div className="rounded-xl bg-slate-950 border border-slate-800 p-5 shadow-lg">
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
@@ -397,7 +397,7 @@ export default function ScheduleManager({
       </div>
 
       {/* Main Schedule Listing (8 Cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6">
+      <div className="lg:col-span-8 flex flex-col gap-6 min-w-0 max-w-full">
         {/* Manual Addition Form modal-like overlay (in-line) */}
         {showManualForm && (
           <form onSubmit={handleSubmitManual} className="rounded-xl bg-slate-950 border-2 border-sky-500/30 p-5 shadow-xl animate-fadeIn">
@@ -478,16 +478,16 @@ export default function ScheduleManager({
         )}
 
         {/* Schedule Listing View */}
-        <div className="rounded-xl bg-slate-950 border border-slate-800 p-6 shadow-lg flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div>
+        <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 sm:p-6 shadow-lg flex-1 min-w-0 max-w-full overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 min-w-0">
+            <div className="min-w-0">
               <h2 className="font-display text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                <Layers className="h-5 w-5 text-sky-400" />
-                Lineup Sequence Matrix
+                <Layers className="h-5 w-5 text-sky-400 shrink-0" />
+                <span>Lineup Sequence Matrix</span>
               </h2>
-              <p className="text-[11px] sm:text-xs text-slate-400">Chronological playout blocks on {channelName}</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 truncate">Chronological playout blocks on {channelName}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 onClick={() => {
                   const xmltvData = `<?xml version="1.0" encoding="UTF-8"?>
@@ -511,7 +511,7 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                   URL.revokeObjectURL(url);
                   if (addToast) addToast('Exported standard XMLTV EPG feed for smart TVs & aggregators', 'success');
                 }}
-                className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 text-[10px] font-mono flex items-center gap-1.5 transition"
+                className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 text-[10px] font-mono inline-flex items-center gap-1.5 transition whitespace-nowrap shrink-0"
                 title="Export XMLTV EPG file for FAST platforms & Smart TV aggregators"
               >
                 <span>📡 Export XMLTV EPG</span>
@@ -521,23 +521,23 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
               <button
                 onClick={handleHarmonizeRundown}
                 disabled={isHarmonizing || filteredSchedules.length === 0}
-                className="px-2.5 py-1 rounded bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/60 text-[10px] font-mono flex items-center gap-1.5 transition disabled:opacity-50 shadow-sm"
+                className="px-2.5 py-1 rounded bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/60 text-[10px] font-mono inline-flex items-center gap-1.5 transition disabled:opacity-50 shadow-sm whitespace-nowrap shrink-0"
                 title="AI Rundown Doctor: Verify structural integrity, resolve clock slippage, and auto-harmonize schedule"
               >
                 {isHarmonizing ? (
                   <>
-                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
+                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-400 shrink-0" />
                     <span>Analyzing Lineup...</span>
                   </>
                 ) : (
                   <>
-                    <Stethoscope className="h-3 w-3 text-indigo-400" />
+                    <Stethoscope className="h-3 w-3 text-indigo-400 shrink-0" />
                     <span>🩺 AI Rundown Doctor</span>
                   </>
                 )}
               </button>
 
-              <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase">
+              <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px] font-mono text-slate-400 uppercase whitespace-nowrap inline-flex items-center shrink-0">
                 {filteredSchedules.length} Items Scheduled
               </span>
             </div>
@@ -590,7 +590,7 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 min-w-0 max-w-full">
               {filteredSchedules.map((item, index) => {
                 // Color mapping for type badge
                 const typeColors = {
@@ -612,7 +612,7 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, index)}
                     onDragEnd={handleDragEnd}
-                    className={`group relative rounded-xl border p-4 transition-all hover:bg-slate-900/60 flex flex-col md:flex-row md:items-start md:justify-between gap-4 cursor-grab active:cursor-grabbing ${
+                    className={`group relative rounded-xl border p-3.5 sm:p-4 transition-all hover:bg-slate-900/60 flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 cursor-grab active:cursor-grabbing min-w-0 max-w-full overflow-hidden ${
                       isDragged 
                         ? 'opacity-40 border-dashed border-sky-500/60 bg-slate-950/20 scale-95' 
                         : isDragOver 
@@ -623,7 +623,7 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                     }`}
                   >
                     {/* Time & Title info block */}
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                    <div className="flex items-start gap-3 min-w-0 flex-1 max-w-full">
                       {/* Vertical Drag Grip Indicator */}
                       <div className="flex items-center self-stretch pr-1 text-slate-600 group-hover:text-slate-400 transition shrink-0">
                         <GripVertical className="h-4 w-4" />
@@ -635,48 +635,52 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                         {item.startTime}
                       </div>
 
-                      <div className="space-y-1.5 min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <div className="space-y-1.5 min-w-0 flex-1 max-w-full">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 max-w-full">
                           {/* Compact mobile-only time pill */}
                           <div className="flex sm:hidden items-center gap-1 font-mono text-[9px] font-bold text-slate-400 bg-slate-900 rounded px-1.5 py-0.5 border border-slate-800 shrink-0">
                             <Clock className="h-2.5 w-2.5 text-slate-500" />
                             {item.startTime}
                           </div>
 
-                          <span className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-full">{item.title}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold uppercase border ${typeColors[item.type]} shrink-0`}>
+                          <span className="text-xs sm:text-sm font-semibold text-white tracking-wide break-words max-w-full" title={item.title}>
+                            {item.title}
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold uppercase border ${typeColors[item.type]} shrink-0 whitespace-nowrap`}>
                             {item.type}
                           </span>
                           {item.status === 'playing' && (
-                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-widest uppercase animate-pulse shrink-0">
+                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5 text-[8px] font-bold tracking-widest uppercase animate-pulse shrink-0 whitespace-nowrap">
                               ON-AIR
                             </span>
                           )}
                         </div>
 
                         {/* Audience and metadata tags */}
-                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-slate-400">
-                          <span className="flex items-center gap-1 shrink-0">
-                            <Users className="h-3 w-3 text-slate-500" />
-                            Audience: <strong className="text-slate-300">{item.targetAudience}</strong>
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-slate-400 min-w-0 max-w-full">
+                          <span className="flex items-center gap-1 min-w-0 break-words">
+                            <Users className="h-3 w-3 text-slate-500 shrink-0" />
+                            <span className="break-words">
+                              Audience: <strong className="text-slate-300">{item.targetAudience}</strong>
+                            </span>
                           </span>
-                          <span className="hidden sm:inline text-slate-700">•</span>
-                          <span className="shrink-0">Duration: <strong className="text-slate-300">{item.duration}m</strong></span>
-                          <span className="hidden sm:inline text-slate-700">•</span>
-                          <span className="shrink-0">Demand: <strong className="text-sky-400">{item.demandScore}%</strong></span>
+                          <span className="hidden sm:inline text-slate-700 shrink-0">•</span>
+                          <span className="shrink-0 whitespace-nowrap">Duration: <strong className="text-slate-300">{item.duration}m</strong></span>
+                          <span className="hidden sm:inline text-slate-700 shrink-0">•</span>
+                          <span className="shrink-0 whitespace-nowrap">Demand: <strong className="text-sky-400">{item.demandScore}%</strong></span>
                         </div>
 
                         {/* AI Rationale dropdown indicator */}
                         {item.aiRationale && (
-                          <p className="text-[10px] text-slate-500 italic leading-relaxed mt-1.5 pt-1.5 border-t border-slate-900">
-                            <strong>AI:</strong> {item.aiRationale}
+                          <p className="text-[10px] text-slate-500 italic leading-relaxed mt-1.5 pt-1.5 border-t border-slate-900 break-words min-w-0 max-w-full">
+                            <strong className="text-slate-400 not-italic">AI:</strong> {item.aiRationale}
                           </p>
                         )}
                       </div>
                     </div>
 
                     {/* Delete action button */}
-                    <div className="flex items-center justify-end self-end md:self-start opacity-60 group-hover:opacity-100 transition">
+                    <div className="flex items-center justify-end self-end md:self-start opacity-60 group-hover:opacity-100 transition shrink-0">
                       <button
                         onClick={() => onDeleteScheduleItem(item.id)}
                         className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition"
@@ -811,7 +815,7 @@ ${filteredSchedules.map((item, idx) => `  <programme start="20260808${10 + idx}0
                         {harmonizeReport.harmonizedSchedule.map((blk, idx) => (
                           <tr key={idx} className="hover:bg-slate-900/50">
                             <td className="p-2 text-sky-400">{blk.startTime}</td>
-                            <td className="p-2 font-sans font-medium text-white truncate max-w-[200px]">{blk.title}</td>
+                            <td className="p-2 font-sans font-medium text-white max-w-[220px] overflow-x-auto whitespace-nowrap text-horizontal-scroll" title={blk.title}>{blk.title}</td>
                             <td className="p-2 uppercase text-[10px] text-slate-400">{blk.type}</td>
                             <td className="p-2 text-slate-300">{blk.duration}m</td>
                           </tr>

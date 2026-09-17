@@ -41,6 +41,7 @@ export interface GlobalSearchBarProps {
   onSelectAsset?: (asset: ContentAsset) => void;
   onSelectSchedule?: (schedule: ScheduleItem) => void;
   onSelectResource?: (resource: ResourceAsset) => void;
+  onOpenTour?: () => void;
 }
 
 type SearchCategory = 'all' | 'assets' | 'schedule' | 'resources' | 'tools' | 'alerts';
@@ -66,10 +67,12 @@ const WORKSPACE_TOOLS: ToolItem[] = [
   { id: 'tool-synd', tabId: 'syndication', title: 'Streaming & VOD Syndication', category: 'Distribution', description: 'RTMP destinations, FAST feeds & VOD publishing', icon: Share2 },
   { id: 'tool-setup', tabId: 'setup', title: 'Channel Setup & Credentials', category: 'System', description: 'SCTE-35 parameters, storage configuration & API keys', icon: Settings },
   { id: 'tool-export', tabId: 'export', title: 'Native Apps & Desktop Hub', category: 'Deployment', description: 'Electron desktop runtime, PWA and mobile companion', icon: Download },
+  { id: 'tool-tour', tabId: 'tour', title: 'Interactive Broadcast Tutorial & Academy', category: 'Training', description: 'Step-by-step masterclass on linear playout, audio QC & live transmission', icon: Sparkles },
   { id: 'tool-man', tabId: 'manual', title: 'User Manual & Academy', category: 'Documentation', description: 'Complete operating documentation & workflow guides', icon: BookOpen },
 ];
 
 const SUGGESTED_SEARCHES = [
+  'Tutorial',
   'News 24',
   'Studio A',
   'Commercial',
@@ -89,6 +92,7 @@ export default function GlobalSearchBar({
   onSelectAsset,
   onSelectSchedule,
   onSelectResource,
+  onOpenTour,
 }: GlobalSearchBarProps) {
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
@@ -272,7 +276,11 @@ export default function GlobalSearchBar({
       if (onSelectResource) onSelectResource(result.item);
       window.dispatchEvent(new CustomEvent('global-search-select-resource', { detail: result.item }));
     } else if (result.type === 'tool') {
-      setActiveTab(result.item.tabId);
+      if (result.item.tabId === 'tour' && onOpenTour) {
+        onOpenTour();
+      } else {
+        setActiveTab(result.item.tabId);
+      }
     } else if (result.type === 'alert') {
       setActiveTab('scheduler');
     }

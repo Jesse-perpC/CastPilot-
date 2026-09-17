@@ -588,9 +588,9 @@ export default function AssetManager({
   const criticalAudioLoudnessCount = assets.filter(a => a.loudnessDb > -21.0).length;
 
   return (
-    <div className="space-y-8 animate-fadeIn" id="media-manager-section">
+    <div className="space-y-6 sm:space-y-8 animate-fadeIn w-full max-w-full overflow-hidden" id="media-manager-section">
       {/* Intro Header */}
-      <div className="rounded-2xl border border-slate-800 glowing-border relative overflow-hidden bg-slate-900/40 p-6 shadow-xl">
+      <div className="rounded-2xl border border-slate-800 glowing-border relative overflow-hidden bg-slate-900/40 p-4 sm:p-6 shadow-xl w-full max-w-full">
         <div className="absolute top-0 right-0 p-8 opacity-5">
           <Film className="h-32 w-32 text-sky-400" />
         </div>
@@ -653,10 +653,10 @@ export default function AssetManager({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-full min-w-0">
         {/* Main Vault Content Panel (8 Columns) */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="rounded-xl bg-slate-950 border border-slate-900 p-6 shadow-lg">
+        <div className="lg:col-span-8 flex flex-col gap-6 w-full max-w-full min-w-0">
+          <div className="rounded-xl bg-slate-950 border border-slate-900 p-4 sm:p-6 shadow-lg w-full max-w-full min-w-0 overflow-hidden">
             
             {/* Header section with view toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -812,7 +812,7 @@ export default function AssetManager({
             {/* Filter controls, tag cloud & search bar */}
             <div className="space-y-4 mb-6">
               {/* Search & Ingestion Category Filter */}
-              <div className="flex flex-col md:flex-row gap-3 bg-slate-900/30 p-3 rounded-lg border border-slate-800/80">
+              <div className="flex flex-col md:flex-row gap-3 bg-slate-900/30 p-3 rounded-lg border border-slate-800/80 w-full max-w-full min-w-0">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                   <input
@@ -895,7 +895,7 @@ export default function AssetManager({
 
               {/* Tag Cloud Selector */}
               {allUniqueTags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] w-full max-w-full">
                   <span className="text-slate-500 flex items-center gap-1 shrink-0 font-mono">
                     <Tag className="h-3 w-3" />
                     Popular Tags:
@@ -928,7 +928,7 @@ export default function AssetManager({
             {/* Asset Rendering Helpers */}
             {(() => {
               const renderAssetGrid = (assetList: ContentAsset[]) => (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3.5 sm:gap-4 grid-cols-1 sm:grid-cols-2 w-full max-w-full min-w-0">
                   {assetList.map((asset) => {
                     const isEditing = editingAssetId === asset.id;
                     const showDelete = showDeleteConfirmId === asset.id;
@@ -936,22 +936,22 @@ export default function AssetManager({
                     return (
                       <div
                         key={asset.id}
-                        className={`group rounded-xl border p-4.5 transition-all flex flex-col justify-between ${
+                        className={`group rounded-xl border p-3.5 sm:p-4.5 transition-all flex flex-col justify-between min-w-0 w-full max-w-full overflow-hidden ${
                           isEditing 
                             ? 'bg-slate-900/30 border-sky-500/50 ring-1 ring-sky-500/20' 
                             : 'bg-slate-950/40 border-slate-850 hover:bg-slate-900/30 hover:border-slate-750'
                         }`}
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <span className="text-[9px] font-mono bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wide border border-slate-800">
+                        <div className="space-y-3 min-w-0 w-full">
+                          <div className="flex items-start justify-between gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[9px] font-mono bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wide border border-slate-800 inline-block">
                                 {asset.type}
                               </span>
-                              <h3 className="font-bold text-sm text-slate-100 mt-1.5 truncate group-hover:text-white transition-colors" title={asset.title}>
+                              <h3 className="font-bold text-sm text-slate-100 mt-1.5 truncate group-hover:text-white transition-colors block" title={asset.title}>
                                 {asset.title}
                               </h3>
-                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5 truncate">
                                 {asset.category} • {asset.duration} mins
                               </span>
                             </div>
@@ -974,28 +974,28 @@ export default function AssetManager({
 
                           {/* Inferred AI Genre & Mood Metadata Badges */}
                           {(asset.genre || asset.mood) && (
-                            <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            <div className="flex flex-wrap gap-1.5 pt-0.5 max-w-full">
                               {asset.genre && (
                                 <span className="text-[9px] font-medium bg-indigo-950/60 text-indigo-300 border border-indigo-800/50 px-2 py-0.5 rounded flex items-center gap-1">
-                                  <Sparkles className="h-2.5 w-2.5 text-indigo-400" />
-                                  {asset.genre}
+                                  <Sparkles className="h-2.5 w-2.5 text-indigo-400 shrink-0" />
+                                  <span className="truncate">{asset.genre}</span>
                                 </span>
                               )}
                               {asset.mood && (
                                 <span className="text-[9px] font-medium bg-purple-950/60 text-purple-300 border border-purple-800/50 px-2 py-0.5 rounded flex items-center gap-1">
-                                  <Smile className="h-2.5 w-2.5 text-purple-400" />
-                                  {asset.mood}
+                                  <Smile className="h-2.5 w-2.5 text-purple-400 shrink-0" />
+                                  <span className="truncate">{asset.mood}</span>
                                 </span>
                               )}
                             </div>
                           )}
 
-                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed break-words">
                             {asset.description || "No synopsis provided. Run AI CastPilot enrichment to sync tags & metadata."}
                           </p>
 
                           {/* Metadata row */}
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-slate-900 text-[10px]">
+                          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 pt-2 border-t border-slate-900 text-[10px]">
                             <div className="flex items-center gap-1 text-slate-400">
                               <Volume2 className={`h-3.5 w-3.5 shrink-0 ${asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-500'}`} />
                               <span>Loudness: <strong className={asset.loudnessDb > -21.0 ? 'text-rose-400' : 'text-slate-300'}>{asset.loudnessDb} dB</strong></span>
@@ -1006,37 +1006,32 @@ export default function AssetManager({
                             </div>
                           </div>
 
-                          {/* Tags display */}
+                          {/* Tags display - Fully visible and scrollable if many tags exist */}
                           {asset.tags && asset.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {asset.tags.slice(0, 3).map(t => (
-                                <span key={t} className="bg-slate-900 text-slate-500 text-[9px] font-mono px-2 py-0.5 rounded">
+                            <div className="flex flex-wrap gap-1 max-w-full max-h-16 overflow-y-auto text-box-scroll pr-1">
+                              {asset.tags.map(t => (
+                                <span key={t} className="bg-slate-900 text-slate-400 text-[9px] font-mono px-2 py-0.5 rounded break-all" title={`#${t}`}>
                                   #{t}
                                 </span>
                               ))}
-                              {asset.tags.length > 3 && (
-                                <span className="text-[9px] text-slate-600 font-mono py-0.5">
-                                  +{asset.tags.length - 3} more
-                                </span>
-                              )}
                             </div>
                           )}
 
                           {/* Cue points count */}
                           {asset.adMarkers && asset.adMarkers.length > 0 && (
-                            <div className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {asset.adMarkers.length} ad cue points inserted: {asset.adMarkers.join(', ')}
+                            <div className="text-[9px] text-slate-500 font-mono flex flex-wrap items-center gap-1 break-words min-w-0">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span className="break-all">{asset.adMarkers.length} ad cue points inserted: {asset.adMarkers.join(', ')}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Control buttons */}
-                        <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex gap-1.5">
+                        <div className="mt-4 pt-3.5 border-t border-slate-900/60 flex flex-wrap items-center justify-between gap-2 min-w-0 w-full">
+                          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                             <button
                               onClick={() => startEditing(asset)}
-                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 transition"
+                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 transition shrink-0 cursor-pointer"
                               title="Edit metadata & cue points"
                             >
                               <Edit className="h-3.5 w-3.5" />
@@ -1045,43 +1040,43 @@ export default function AssetManager({
                             <button
                               onClick={() => onEnrichAsset(asset.id)}
                               disabled={enrichingAssetId === asset.id}
-                              className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 shrink-0"
+                              className="px-2 sm:px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 shrink-0 cursor-pointer disabled:opacity-50"
                               title="Run AI tag generation"
                             >
                               {enrichingAssetId === asset.id ? (
                                 <>
-                                  <RefreshCw className="h-3 w-3 animate-spin" />
-                                  Tagging...
+                                  <RefreshCw className="h-3 w-3 animate-spin shrink-0" />
+                                  <span>Tagging...</span>
                                 </>
                               ) : (
                                 <>
-                                  <Sparkles className="h-3 w-3 text-sky-400" />
-                                  AI Tag
+                                  <Sparkles className="h-3 w-3 text-sky-400 shrink-0" />
+                                  <span>AI Tag</span>
                                 </>
                               )}
                             </button>
 
                             <button
                               onClick={() => onCueMedia && onCueMedia(asset)}
-                              className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 hover:text-slate-950 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1.5 shrink-0"
+                              className="px-2 sm:px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 hover:text-slate-950 text-sky-400 border border-sky-500/20 text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1.5 shrink-0 cursor-pointer"
                               title="Audition via Pre-Fade Listen (PFL)"
                             >
-                              <Headphones className="h-3.5 w-3.5 text-sky-400 group-hover:text-inherit" />
-                              PFL Cue
+                              <Headphones className="h-3.5 w-3.5 text-sky-400 group-hover:text-inherit shrink-0" />
+                              <span>PFL Cue</span>
                             </button>
                           </div>
 
                           {showDelete ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 shrink-0">
                               <button
                                 onClick={() => handleConfirmDelete(asset.id)}
-                                className="px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold"
+                                className="px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold cursor-pointer"
                               >
                                 Confirm
                               </button>
                               <button
                                 onClick={() => setShowDeleteConfirmId(null)}
-                                className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 text-[10px]"
+                                className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 text-[10px] cursor-pointer"
                               >
                                 Cancel
                               </button>
@@ -1089,7 +1084,7 @@ export default function AssetManager({
                           ) : (
                             <button
                               onClick={() => handleDeleteClick(asset.id)}
-                              className="p-1.5 rounded-lg bg-red-950/20 hover:bg-red-900/20 text-red-400 hover:text-red-300 border border-red-900/20 transition"
+                              className="p-1.5 rounded-lg bg-red-950/20 hover:bg-red-900/20 text-red-400 hover:text-red-300 border border-red-900/20 transition shrink-0 cursor-pointer"
                               title="Delete asset"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -1217,28 +1212,28 @@ export default function AssetManager({
                       const groupDuration = groupItems.reduce((sum, item) => sum + item.duration, 0);
 
                       return (
-                        <div key={groupTitle} className="rounded-xl border border-slate-800/80 bg-slate-950 overflow-hidden shadow-lg transition-all">
+                        <div key={groupTitle} className="rounded-xl border border-slate-800/80 bg-slate-950 overflow-hidden shadow-lg transition-all w-full max-w-full">
                           <button
                             type="button"
                             onClick={() => toggleGroupCollapse(groupTitle)}
-                            className="w-full bg-slate-900/90 hover:bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800/80 text-left transition cursor-pointer"
+                            className="w-full bg-slate-900/90 hover:bg-slate-900 px-3.5 sm:px-4 py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-slate-800/80 text-left transition cursor-pointer"
                           >
-                            <div className="flex items-center gap-2.5">
-                              <ChevronDown className={`h-4 w-4 text-sky-400 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
-                              <FolderTree className="h-4 w-4 text-indigo-400" />
-                              <span className="font-bold text-sm text-slate-100">{groupTitle}</span>
-                              <span className="text-[10px] font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-0.5 rounded-full">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 min-w-0">
+                              <ChevronDown className={`h-4 w-4 text-sky-400 transition-transform duration-200 shrink-0 ${isCollapsed ? '-rotate-90' : ''}`} />
+                              <FolderTree className="h-4 w-4 text-indigo-400 shrink-0" />
+                              <span className="font-bold text-sm text-slate-100 truncate">{groupTitle}</span>
+                              <span className="text-[10px] font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2 sm:px-2.5 py-0.5 rounded-full shrink-0">
                                 {groupItems.length} {groupItems.length === 1 ? 'Asset' : 'Assets'}
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
+                            <div className="flex items-center gap-3 text-xs text-slate-400 font-mono shrink-0">
                               <span>Total Runtime: {groupDuration} mins</span>
                             </div>
                           </button>
 
                           {!isCollapsed && (
-                            <div className="p-4 bg-slate-950/40">
+                            <div className="p-3 sm:p-4 bg-slate-950/40 w-full max-w-full overflow-hidden">
                               {viewMode === 'grid' ? renderAssetGrid(groupItems) : renderAssetList(groupItems)}
                             </div>
                           )}
@@ -1255,14 +1250,14 @@ export default function AssetManager({
         </div>
 
         {/* Dynamic Sidebar Control & Editor Panel (4 Columns) */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-6 w-full max-w-full min-w-0">
           
           {/* Metadata Inspector & Editor Container */}
           {editingAssetId ? (
-            <div className="rounded-xl bg-slate-950 border border-sky-500/40 p-5 shadow-xl animate-fadeIn space-y-4">
+            <div className="rounded-xl bg-slate-950 border border-sky-500/40 p-4 sm:p-5 shadow-xl animate-fadeIn space-y-4 w-full max-w-full overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-900 pb-3">
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4.5 w-4.5 text-sky-400 animate-spin" />
+                  <SlidersHorizontal className="h-4.5 w-4.5 text-sky-400" />
                   <h3 className="font-display text-sm font-semibold text-white">Asset Inspector</h3>
                 </div>
                 <button

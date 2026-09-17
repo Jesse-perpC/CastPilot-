@@ -65,7 +65,8 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
     const cheatSheet = `# CASTPILOT LIVE — CONTROL ROOM QUICK REFERENCE
 ## Master Control Switcher Shortcuts
 - Space : CUT / TAKE (Preview to Program)
-- 1 - 4 : Direct Cut to Camera 1, 2, 3, or 4
+- 1 - 8 : Direct Cut to Studio Cameras 1 through 8
+- 9 : Direct Cut to Mobile Dual-Cam Studio (CAM 9)
 - E : Emergency Slate Kill Switch (Panic Screen)
 - C : SCTE-35 30s Commercial Ad Splice
 - S : Skip to Next Queued Item
@@ -78,9 +79,10 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
 ## Standard Operating Procedures
 1. Schedule Rundown: TV Schedule -> Click "AI Rundown Doctor" to seal gaps.
 2. Playout Feed: Playout MCR -> Verify Program tally (Red = On-Air).
-3. Redundancy: Primary and Backup DR mirror automatically.
-4. OBS Overlay: Add Browser Source -> https://[URL]/?overlay=true
-5. Audio Safe: ITU-R BS.1770 / EBU R128 (-24 LKFS standard).`;
+3. Mobile Dual-Cam Interview: Toggle "📱 Dual-Cam Interview" on Playout Monitor or select CAM 9.
+4. Redundancy: Primary and Backup DR mirror automatically.
+5. OBS Overlay: Add Browser Source -> https://[URL]/?overlay=true
+6. Audio Safe: ITU-R BS.1770 / EBU R128 (-24 LKFS standard).`;
 
     navigator.clipboard.writeText(cheatSheet);
     setCopiedCheatSheet(true);
@@ -345,6 +347,73 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
               <strong className="text-indigo-300 text-xs">Instant Replay Caster</strong>
               <p className="text-slate-400 text-[11px]">
                 Click the <strong>"REPLAY"</strong> button to immediately play back the last 15 seconds of action at 0.5x slow motion with an authentic on-screen "INSTANT REPLAY" graphic bug.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'mobile-dual-cam-guide',
+      category: 'playout',
+      title: '📱 Mobile Dual-Cam Studio & Remote Interview Field Caster',
+      description: 'Capture simultaneous Front & Back cameras from a single mobile device with shared microphone audio, real-time interview layouts, and 1-tap PGM routing.',
+      icon: <Smartphone className="h-5 w-5 text-sky-400" />,
+      content: (
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <div className="p-3.5 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-200">
+            <h4 className="font-bold text-sm text-sky-100 flex items-center gap-2 mb-1">
+              <Smartphone className="h-4 w-4 text-sky-400" />
+              Broadcast Live Interviews from Any Mobile Phone or Tablet!
+            </h4>
+            <p className="text-xs text-sky-300/90 leading-normal">
+              No need for a two-person camera crew. With CastPilot's <strong>Mobile Dual-Cam Studio</strong>, a single smartphone captures both the host/reporter on the selfie camera and the guest/subject on the rear camera simultaneously, binding your phone's microphone cleanly across both angles.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-1">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-sky-300 text-xs">1. Dual-Lens Ingestion (Front + Back Cameras)</strong>
+              <p className="text-slate-400 text-[11px]">
+                Tap <strong>"Start Dual-Lens Capture"</strong>. The system requests simultaneous access to your front camera (facing the host) and back camera (facing the interviewee). Live video feeds render side-by-side with individual latency stats, resolution indicators, and framerate telemetry.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-emerald-300 text-xs">2. Single-Device Shared Microphone Audio</strong>
+              <p className="text-slate-400 text-[11px]">
+                Since smartphones have one primary input microphone for WebRTC, CastPilot's <strong>Web Audio API DSP pipeline</strong> clones and binds that single mic across both camera tracks. It includes active acoustic echo cancellation (AEC), noise suppression, automatic gain control (AGC), an adjustable master gain trim slider, and live stereo VU peak metering.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-indigo-300 text-xs">3. 4 Real-Time Interview Compositor Layouts</strong>
+              <ul className="space-y-1 text-slate-400 text-[11px] list-disc pl-4 mt-1">
+                <li><strong>50/50 Split Screen</strong>: Classic side-by-side interview framing with custom lower-third nameplates and title badges.</li>
+                <li><strong>Picture-in-Picture (PiP)</strong>: Puts the subject on the main screen with a floating host box in any corner (Top-Right, Top-Left, Bottom-Right, Bottom-Left) and scalable size (15% - 40%).</li>
+                <li><strong>Studio Frame</strong>: Cinematic letterboxed television frame with channel logo bug and live on-air indicator.</li>
+                <li><strong>9:16 Vertical Social</strong>: Stacked vertical format ready for TikTok, Instagram Reels, and YouTube Shorts live streams.</li>
+              </ul>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-amber-300 text-xs">4. Hardware-Aware Fallback & Sensor Flip</strong>
+              <p className="text-slate-400 text-[11px]">
+                Some phone chipsets (single Image Signal Processor / ISP) lock the operating system from reading two physical sensors at the exact same time. If your hardware restricts simultaneous access, CastPilot provides a <strong>1-Tap Instant Sensor Flip</strong> with sub-frame crossfade, allowing the reporter to alternate between host and subject effortlessly.
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-purple-300 text-xs">5. Wireless Companion Mobile Caster (QR Code & PIN)</strong>
+              <p className="text-slate-400 text-[11px]">
+                Want to use two separate phones without cables? Click <strong>"Wireless Companion Caster"</strong> to generate a secure QR code and 4-digit PIN. Point your second phone at the QR code, and it instantly connects as an auxiliary wireless camera feed via WebRTC!
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+              <strong className="text-rose-300 text-xs">6. Punch Directly to Air (PGM / PVW / CAM 9)</strong>
+              <p className="text-slate-400 text-[11px]">
+                Route your mobile interview feed directly to <strong>Program (PGM)</strong> or <strong>Preview (PVW)</strong> with one click. In the Playout Controller, you can also switch the monitor mode to <strong>"📱 Dual-Cam Interview"</strong> or punch <strong>CAM 9 (MOBILE)</strong> on the broadcast crosspoint switcher.
               </p>
             </div>
           </div>
@@ -642,6 +711,26 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
               <strong className="text-rose-300 font-mono text-[11px] block">As-Run Log</strong>
               <span className="text-slate-400 text-[11px]">The legal proof log given to advertisers proving their commercial actually aired.</span>
             </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-sky-300 font-mono text-[11px] block">Mobile Dual-Cam</strong>
+              <span className="text-slate-400 text-[11px]">Capturing front (host) and rear (subject) phone cameras concurrently with shared mic audio.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-emerald-300 font-mono text-[11px] block">PiP (Picture-in-Picture)</strong>
+              <span className="text-slate-400 text-[11px]">Floating a secondary video feed inside a corner box over the primary video stream.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-indigo-300 font-mono text-[11px] block">50/50 Split Screen</strong>
+              <span className="text-slate-400 text-[11px]">Side-by-side balanced dual interview layout with lower-third nameplates.</span>
+            </div>
+
+            <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+              <strong className="text-purple-300 font-mono text-[11px] block">WebRTC Field Caster</strong>
+              <span className="text-slate-400 text-[11px]">Sub-second live video and audio streaming directly from mobile device web browsers.</span>
+            </div>
           </div>
         </div>
       )
@@ -655,6 +744,27 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
       content: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <div className="space-y-3">
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: How do I broadcast a live interview with my phone's front and back cameras?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: Go to <strong>Multi-Cam Ingestion</strong> and select the <strong>"📱 Mobile Dual-Cam & Interview"</strong> tab (or on Playout, toggle <strong>"📱 Dual-Cam Interview"</strong>). Tap <em>"Start Dual-Lens Capture"</em> and allow browser camera & mic permissions. Choose your layout (Split Screen, PiP, Studio Frame, or Vertical), then click <em>"Punch to Program (PGM)"</em>!
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: What if my phone's hardware only allows one camera sensor at a time?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: Some mobile processors (single-ISP hardware) prevent activating front and rear lenses simultaneously. CastPilot automatically provides a 1-tap <strong>"Sensor Flip"</strong> button that smoothly toggles between host and subject with a clean crossfade. Alternatively, use the <strong>Wireless Companion Caster</strong> to pair a second phone via QR code!
+              </p>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <strong className="text-white block font-sans text-xs mb-1">Q: How does microphone audio work with both cameras on one phone?</strong>
+              <p className="text-slate-400 text-[11px]">
+                A: CastPilot uses an integrated Web Audio API DSP pipeline. It clones your phone's microphone stream and applies acoustic echo cancellation, automatic gain control, and noise suppression so both the interviewer and the subject sound clean and balanced.
+              </p>
+            </div>
+
             <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
               <strong className="text-white block font-sans text-xs mb-1">Q: What should I do if something inappropriate happens live on air?</strong>
               <p className="text-slate-400 text-[11px]">
@@ -712,10 +822,20 @@ export default function UserManual({ setActiveTab, addToast, onOpenHotkeys }: Us
             <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
               <div>
                 <strong className="text-white block text-xs">Direct Camera Cut</strong>
-                <span className="text-slate-400 text-[11px]">Instantly switch to Camera 1, 2, 3, or 4</span>
+                <span className="text-slate-400 text-[11px]">Instantly switch to Camera 1 through 8</span>
               </div>
               <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
-                1 - 4
+                1 - 8
+              </kbd>
+            </div>
+
+            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <strong className="text-sky-300 block text-xs">Mobile Dual-Cam Cut</strong>
+                <span className="text-slate-400 text-[11px]">Direct cut to CAM 9 (Mobile Interview Field Caster)</span>
+              </div>
+              <kbd className="px-2 py-1 bg-slate-950 border border-slate-700 rounded font-mono text-sky-400 font-bold text-xs">
+                9
               </kbd>
             </div>
 

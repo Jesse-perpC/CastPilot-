@@ -303,17 +303,17 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
   }));
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       {/* Location-based Currency Config Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border border-slate-850 bg-slate-900/30 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border border-slate-850 bg-slate-900/30 backdrop-blur-sm w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div className="h-9 w-9 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-            <Globe className="h-4 w-4 animate-pulse" />
+            <Globe className="h-4 w-4 animate-pulse shrink-0" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="text-xs font-semibold text-slate-200">Dynamic Yield Localization</span>
-              <span className={`text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+              <span className="text-xs font-semibold text-slate-200 truncate">Dynamic Yield Localization</span>
+              <span className={`text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${
                 detectionSource === 'manual'
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                   : detectionSource === 'api' 
@@ -323,19 +323,19 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
                 {detectionSource === 'manual' ? 'Manual Override' : detectionSource === 'api' ? 'High Precision IP' : 'Timezone Estimate'}
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono mt-0.5 truncate max-w-xs sm:max-w-md">{detectedLocation}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono mt-0.5 truncate max-w-full" title={detectedLocation}>{detectedLocation}</p>
           </div>
         </div>
         
         <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-center justify-between sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/60 sm:border-t-0">
-          <span className="text-[10px] font-mono uppercase text-slate-500">Currency:</span>
+          <span className="text-[10px] font-mono uppercase text-slate-500 shrink-0">Currency:</span>
           <select
             value={selectedCurrency}
             onChange={(e) => {
               setSelectedCurrency(e.target.value);
               setDetectionSource('manual');
             }}
-            className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-sky-500 hover:border-slate-700 transition font-medium cursor-pointer"
+            className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-sky-500 hover:border-slate-700 transition font-medium cursor-pointer max-w-[180px] sm:max-w-none"
             id="monetization-currency-select"
           >
             {Object.values(CURRENCIES).map((curr) => (
@@ -348,17 +348,17 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
       </div>
 
       {/* Overview Cards row - Vertical stack on mobile, 2 cols on tablet, 4 cols on desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-full">
         {/* Forecasted Revenue */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium tracking-wide">Forecasted Daily Ad Revenue</span>
-            <div className="font-display text-xl sm:text-2xl font-bold text-white">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between min-w-0 overflow-hidden w-full">
+          <div className="space-y-1 min-w-0 flex-1 pr-2">
+            <span className="text-xs text-slate-400 font-medium tracking-wide block truncate">Forecasted Daily Ad Revenue</span>
+            <div className="font-display text-xl sm:text-2xl font-bold text-white truncate">
               {formatCurrency(totalRevenue, 0)}
             </div>
-            <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+            <p className="text-[10px] text-emerald-400 flex items-center gap-1 truncate">
               <TrendingUp className="h-3 w-3 shrink-0" />
-              <span>+18.4% vs previous cycle</span>
+              <span className="truncate">+18.4% vs previous cycle</span>
             </p>
           </div>
           <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
@@ -367,14 +367,14 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
         </div>
 
         {/* Ad Fill Rate */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium tracking-wide">Average Ad Fill Rate</span>
-            <div className="font-display text-xl sm:text-2xl font-bold text-white">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between min-w-0 overflow-hidden w-full">
+          <div className="space-y-1 min-w-0 flex-1 pr-2">
+            <span className="text-xs text-slate-400 font-medium tracking-wide block truncate">Average Ad Fill Rate</span>
+            <div className="font-display text-xl sm:text-2xl font-bold text-white truncate">
               {avgFillRate}%
             </div>
-            <p className="text-[10px] text-sky-400 flex items-center gap-1">
-              <span>99.7% Peak (Primetime Hour)</span>
+            <p className="text-[10px] text-sky-400 flex items-center gap-1 truncate">
+              <span className="truncate">99.7% Peak (Primetime Hour)</span>
             </p>
           </div>
           <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
@@ -383,13 +383,13 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
         </div>
 
         {/* CPM Valuation */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium tracking-wide">Average Yield CPM</span>
-            <div className="font-display text-xl sm:text-2xl font-bold text-white">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between min-w-0 overflow-hidden w-full">
+          <div className="space-y-1 min-w-0 flex-1 pr-2">
+            <span className="text-xs text-slate-400 font-medium tracking-wide block truncate">Average Yield CPM</span>
+            <div className="font-display text-xl sm:text-2xl font-bold text-white truncate">
               {formatCurrency(avgCpm, 2)}
             </div>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[10px] text-slate-400 truncate">
               Premium linear rates apply
             </p>
           </div>
@@ -399,13 +399,13 @@ export default function MonetizationDashboard({ adData }: MonetizationDashboardP
         </div>
 
         {/* Active SCTE Cue Slots */}
-        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium tracking-wide">SCTE-35 Active Cue Slots</span>
-            <div className="font-display text-xl sm:text-2xl font-bold text-white">
+        <div className="rounded-xl border border-slate-850 bg-slate-950/70 p-4 sm:p-5 shadow-lg flex items-center justify-between min-w-0 overflow-hidden w-full">
+          <div className="space-y-1 min-w-0 flex-1 pr-2">
+            <span className="text-xs text-slate-400 font-medium tracking-wide block truncate">SCTE-35 Active Cue Slots</span>
+            <div className="font-display text-xl sm:text-2xl font-bold text-white truncate">
               71
             </div>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[10px] text-slate-400 truncate">
               Direct and Programmatic RTB ready
             </p>
           </div>

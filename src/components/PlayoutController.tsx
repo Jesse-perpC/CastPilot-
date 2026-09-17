@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, Radio, Tv, Database, Volume2, ShieldAlert, BadgeInfo, LayoutGrid, Maximize2, Eye, Monitor, Activity, Zap, VolumeX, CheckCircle2, AlertCircle, RefreshCw, Signal, Sliders } from 'lucide-react';
+import { Play, Pause, SkipForward, Radio, Tv, Database, Volume2, ShieldAlert, BadgeInfo, LayoutGrid, Maximize2, Eye, Monitor, Activity, Zap, VolumeX, CheckCircle2, AlertCircle, RefreshCw, Signal, Sliders, Smartphone } from 'lucide-react';
 import { ScheduleItem } from '../types';
+import MobileDualCamStudio from './multicam/MobileDualCamStudio';
 
 interface PlayoutControllerProps {
   schedules: ScheduleItem[];
@@ -21,6 +22,7 @@ const NDI_CAMERAS = [
   { id: 'feed-6', num: 6, name: 'Paris Cultural Desk', short: 'CAM 6', type: 'NDI-HX3', res: '1080p60', location: 'Paris Desk' },
   { id: 'feed-7', num: 7, name: '4K Skyline Drone', short: 'CAM 7', type: 'SRT', res: '4K UHD', location: 'Aerial Link' },
   { id: 'feed-8', num: 8, name: 'Virtual Studio & Weather', short: 'CAM 8', type: 'NDI-HB', res: '1080p60', location: 'Chroma Stage' },
+  { id: 'feed-mobile-dual', num: 9, name: 'Mobile Dual-Cam & Shared Mic', short: 'CAM 9 (MOBILE)', type: 'WebRTC Dual', res: '1080p60', location: 'Mobile Field Caster' },
 ];
 
 interface ChatMessage {
@@ -424,7 +426,7 @@ export default function PlayoutController({
   useEffect(() => { easMutedRef.current = easMuted; }, [easMuted]);
 
   // Playout Multi-viewer Matrix states
-  const [viewMode, setViewMode] = useState<'single' | 'multiviewer'>('single');
+  const [viewMode, setViewMode] = useState<'single' | 'multiviewer' | 'interview_studio'>('single');
   const [gridColumns, setGridColumns] = useState<2 | 3>(3);
   const [soloAudioFeed, setSoloAudioFeed] = useState<string>('pgm');
 
@@ -1566,6 +1568,19 @@ export default function PlayoutController({
                 <LayoutGrid className="h-3 w-3" />
                 <span>Multi-Viewer (6 Feeds)</span>
               </button>
+              <button
+                onClick={() => setViewMode('interview_studio')}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1.5 transition ${
+                  viewMode === 'interview_studio'
+                    ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-slate-950 font-bold shadow-sm'
+                    : 'text-sky-400 hover:text-white'
+                }`}
+                title="Live Multi-Camera Interview Studio (Front + Back Cameras with Shared Mic)"
+                id="interview-studio-toggle-btn"
+              >
+                <Smartphone className="h-3 w-3" />
+                <span>📱 Dual-Cam Interview</span>
+              </button>
             </div>
           </div>
 
@@ -1591,7 +1606,7 @@ export default function PlayoutController({
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="font-mono text-[10px] text-emerald-400 tracking-wider">
-                {viewMode === 'multiviewer' ? '6 FEEDS ACTIVE • SRT/HEVC' : '1080P HEVC @ 6.2 MBPS'}
+                {viewMode === 'multiviewer' ? '6 FEEDS ACTIVE • SRT/HEVC' : viewMode === 'interview_studio' ? 'DUAL-CAM INTERVIEW • WEBRTC' : '1080P HEVC @ 6.2 MBPS'}
               </span>
             </div>
           </div>
@@ -1604,6 +1619,18 @@ export default function PlayoutController({
               ref={canvasRef} 
               className="absolute inset-0 w-full h-full object-contain bg-slate-950"
               id="playout-monitor-canvas"
+            />
+          </div>
+        ) : viewMode === 'interview_studio' ? (
+          <div className="p-3 bg-slate-950/95 overflow-y-auto max-h-[750px] border-b border-slate-800">
+            <MobileDualCamStudio
+              onRouteToPgm={() => {
+                onSelectPgmCamera?.('feed-mobile-dual');
+              }}
+              onRouteToPvw={() => {
+                onSelectPvwCamera?.('feed-mobile-dual');
+              }}
+              activePgmCameraId={activePgmCameraId}
             />
           </div>
         ) : (
@@ -2005,7 +2032,7 @@ export default function PlayoutController({
                 : 'bg-slate-900 border-slate-800 text-slate-400'
             }`}>
               <div className="text-[9px] font-mono text-slate-500 uppercase tracking-wider mb-1">Active Alert Tape</div>
-              <p className="font-mono text-[10px] leading-snug line-clamp-2 h-7 italic">
+              <p className="font-mono text-[10px] leading-snug max-h-24 overflow-y-auto text-box-scroll italic break-words pr-1">
                 "{easState.active ? easState.text : 'No active emergency intercept signal.'}"
               </p>
             </div>

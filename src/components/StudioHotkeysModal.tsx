@@ -68,7 +68,7 @@ export default function StudioHotkeysModal({ isOpen, onClose }: StudioHotkeysMod
                   STUDIO HUD
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 leading-normal">
                 Physical keyboard commands for directors and master control operators. Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[9px] sm:text-[10px] text-sky-300">?</kbd> anytime to toggle.
               </p>
             </div>

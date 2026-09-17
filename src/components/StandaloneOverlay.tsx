@@ -304,7 +304,7 @@ export default function StandaloneOverlay() {
               </span>
             </div>
 
-            <div className="space-y-2 max-h-56 overflow-hidden">
+            <div className="space-y-2 max-h-56 overflow-y-auto text-box-scroll pr-1">
               {latestChats.map(msg => (
                 <div 
                   key={msg.id}

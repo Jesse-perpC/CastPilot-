@@ -40,23 +40,23 @@ function getGeminiClient(): GoogleGenAI | null {
 }
 
 // ==========================================
-// IN-MEMORY STORAGE (PERSISTENT PER SESSION)
+// IN-MEMORY STORAGE (PERSISTENT PER SESSION WITH EXPANDED DUMMY BROADCAST DATA)
 // ==========================================
 
-let mamAssets: ContentAsset[] = [
+const INITIAL_MAM_ASSETS: ContentAsset[] = [
   {
     id: "asset-1",
     title: "Global Horizon News Hour",
     type: "program" as const,
     duration: 60,
-    category: "News & Documentary",
-    tags: ["live", "news", "international", "politics"],
+    category: "News & Current Affairs",
+    tags: ["live", "news", "international", "politics", "4k"],
     isQCed: true,
-    safetyRating: "G",
-    loudnessDb: -23.8, // compliant
+    safetyRating: "TV-G",
+    loudnessDb: -23.8, // Compliant with CALM Act (-24 LUFS)
     optimalSlot: "Early Morning (08:00 AM - 09:00 AM) or Late Evening",
     adMarkers: ["00:15:00", "00:30:00", "00:45:00"],
-    description: "Daily broadcast covering world breaking news, financial markets, and global geopolitical reports."
+    description: "Daily master broadcast covering world breaking news, geopolitical reports, and international financial market movements."
   },
   {
     id: "asset-2",
@@ -64,13 +64,13 @@ let mamAssets: ContentAsset[] = [
     type: "program" as const,
     duration: 30,
     category: "Sports & Travel",
-    tags: ["outdoors", "skiing", "extreme", "cinematic"],
+    tags: ["outdoors", "skiing", "extreme", "cinematic", "hdr"],
     isQCed: true,
-    safetyRating: "PG",
-    loudnessDb: -24.2, // compliant
+    safetyRating: "TV-PG",
+    loudnessDb: -24.2, // Compliant
     optimalSlot: "Afternoon Block (02:00 PM - 05:00 PM)",
     adMarkers: ["00:10:00", "00:20:00"],
-    description: "An immersive exploration of extreme skiing and mountaineering in the high Swiss Alps."
+    description: "An immersive exploration of extreme skiing and mountaineering across the high summits of the Swiss and French Alps."
   },
   {
     id: "asset-3",
@@ -78,27 +78,27 @@ let mamAssets: ContentAsset[] = [
     type: "program" as const,
     duration: 30,
     category: "Science & Nature",
-    tags: ["nature", "ocean", "submarine", "educational"],
-    isQCed: false, // Needs QC check
-    safetyRating: "G",
-    loudnessDb: -19.5, // Fails EBU R128 (-24 LUFS threshold)
+    tags: ["nature", "ocean", "submarine", "educational", "biology"],
+    isQCed: false, // Intentionally un-QCed for regulatory demo
+    safetyRating: "TV-G",
+    loudnessDb: -19.5, // Fails EBU R128 (-24 LUFS threshold) -> triggers audio alert
     optimalSlot: "Prime Early Evening (06:00 PM)",
     adMarkers: ["00:12:00", "00:24:00"],
-    description: "Uncovering the unexplored marine life ecosystems and volcanic vents in the Mariana Trench."
+    description: "High-resolution expedition uncovering untouched marine ecosystems, hydrothermal vents, and bioluminescent species."
   },
   {
     id: "asset-4",
-    title: "SodaSpark Refreshment commercial",
+    title: "SodaSpark Refreshment Commercial",
     type: "commercial" as const,
     duration: 2,
     category: "Advertising",
-    tags: ["commercial", "beverage", "fast-paced"],
+    tags: ["commercial", "beverage", "fast-paced", "cpm-high"],
     isQCed: true,
-    safetyRating: "G",
+    safetyRating: "TV-G",
     loudnessDb: -24.0,
     optimalSlot: "High Audience Ad-Breaks",
     adMarkers: [],
-    description: "High-energy commercial featuring bubbly summer soft drink refreshments."
+    description: "High-energy national commercial spot featuring ice-cold sparkling refreshments and summer beach festivals."
   },
   {
     id: "asset-5",
@@ -106,18 +106,172 @@ let mamAssets: ContentAsset[] = [
     type: "promo" as const,
     duration: 3,
     category: "Entertainment Promo",
-    tags: ["scifi", "gaming", "neon", "teaser"],
+    tags: ["scifi", "gaming", "neon", "teaser", "syndication"],
     isQCed: true,
-    safetyRating: "PG-13",
+    safetyRating: "TV-14",
     loudnessDb: -23.5,
     optimalSlot: "Late Night Primetime Ad-Breaks",
     adMarkers: [],
-    description: "Hype trailer promo for the upcoming sci-fi anthology drama series premiering on Saturday."
+    description: "Action-packed teaser promo for the upcoming sci-fi anthology drama premiering this Saturday evening."
+  },
+  {
+    id: "asset-6",
+    title: "Apex Formula Racing: Monaco GP Highlights",
+    type: "program" as const,
+    duration: 45,
+    category: "Sports & Motorsports",
+    tags: ["motorsport", "racing", "speed", "monaco", "multi-cam"],
+    isQCed: true,
+    safetyRating: "TV-PG",
+    loudnessDb: -24.1,
+    optimalSlot: "Weekend Afternoon Sports Showcase",
+    adMarkers: ["00:15:00", "00:30:00"],
+    description: "Thrilling on-board camera perspectives, high-speed telemetry analysis, and podium interviews from Monaco."
+  },
+  {
+    id: "asset-7",
+    title: "Culinary Masterclass: Tuscan Pasta & Wine",
+    type: "program" as const,
+    duration: 25,
+    category: "Lifestyle & Food",
+    tags: ["cooking", "italy", "food", "wine", "gourmet"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -23.9,
+    optimalSlot: "Daytime Cooking Block (11:00 AM - 01:00 PM)",
+    adMarkers: ["00:10:00"],
+    description: "Michelin-star chef demonstrates handcrafted tagliatelle, truffle reduction, and Chianti wine pairings in Florence."
+  },
+  {
+    id: "asset-8",
+    title: "TechPulse 2026: Silicon & Neural Cores",
+    type: "program" as const,
+    duration: 40,
+    category: "Technology & Future",
+    tags: ["technology", "ai", "hardware", "chips", "robotics"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Mid-Morning Innovation Slot",
+    adMarkers: ["00:15:00", "00:30:00"],
+    description: "Behind-the-scenes inside cleanrooms fabricating next-generation sub-nanometer neural processors and quantum computers."
+  },
+  {
+    id: "asset-9",
+    title: "Quantum Beat Festival: Live 4K DJ Set",
+    type: "program" as const,
+    duration: 60,
+    category: "Music & Live Concerts",
+    tags: ["electronic", "live", "festival", "lasers", "dolby-atmos"],
+    isQCed: true,
+    safetyRating: "TV-14",
+    loudnessDb: -24.0,
+    optimalSlot: "Late Night Music Marathon (10:00 PM - 02:00 AM)",
+    adMarkers: ["00:20:00", "00:40:00"],
+    description: "Mesmerizing festival mainstage performance with synchronized pyrotechnics, laser choreography, and immersive audio."
+  },
+  {
+    id: "asset-10",
+    title: "Northern Lights: Arctic Aurora 4K",
+    type: "filler" as const,
+    duration: 5,
+    category: "Ambient & Station Filler",
+    tags: ["ambient", "aurora", "chill", "filler", "4k"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Interstitials & Zero-Gap Playout Buffer",
+    adMarkers: [],
+    description: "Breathtaking real-time 4K timelapse of emerald auroras dancing over snow-covered Tromsø fjords with serene acoustic synth."
+  },
+  {
+    id: "asset-11",
+    title: "Apex Electric SUV - 'Charge Tomorrow' Spot",
+    type: "commercial" as const,
+    duration: 2,
+    category: "Automotive Sponsor",
+    tags: ["sponsor", "automotive", "electric", "cpm-premium"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Primetime Commercial Pod",
+    adMarkers: [],
+    description: "High-yield automotive sponsor spot highlighting zero-emission high-performance luxury electric SUVs."
+  },
+  {
+    id: "asset-12",
+    title: "CastPilot Network 4K Station ID & Bumper",
+    type: "filler" as const,
+    duration: 1,
+    category: "Station Identification",
+    tags: ["station-id", "brand", "legal-ident", "bumper"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Top of the Hour Legal Station ID",
+    adMarkers: [],
+    description: "Official broadcast station identification sting adhering to FCC callsign identification regulations."
+  },
+  {
+    id: "asset-13",
+    title: "Solaris Voyage: Teaser Trailer",
+    type: "promo" as const,
+    duration: 2,
+    category: "Movie Teaser",
+    tags: ["cinema", "trailer", "space", "hollywood"],
+    isQCed: true,
+    safetyRating: "TV-PG",
+    loudnessDb: -23.9,
+    optimalSlot: "Pre-Movie Interstitial",
+    adMarkers: [],
+    description: "Exclusive theatrical trailer teaser for the deep space cinematic thriller hitting theaters and stream next month."
+  },
+  {
+    id: "asset-14",
+    title: "World Weather Center Live Bulletin",
+    type: "program" as const,
+    duration: 15,
+    category: "News & Meteorology",
+    tags: ["weather", "radar", "satellite", "forecast"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Post-News Weather Hit",
+    adMarkers: ["00:07:00"],
+    description: "3D Doppler radar storm tracking, jet stream analysis, and 7-day continental temperature projections."
+  },
+  {
+    id: "asset-15",
+    title: "Retro Arcade Champions: Grand Finals",
+    type: "program" as const,
+    duration: 35,
+    category: "Gaming & Esports",
+    tags: ["esports", "arcade", "retro", "tournament"],
+    isQCed: true,
+    safetyRating: "TV-PG",
+    loudnessDb: -24.0,
+    optimalSlot: "Weekend Gaming Arena",
+    adMarkers: ["00:15:00"],
+    description: "Competitive world record speedrunners battle head-to-head in vintage 1980s and 1990s arcade platformers."
+  },
+  {
+    id: "asset-16",
+    title: "Classical Symphony: Beethoven 7th Allegretto",
+    type: "filler" as const,
+    duration: 10,
+    category: "Arts & Culture",
+    tags: ["orchestra", "classical", "symphony", "filler"],
+    isQCed: true,
+    safetyRating: "TV-G",
+    loudnessDb: -24.0,
+    optimalSlot: "Late Night Cultural Interlude",
+    adMarkers: [],
+    description: "Master recording by the Vienna Philharmonic Orchestra in stunning high dynamic range audio."
   }
 ];
 
-let schedules: ScheduleItem[] = [
-  // Channel 1: FAST Entertainment
+const INITIAL_SCHEDULES: ScheduleItem[] = [
+  // Channel 1: FAST Entertainment (24/7 continuous linear channel)
   {
     id: "sch-1",
     channelName: "FAST Entertainment",
@@ -134,7 +288,7 @@ let schedules: ScheduleItem[] = [
     id: "sch-2",
     channelName: "FAST Entertainment",
     startTime: "09:00 AM",
-    title: "SodaSpark Refreshment commercial",
+    title: "SodaSpark Refreshment Commercial",
     type: "commercial" as const,
     duration: 2,
     status: "completed" as const,
@@ -149,7 +303,7 @@ let schedules: ScheduleItem[] = [
     title: "Beyond the Peak: Alpine Summit",
     type: "program" as const,
     duration: 30,
-    status: "playing" as const, // Currently playing
+    status: "playing" as const, // Currently on-air
     demandScore: 84,
     targetAudience: "Sports fans, active lifestyle seekers",
     aiRationale: "Follow-up lifestyle programming to retain morning lead-in viewership."
@@ -178,38 +332,186 @@ let schedules: ScheduleItem[] = [
     targetAudience: "Family-friendly, nature/science buffs",
     aiRationale: "Fills the post-morning lifestyle slot with educational family content."
   },
+  {
+    id: "sch-5b",
+    channelName: "FAST Entertainment",
+    startTime: "10:05 AM",
+    title: "Apex Electric SUV - 'Charge Tomorrow' Spot",
+    type: "commercial" as const,
+    duration: 2,
+    status: "queued" as const,
+    demandScore: 94,
+    targetAudience: "High-income automotive shoppers",
+    aiRationale: "SCTE-35 programmatic ad pod inserted at end of documentary segment."
+  },
+  {
+    id: "sch-5c",
+    channelName: "FAST Entertainment",
+    startTime: "10:07 AM",
+    title: "Culinary Masterclass: Tuscan Pasta & Wine",
+    type: "program" as const,
+    duration: 25,
+    status: "queued" as const,
+    demandScore: 86,
+    targetAudience: "Food enthusiasts, home cooks",
+    aiRationale: "Midday lifestyle block driving audience engagement into lunch hours."
+  },
+  {
+    id: "sch-5d",
+    channelName: "FAST Entertainment",
+    startTime: "10:32 AM",
+    title: "CastPilot Network 4K Station ID & Bumper",
+    type: "filler" as const,
+    duration: 1,
+    status: "queued" as const,
+    demandScore: 75,
+    targetAudience: "General rotation",
+    aiRationale: "Station identification bumper guaranteeing zero black frame transition."
+  },
+  {
+    id: "sch-5e",
+    channelName: "FAST Entertainment",
+    startTime: "10:33 AM",
+    title: "TechPulse 2026: Silicon & Neural Cores",
+    type: "program" as const,
+    duration: 40,
+    status: "queued" as const,
+    demandScore: 93,
+    targetAudience: "Tech analysts and enthusiasts",
+    aiRationale: "High CPM mid-morning technology feature."
+  },
+  {
+    id: "sch-5f",
+    channelName: "FAST Entertainment",
+    startTime: "11:13 AM",
+    title: "Northern Lights: Arctic Aurora 4K",
+    type: "filler" as const,
+    duration: 5,
+    status: "queued" as const,
+    demandScore: 80,
+    targetAudience: "General Audience",
+    aiRationale: "Zero-gap aesthetic buffer locking to the half-hour boundary."
+  },
 
-  // Channel 2: Linear Primetime
+  // Channel 2: Linear Primetime / News 24 Live
   {
     id: "sch-6",
-    channelName: "Linear Primetime",
-    startTime: "08:00 PM",
-    title: "Interstellar Horizon Live",
+    channelName: "News 24 Live",
+    startTime: "08:00 AM",
+    title: "Global Morning Headline Bulletin",
     type: "program" as const,
-    duration: 60,
-    status: "queued" as const,
+    duration: 30,
+    status: "playing" as const,
     demandScore: 96,
-    targetAudience: "General primetime TV viewers, 18-49",
-    aiRationale: "High impact sci-fi drama placed directly at start of primetime hours."
+    targetAudience: "Global Commuters & Investors",
+    aiRationale: "Rolling live desk morning news broadcast with London and Tokyo bureaus."
   },
   {
     id: "sch-7",
-    channelName: "Linear Primetime",
-    startTime: "09:00 PM",
-    title: "Elite Talent Chat Show",
-    type: "program" as const,
-    duration: 60,
+    channelName: "News 24 Live",
+    startTime: "08:30 AM",
+    title: "Perp Corp Global Markets Spot",
+    type: "commercial" as const,
+    duration: 2,
     status: "queued" as const,
     demandScore: 91,
-    targetAudience: "Pop culture fans, celebrity news enthusiasts",
-    aiRationale: "Capitalizes on strong drama lead-in to transition into celebrity and talk show focus."
+    targetAudience: "Financial decision makers",
+    aiRationale: "High yield business sponsor commercial placed after opening bell."
+  },
+  {
+    id: "sch-8",
+    channelName: "News 24 Live",
+    startTime: "08:32 AM",
+    title: "Tech Bureau Deep Dive: AI Revolution",
+    type: "program" as const,
+    duration: 26,
+    status: "queued" as const,
+    demandScore: 92,
+    targetAudience: "Tech sector professionals",
+    aiRationale: "Anchor interview with leading AI research scientists."
+  },
+  {
+    id: "sch-9",
+    channelName: "News 24 Live",
+    startTime: "08:58 AM",
+    title: "Station Ident & Next Hour Teaser",
+    type: "filler" as const,
+    duration: 2,
+    status: "queued" as const,
+    demandScore: 76,
+    targetAudience: "General Public",
+    aiRationale: "FCC-compliant station identifier aligning the top-of-the-hour bulletin."
+  },
+
+  // Channel 3: Sports HD 1
+  {
+    id: "sch-10",
+    channelName: "Sports HD 1",
+    startTime: "02:00 PM",
+    title: "Apex Championship: Grand Finals Live",
+    type: "program" as const,
+    duration: 45,
+    status: "playing" as const,
+    demandScore: 98,
+    targetAudience: "Esports & sports tournament fans",
+    aiRationale: "Peak weekend live tournament broadcast with 4-camera vision mixer."
+  },
+  {
+    id: "sch-11",
+    channelName: "Sports HD 1",
+    startTime: "02:45 PM",
+    title: "SodaSpark Refreshment Commercial",
+    type: "commercial" as const,
+    duration: 2,
+    status: "queued" as const,
+    demandScore: 89,
+    targetAudience: "Action sports fans",
+    aiRationale: "Ad break between regulation play and overtime sudden death."
+  },
+  {
+    id: "sch-12",
+    channelName: "Sports HD 1",
+    startTime: "02:47 PM",
+    title: "Apex Formula Racing: Monaco GP Highlights",
+    type: "program" as const,
+    duration: 45,
+    status: "queued" as const,
+    demandScore: 95,
+    targetAudience: "Motorsports fans",
+    aiRationale: "High-octane lead-out following championship broadcast."
+  },
+
+  // Channel 4: Music Vault 4K
+  {
+    id: "sch-13",
+    channelName: "Music Vault 4K",
+    startTime: "08:00 PM",
+    title: "Quantum Beat Festival: Live 4K DJ Set",
+    type: "program" as const,
+    duration: 60,
+    status: "playing" as const,
+    demandScore: 97,
+    targetAudience: "Electronic music & concert fans",
+    aiRationale: "Primetime concert showcase in 4K HDR with Dolby Atmos master audio."
+  },
+  {
+    id: "sch-14",
+    channelName: "Music Vault 4K",
+    startTime: "09:00 PM",
+    title: "Northern Lights: Arctic Aurora 4K",
+    type: "filler" as const,
+    duration: 5,
+    status: "queued" as const,
+    demandScore: 82,
+    targetAudience: "Chill & ambient music listeners",
+    aiRationale: "Acoustic transition into late night electronic vault."
   }
 ];
 
-let resources: ResourceAsset[] = [
+const INITIAL_RESOURCES: ResourceAsset[] = [
   {
     id: "res-1",
-    name: "Studio Alpha (4K Virtual Set)",
+    name: "Studio Alpha (4K Virtual LED Volume)",
     type: "studio" as const,
     status: "booked" as const,
     allocationDetails: "Live production set for 'Global Horizon News Hour'",
@@ -225,10 +527,10 @@ let resources: ResourceAsset[] = [
   },
   {
     id: "res-3",
-    name: "Studio Beta (Foley & Dubbing Stage)",
+    name: "Studio Beta (Foley & 7.1.4 Dolby Stage)",
     type: "studio" as const,
     status: "active" as const,
-    allocationDetails: "Available for mixing and audio recording.",
+    allocationDetails: "Calibrated for surround mixing, voiceovers, and CALM Act audio QC.",
     currentBooking: ""
   },
   {
@@ -236,28 +538,60 @@ let resources: ResourceAsset[] = [
     name: "ARRI Alexa Mini LF Cinema Package",
     type: "camera" as const,
     status: "maintenance" as const,
-    allocationDetails: "Bi-weekly sensor recalibration and firmware update.",
+    allocationDetails: "Bi-weekly optical sensor calibration and SMPTE SMPTE 2110 fiber back testing.",
     currentBooking: ""
   },
   {
     id: "res-5",
-    name: "Sarah Jenkins (Elite Prime-Time Host)",
+    name: "Sarah Jenkins (Lead Prime-Time Anchor)",
     type: "talent" as const,
     status: "booked" as const,
-    allocationDetails: "Hosting 'Elite Talent Chat Show' in Studio Alpha",
-    currentBooking: "Elite Talent Chat Show"
+    allocationDetails: "Anchoring 'Global Horizon News Hour' live desk",
+    currentBooking: "Global Horizon News Hour"
   },
   {
     id: "res-6",
-    name: "David Atten-style Voice Actor",
+    name: "David Vance (Senior Tech Correspondent)",
     type: "talent" as const,
     status: "active" as const,
-    allocationDetails: "Available for nature documentary narration.",
+    allocationDetails: "Available for live Silicon Valley technology hits and news desks.",
+    currentBooking: ""
+  },
+  {
+    id: "res-7",
+    name: "Sony FX9 4K PTZ Robotic Camera Rig",
+    type: "camera" as const,
+    status: "active" as const,
+    allocationDetails: "Overhead newsroom robotic pan-tilt-zoom system with VISCA IP control.",
+    currentBooking: ""
+  },
+  {
+    id: "res-8",
+    name: "LiveU LU800 5G Bonded Field Backpack",
+    type: "camera" as const,
+    status: "active" as const,
+    allocationDetails: "Multi-modem 5G cellular uplink backpack for breaking news field reporters.",
+    currentBooking: ""
+  },
+  {
+    id: "res-9",
+    name: "Elena Rostova (Extreme Sports & Outdoor Host)",
+    type: "talent" as const,
+    status: "active" as const,
+    allocationDetails: "Commentator for Apex Championship and Alpine Summit specials.",
+    currentBooking: ""
+  },
+  {
+    id: "res-10",
+    name: "Master Control Suite MCR-1",
+    type: "studio" as const,
+    status: "active" as const,
+    allocationDetails: "Primary automation transmission suite with 1+1 hitless failover.",
     currentBooking: ""
   }
 ];
 
-let alerts: ConflictAlert[] = [
+const INITIAL_ALERTS: ConflictAlert[] = [
   {
     id: "alert-1",
     severity: "high" as const,
@@ -271,12 +605,35 @@ let alerts: ConflictAlert[] = [
     id: "alert-2",
     severity: "medium" as const,
     type: "schedule" as const,
-    title: "Loudness Violation: EcoQuest",
-    description: "Asset 'EcoQuest: Deep Ocean Depths' audio peak checks failed with -19.5 LUFS, violating the -24.0 LUFS EBU R128 broadcasting regulation standard.",
-    recommendation: "Apply automated limiter compress-normalize batch script to lower the master output gain.",
+    title: "Loudness Violation: EcoQuest (-19.5 LUFS)",
+    description: "Asset 'EcoQuest: Deep Ocean Depths' audio peak checks failed with -19.5 LUFS, violating the -24.0 LUFS EBU R128 / FCC CALM Act broadcasting regulation standard.",
+    recommendation: "Apply automated limiter compress-normalize batch script to lower the master output gain to -24 LUFS.",
+    resolved: false
+  },
+  {
+    id: "alert-3",
+    severity: "low" as const,
+    type: "schedule" as const,
+    title: "SCTE-35 Splice Cue Synchronization Drift",
+    description: "Upstream encoder timestamp packet jitter (+12ms) detected on Channel 1 ad insertion bus. Auto-phase correction active.",
+    recommendation: "Re-lock PTP grandmaster clock to ST 2059 profile to ensure frame-accurate ad splicing.",
+    resolved: false
+  },
+  {
+    id: "alert-4",
+    severity: "medium" as const,
+    type: "transmission" as const,
+    title: "SMPTE ST 2022-7 Hitless Path B Network Degraded",
+    description: "Secondary fiber link reported 2.4% packet loss. Redundant hitless stream reconstruction is maintaining 100% broadcast continuity on Path A.",
+    recommendation: "Inspect 100GbE uplink switch port 8 on secondary broadcast transmission chassis.",
     resolved: false
   }
 ];
+
+let mamAssets: ContentAsset[] = JSON.parse(JSON.stringify(INITIAL_MAM_ASSETS));
+let schedules: ScheduleItem[] = JSON.parse(JSON.stringify(INITIAL_SCHEDULES));
+let resources: ResourceAsset[] = JSON.parse(JSON.stringify(INITIAL_RESOURCES));
+let alerts: ConflictAlert[] = JSON.parse(JSON.stringify(INITIAL_ALERTS));
 
 let liveStreams: LiveStreamDestination[] = [
   {
@@ -854,6 +1211,25 @@ app.get(["/auth/callback", "/auth/callback/"], async (req, res) => {
       </html>
     `);
   }
+});
+
+// --- Demo & Seed Data API ---
+
+// Reset all in-memory datasets to rich default dummy content
+app.post("/api/demo/reset", (req, res) => {
+  mamAssets = JSON.parse(JSON.stringify(INITIAL_MAM_ASSETS));
+  schedules = JSON.parse(JSON.stringify(INITIAL_SCHEDULES));
+  resources = JSON.parse(JSON.stringify(INITIAL_RESOURCES));
+  alerts = JSON.parse(JSON.stringify(INITIAL_ALERTS));
+  console.log("[Demo Engine] Re-seeded in-memory broadcast database with complete dummy content.");
+  res.json({
+    success: true,
+    message: "Re-seeded complete dummy broadcast dataset successfully.",
+    assetsCount: mamAssets.length,
+    schedulesCount: schedules.length,
+    resourcesCount: resources.length,
+    alertsCount: alerts.length
+  });
 });
 
 // --- Schedules API ---

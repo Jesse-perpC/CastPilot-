@@ -33,7 +33,8 @@ import {
   Scissors,
   Film,
   Headphones,
-  Users
+  Users,
+  Smartphone
 } from 'lucide-react';
 import PtzCameraController from './multicam/PtzCameraController';
 import MasterRoutingMatrix from './multicam/MasterRoutingMatrix';
@@ -41,6 +42,7 @@ import AiAutoFramingKeyer from './multicam/AiAutoFramingKeyer';
 import InstantReplayCaster from './multicam/InstantReplayCaster';
 import IntercomTalkbackMatrix from './multicam/IntercomTalkbackMatrix';
 import RealTimeThumbnailPreview from './multicam/RealTimeThumbnailPreview';
+import MobileDualCamStudio from './multicam/MobileDualCamStudio';
 
 export interface VideoFeed {
   id: string;
@@ -458,7 +460,7 @@ export default function MultiCamNdiIngestion({
       }));
     }
   }, [activePgmCameraId, activePvwCameraId]);
-  const [studioToolMode, setStudioToolMode] = useState<'feeds' | 'ptz' | 'matrix' | 'ai_framing' | 'replay' | 'intercom'>('feeds');
+  const [studioToolMode, setStudioToolMode] = useState<'feeds' | 'ptz' | 'matrix' | 'ai_framing' | 'replay' | 'intercom' | 'mobile_cam'>('feeds');
   const [activeLayout, setActiveLayout] = useState<'8-grid' | 'quad' | 'solo'>('8-grid');
   const [soloFeedId, setSoloFeedId] = useState<string>('feed-1');
   const [selectedCameraId, setSelectedCameraId] = useState<string>(activePgmCameraId || 'feed-1');
@@ -899,9 +901,31 @@ export default function MultiCamNdiIngestion({
           <Headphones className="h-4 w-4" />
           <span>Intercom & Talkback IFB</span>
         </button>
+
+        <button
+          onClick={() => setStudioToolMode('mobile_cam')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+            studioToolMode === 'mobile_cam'
+              ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-slate-950 shadow'
+              : 'text-sky-400 hover:text-white hover:bg-slate-900 border border-sky-500/20'
+          }`}
+          id="tab-mobile-cam-btn"
+        >
+          <Smartphone className="h-4 w-4" />
+          <span>📱 Mobile Dual-Cam & Interview</span>
+        </button>
       </div>
 
       {/* Sub-tool Components */}
+      {studioToolMode === 'mobile_cam' && (
+        <MobileDualCamStudio
+          feeds={feeds}
+          onToast={toast}
+          onRouteToPgm={onSelectPgmCamera}
+          onRouteToPvw={onSelectPvwCamera}
+          activePgmCameraId={activePgmCameraId}
+        />
+      )}
       {studioToolMode === 'ptz' && (
         <PtzCameraController feeds={feeds} onToast={toast} />
       )}

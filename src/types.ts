@@ -52,8 +52,8 @@ export interface AdPerformance {
 
 export interface ConflictAlert {
   id: string;
-  severity: 'high' | 'medium';
-  type: 'resource' | 'schedule';
+  severity: 'high' | 'medium' | 'low';
+  type: 'resource' | 'schedule' | 'transmission';
   title: string;
   description: string;
   recommendation: string;

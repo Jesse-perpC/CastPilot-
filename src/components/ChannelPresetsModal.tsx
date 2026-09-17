@@ -416,7 +416,7 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
                   FAST LAUNCH
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 leading-normal">
                 Instantly populate your station with a complete, professionally configured 24/7 broadcast channel.
               </p>
             </div>
@@ -466,7 +466,7 @@ export default function ChannelPresetsModal({ isOpen, onClose, onApplyPreset }: 
                         {arch.badge}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-tight">
+                    <p className="text-[11px] text-slate-400 mt-1 max-h-12 overflow-y-auto text-box-scroll leading-tight pr-1">
                       {arch.tagline}
                     </p>
                   </div>

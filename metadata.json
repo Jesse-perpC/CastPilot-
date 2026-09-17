@@ -1,6 +1,6 @@
 {
   "name": "CastPilot",
-  "description": "Automated Broadcast Management System with Multi-Cam NDI Ingestion, Robotic PTZ Control, Master Routing Matrix, AI Auto-Framing & Keyer, Instant Replay Caster, and Intercom IFB Matrix.",
-  "requestFramePermissions": [],
+  "description": "Automated Broadcast Management System with Multi-Cam NDI Ingestion, Mobile Dual-Cam Studio & Remote Interview Compositor, Robotic PTZ Control, Master Routing Matrix, AI Auto-Framing & Keyer, Instant Replay Caster, and Intercom IFB Matrix.",
+  "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

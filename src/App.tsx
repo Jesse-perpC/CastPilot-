@@ -36,6 +36,7 @@ import PflCueDeck from './components/PflCueDeck';
 import BroadcastStandardsSuite from './components/BroadcastStandardsSuite';
 import StudioHotkeysModal from './components/StudioHotkeysModal';
 import ChannelPresetsModal from './components/ChannelPresetsModal';
+import InteractiveBroadcastTour from './components/InteractiveBroadcastTour';
 import { ScheduleItem, ContentAsset, ResourceAsset, ConflictAlert, AdPerformance } from './types';
 import { useLanguage } from './i18n';
 import { useTheme } from './ThemeContext';
@@ -82,13 +83,43 @@ export default function App() {
   const [activePgmCameraId, setActivePgmCameraId] = useState<string>('feed-1');
   const [activePvwCameraId, setActivePvwCameraId] = useState<string>('feed-2');
 
-  // Interactive Broadcast Modals (Hotkeys HUD & 1-Click Archetype Presets)
+  // Interactive Broadcast Modals (Hotkeys HUD, 1-Click Archetype Presets & Academy Tour)
   const [isHotkeysOpen, setIsHotkeysOpen] = useState<boolean>(false);
   const [isPresetsOpen, setIsPresetsOpen] = useState<boolean>(false);
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('castpilot_tour_dismissed') !== 'true';
+    } catch {
+      return false;
+    }
+  });
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Re-seed server with complete dummy broadcast content
+  const handleResetDemoData = async () => {
+    try {
+      triggerToast("Reloading out-of-the-box broadcast demo data...", "info");
+      const res = await fetch('/api/demo/reset', { method: 'POST' });
+      if (res.ok) {
+        await fetchAllData();
+        triggerToast("Broadcast suite initialized with full demo programs, schedules, and alerts!", "success");
+      } else {
+        triggerToast("Failed to reset server data.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerToast("Network error while reloading demo data.", "error");
+    }
+  };
+
+  // Live stream test trigger from tour or quick action
+  const handleTriggerTestLive = () => {
+    setActiveTab('syndication');
+    triggerToast("Syndication Hub engaged: 4K multi-platform live test armed!", "success");
   };
 
   // 1-Click Channel Preset Loader
@@ -132,6 +163,7 @@ export default function App() {
       if (e.key === 'Escape') {
         setIsHotkeysOpen(false);
         setIsPresetsOpen(false);
+        setIsTourOpen(false);
         setCuedMedia(null);
         return;
       }
@@ -615,10 +647,12 @@ export default function App() {
         }}
         onOpenHotkeys={() => setIsHotkeysOpen(true)}
         onOpenPresets={() => setIsPresetsOpen(true)}
+        onOpenTour={() => setIsTourOpen(true)}
+        onResetDemoData={handleResetDemoData}
       />
 
       {/* Core Body Container */}
-      <main className="app-main-container mx-auto max-w-7xl px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+      <main className="app-main-container mx-auto w-full max-w-7xl px-3.5 sm:px-6 md:px-8 py-5 sm:py-8 overflow-x-clip">
         {loadingFetch ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
             <RotateCw className="h-8 w-8 text-sky-400 animate-spin" />
@@ -629,22 +663,22 @@ export default function App() {
           <>
             {/* Dashboard Overview tab */}
             {activeTab === 'dashboard' && (
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8 w-full max-w-full overflow-hidden">
                 {/* Version 2.0 Feature Spotlight Banner */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-950/80 via-slate-900 to-indigo-950/80 border border-sky-500/30 p-5 sm:p-6 shadow-2xl">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-950/80 via-slate-900 to-indigo-950/80 border border-sky-500/30 p-4 sm:p-6 shadow-2xl w-full max-w-full">
                   <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-                    <div className="space-y-2 max-w-3xl">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 relative z-10">
+                    <div className="space-y-2 max-w-3xl min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 font-mono text-[10px] font-bold tracking-wider uppercase">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 font-mono text-[10px] font-bold tracking-wider uppercase shrink-0">
                           <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
                           VERSION 2.0 PRO SUITE
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                        <span className="text-[10px] text-slate-400 font-mono hidden sm:inline truncate">
                           Engineered for High-Availability Linear Playout
                         </span>
                       </div>
-                      <h2 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight">
+                      <h2 className="text-base sm:text-xl font-bold font-display text-white tracking-tight">
                         Welcome to CastPilot Enterprise Operating System v2.0
                       </h2>
                       <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -652,39 +686,44 @@ export default function App() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
                       <button
                         onClick={() => setIsPresetsOpen(true)}
-                        className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-amber-500/20"
+                        className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-amber-500/20 cursor-pointer"
                         title="Load 1-click broadcast channel archetypes"
+                        id="dashboard-channel-presets-btn"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-slate-950" />
+                        <Sparkles className="h-3.5 w-3.5 text-slate-950 shrink-0" />
                         Channel Presets
                       </button>
                       <button
                         onClick={() => setActiveTab('standards')}
-                        className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-indigo-600/25 border border-indigo-400/40"
+                        className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-indigo-600/25 border border-indigo-400/40 cursor-pointer"
+                        id="dashboard-standards-btn"
                       >
-                        <ShieldCheck className="h-3.5 w-3.5 text-amber-300" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-300 shrink-0" />
                         SMPTE/EBU Standards
                       </button>
                       <button
                         onClick={() => setActiveTab('mam')}
-                        className="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-sky-500/20"
+                        className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-sky-500/20 cursor-pointer"
+                        id="dashboard-mam-btn"
                       >
-                        <Sparkles className="h-3.5 w-3.5" />
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" />
                         Explore AI MAM Vault
                       </button>
                       <button
                         onClick={() => setActiveTab('playout')}
-                        className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-400 border border-sky-500/30 font-semibold text-xs flex items-center gap-2 transition"
+                        className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-400 border border-sky-500/30 font-semibold text-xs flex items-center gap-2 transition cursor-pointer"
+                        id="dashboard-playout-btn"
                       >
-                        <Radio className="h-3.5 w-3.5" />
+                        <Radio className="h-3.5 w-3.5 shrink-0" />
                         Playout Monitor
                       </button>
                       <button
                         onClick={() => setActiveTab('manual')}
-                        className="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/80 font-medium text-xs transition"
+                        className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/80 font-medium text-xs transition cursor-pointer"
+                        id="dashboard-manual-btn"
                       >
                         v2.0 Manual
                       </button>
@@ -693,54 +732,58 @@ export default function App() {
                 </div>
 
                 {/* Status KPI Widget row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-full">
                   {/* Playout Active channel */}
-                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-4 flex items-center gap-4 shadow-lg">
-                    <span className="text-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 p-2.5 rounded-lg">
+                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-lg min-w-0 overflow-hidden">
+                    <span className="text-xl sm:text-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 p-2 sm:p-2.5 rounded-lg shrink-0">
                       📺
                     </span>
-                    <div>
-                      <div className="text-[10px] font-mono uppercase text-slate-400">On-Air Active Feed</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-mono uppercase text-slate-400 truncate">On-Air Active Feed</div>
                       <div className="text-sm font-bold text-white truncate">{channelName}</div>
                     </div>
                   </div>
 
                   {/* Redundant Core failover */}
-                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-4 flex items-center gap-4 shadow-lg">
-                    <span className="text-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 p-2.5 rounded-lg">
+                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-lg min-w-0 overflow-hidden">
+                    <span className="text-xl sm:text-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 p-2 sm:p-2.5 rounded-lg shrink-0">
                       🛡️
                     </span>
-                    <div>
-                      <div className="text-[10px] font-mono uppercase text-slate-400">Redundant Core State</div>
-                      <div className="text-sm font-bold text-white uppercase">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-mono uppercase text-slate-400 break-words">Redundant Core State</div>
+                      <div className="text-sm font-bold text-white uppercase break-words">
                         {primaryActive ? 'Primary Playout' : 'Secondary Fallback'}
                       </div>
                     </div>
                   </div>
 
                   {/* SCTE-35 Splicer state */}
-                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-4 flex items-center gap-4 shadow-lg">
-                    <span className="text-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 p-2.5 rounded-lg">
+                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-lg min-w-0">
+                    <span className="text-xl sm:text-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 p-2 sm:p-2.5 rounded-lg shrink-0">
                       📡
                     </span>
-                    <div>
-                      <div className="text-[10px] font-mono uppercase text-slate-400">SCTE-35 Splicer</div>
-                      <div className="text-sm font-bold text-white uppercase">Online & Triggerable</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-mono uppercase text-slate-400 break-words">SCTE-35 Splicer</div>
+                      <div className="text-sm font-bold text-white uppercase break-words">Online & Armed</div>
                     </div>
                   </div>
 
                   {/* System warnings counter */}
-                  <div className="rounded-xl bg-slate-950 border border-slate-850 p-4 flex items-center gap-4 shadow-lg">
-                    <span className={`text-2xl p-2.5 rounded-lg ${
+                  <div 
+                    onClick={() => setActiveTab('scheduler')}
+                    className="rounded-xl bg-slate-950 border border-slate-850 p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-lg min-w-0 cursor-pointer hover:border-slate-700 transition"
+                    title="Click to view schedule diagnostics"
+                  >
+                    <span className={`text-xl sm:text-2xl p-2 sm:p-2.5 rounded-lg shrink-0 ${
                       unresolvedAlertsCount > 0 
                         ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' 
                         : 'bg-slate-900 text-slate-400 border-slate-800'
                     }`}>
                       ⚠️
                     </span>
-                    <div>
-                      <div className="text-[10px] font-mono uppercase text-slate-400">System Warnings</div>
-                      <div className={`text-sm font-bold ${unresolvedAlertsCount > 0 ? 'text-rose-400' : 'text-slate-400'}`}>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-mono uppercase text-slate-400 break-words">System Warnings</div>
+                      <div className={`text-sm font-bold break-words ${unresolvedAlertsCount > 0 ? 'text-rose-400' : 'text-slate-400'}`}>
                         {unresolvedAlertsCount} active alerts
                       </div>
                     </div>
@@ -1045,7 +1088,7 @@ export default function App() {
       {/* Global Broadcast Master Control Footer */}
       <footer className={`mt-12 border-t ${theme === 'light' ? 'border-slate-200 bg-white' : 'border-slate-900 bg-slate-950/90'} py-6 px-4 sm:px-6 transition-colors`}>
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 sm:gap-4 text-center md:text-left">
             <div className={`flex items-center gap-2 font-display font-bold ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>{t('footerSystem')}</span>
@@ -1059,15 +1102,29 @@ export default function App() {
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono">
             <button
+              onClick={() => setIsTourOpen(true)}
+              className="px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1.5 cursor-pointer font-sans"
+              title="Interactive Broadcast Tour & Industry Standards Academy"
+            >
+              🎓 Academy Tour
+            </button>
+            <button
+              onClick={handleResetDemoData}
+              className="px-2.5 py-1 rounded-md bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition flex items-center gap-1.5 cursor-pointer font-sans"
+              title="Reload Full Out-of-the-Box Dummy Content"
+            >
+              ⚡ Reset Demo Data
+            </button>
+            <button
               onClick={() => setIsPresetsOpen(true)}
-              className="px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Sparkles className="h-3 w-3" />
               Presets
             </button>
             <button
               onClick={() => setIsHotkeysOpen(true)}
-              className="px-2.5 py-1 rounded-md bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded-md bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer"
             >
               Hotkeys [ ? ]
             </button>
@@ -1082,9 +1139,10 @@ export default function App() {
             </span>
           </div>
         </div>
-        <div className={`mx-auto max-w-7xl mt-4 pt-3 border-t ${theme === 'light' ? 'border-slate-100 text-slate-500' : 'border-slate-900/60 text-slate-600'} flex flex-col sm:flex-row justify-between items-center text-[10px] gap-2`}>
-          <span>© {new Date().getFullYear()} {t('footerRights')}</span>
-          <span>{t('footerEdition')}</span>
+        <div className={`mx-auto max-w-7xl mt-4 pt-3 border-t ${theme === 'light' ? 'border-slate-100 text-slate-500' : 'border-slate-900/60 text-slate-600'} flex flex-col sm:flex-row justify-center items-center text-center text-[10px] sm:text-[11px] gap-1.5 sm:gap-3 w-full`}>
+          <span className="text-center">© {new Date().getFullYear()} {t('footerRights')}</span>
+          <span className="hidden sm:inline text-slate-400/40 select-none">•</span>
+          <span className="text-center">{t('footerEdition')}</span>
         </div>
       </footer>
 
@@ -1102,6 +1160,14 @@ export default function App() {
         isOpen={isPresetsOpen}
         onClose={() => setIsPresetsOpen(false)}
         onApplyPreset={handleApplyPreset}
+      />
+
+      {/* Interactive Broadcast Academy & Onboarding Tour Modal */}
+      <InteractiveBroadcastTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        setActiveTab={setActiveTab}
+        onTriggerTestLive={handleTriggerTestLive}
       />
     </div>
   );

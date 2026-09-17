@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone, Keyboard, Sparkles } from 'lucide-react';
+import { Radio, RefreshCw, AlertTriangle, ShieldCheck, Power, Server, ChevronLeft, ChevronRight, Globe, ChevronDown, Check, Sun, Moon, UserCheck, Tv, Smartphone, Keyboard, Sparkles, Compass, RotateCcw } from 'lucide-react';
 import { ConflictAlert, ContentAsset, ScheduleItem, ResourceAsset } from '../types';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n';
 import { useTheme } from '../ThemeContext';
@@ -19,6 +19,8 @@ interface HeaderProps {
   onSelectResource?: (resource: ResourceAsset) => void;
   onOpenHotkeys?: () => void;
   onOpenPresets?: () => void;
+  onOpenTour?: () => void;
+  onResetDemoData?: () => void;
 }
 
 const RBAC_ROLES = [
@@ -49,6 +51,8 @@ export default function Header({
   onSelectResource,
   onOpenHotkeys,
   onOpenPresets,
+  onOpenTour,
+  onResetDemoData,
 }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -134,30 +138,30 @@ export default function Header({
   };
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950 px-4 py-3 sm:px-6 sm:py-3.5 sticky top-0 z-40 space-y-3">
+    <header className="border-b border-slate-800 bg-slate-950 px-3.5 py-2.5 sm:px-6 sm:py-3.5 sticky top-0 z-40 space-y-2.5 sm:space-y-3 w-full max-w-full overflow-x-clip">
       {/* Top Header Row: Brand, Global Search Bar, Quick System Indicators */}
-      <div className="mx-auto flex max-w-7xl flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div className="mx-auto flex max-w-7xl flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 sm:gap-3 w-full max-w-full">
         {/* Logo and Brand Title */}
-        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shrink-0 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] shrink-0">
               <Radio className="h-4 sm:h-5 sm:w-5 animate-pulse text-sky-400" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="font-display text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                <h1 className="font-display text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2 truncate">
                   CastPilot
                   <span className="text-slate-500 font-normal text-xs font-mono hidden md:inline">by</span>
                   <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent font-bold text-xs tracking-wider uppercase hidden md:inline">
                     Perp Corp Media
                   </span>
                 </h1>
-                <span className="rounded bg-sky-950/80 px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-sky-300 border border-sky-800/60 font-semibold shadow-sm">
+                <span className="rounded bg-sky-950/80 px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-sky-300 border border-sky-800/60 font-semibold shadow-sm shrink-0">
                   {t('versionBadge')}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1">
-                <span>{t('tagline')}</span>
+              <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1 truncate">
+                <span className="truncate">{t('tagline')}</span>
                 <span className="text-slate-600 hidden sm:inline">•</span>
                 <span className="text-slate-300 font-medium hidden sm:inline">{t('authorAndSuite')}</span>
               </p>
@@ -165,33 +169,50 @@ export default function Header({
           </div>
         </div>
 
-        {/* Global Search Bar (Omnibox) */}
-        <div className="flex-1 max-w-full lg:max-w-xl mx-0 lg:mx-4">
-          <GlobalSearchBar
-            assets={assets}
-            schedules={schedules}
-            resources={resources}
-            alerts={alerts}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onSelectAsset={onSelectAsset}
-            onSelectSchedule={onSelectSchedule}
-            onSelectResource={onSelectResource}
-          />
+        {/* Global Search Bar (Omnibox) & Interactive Tutorial Guide */}
+        <div className="w-full lg:flex-1 max-w-full lg:max-w-xl xl:max-w-2xl mx-0 lg:mx-3 min-w-0 flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <GlobalSearchBar
+              assets={assets}
+              schedules={schedules}
+              resources={resources}
+              alerts={alerts}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onSelectAsset={onSelectAsset}
+              onSelectSchedule={onSelectSchedule}
+              onSelectResource={onSelectResource}
+              onOpenTour={onOpenTour}
+            />
+          </div>
+
+          {/* Tutorial / Masterclass Button Placed Directly Beside Search Bar */}
+          {onOpenTour && (
+            <button
+              onClick={onOpenTour}
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-sky-500/15 hover:from-emerald-500/25 hover:to-sky-500/25 border border-emerald-500/35 hover:border-emerald-400/70 px-2.5 sm:px-3 py-1.5 text-emerald-300 hover:text-white text-xs transition-all shadow-sm font-semibold shrink-0 cursor-pointer group"
+              title="Interactive Broadcast Tutorial & Masterclass (Playout, Audio QC, Live Syndication)"
+              id="header-search-tour-btn"
+            >
+              <Compass className="h-4 w-4 text-emerald-400 group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+              <span className="font-semibold text-[11px] sm:text-xs">Tutorial</span>
+              <span className="hidden xl:inline-block px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-500/30 text-[9px] text-emerald-300 font-mono uppercase tracking-wider">Guide</span>
+            </button>
+          )}
         </div>
 
-        {/* Quick Utilities: Language, Theme, Alerts, Master Clock */}
-        <div className="flex items-center gap-2 text-xs self-end lg:self-auto shrink-0">
+        {/* Quick Utilities: Language, Theme, Demo, Presets, Hotkeys, Master Clock, Alerts - Kept on the same single row */}
+        <div className="flex flex-nowrap items-center justify-between sm:justify-end gap-1.5 sm:gap-2 text-xs w-full lg:w-auto shrink-0 overflow-x-auto no-scrollbar lg:overflow-visible">
           {/* International Language Switcher Dropdown */}
           <div className="relative shrink-0" ref={langMenuRef}>
             <button
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium"
+              className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 sm:px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium"
               title={t('selectLanguage')}
               id="language-selector-btn"
             >
-              <Globe className="h-3.5 w-3.5 text-sky-400" />
-              <span className="font-semibold text-slate-200">{currentLangOption.flag} {currentLangOption.code.toUpperCase()}</span>
+              <Globe className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+              <span className="font-semibold text-slate-200">{currentLangOption.flag} <span className="hidden xs:inline">{currentLangOption.code.toUpperCase()}</span></span>
               <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isLangMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -232,31 +253,45 @@ export default function Header({
           {/* Dark / Light Studio Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium shrink-0"
+            className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 sm:px-2.5 py-1.5 text-slate-300 hover:text-white hover:border-slate-700 text-[10px] sm:text-xs transition-all shadow-sm font-medium shrink-0 cursor-pointer"
             title={theme === 'dark' ? t('themeLight') : t('themeDark')}
             id="theme-toggle-btn"
           >
             {theme === 'dark' ? (
               <>
-                <Sun className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                <Sun className="h-3.5 w-3.5 text-amber-400 animate-pulse shrink-0" />
                 <span className="font-semibold text-slate-200 hidden xs:inline">{t('themeLight')}</span>
               </>
             ) : (
               <>
-                <Moon className="h-3.5 w-3.5 text-indigo-400" />
+                <Moon className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
                 <span className="font-semibold text-slate-200 hidden xs:inline">{t('themeDark')}</span>
               </>
             )}
           </button>
 
+          {/* Reset Demo Content Button */}
+          {onResetDemoData && (
+            <button
+              onClick={onResetDemoData}
+              className="flex items-center gap-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 px-2 sm:px-2.5 py-1.5 text-purple-300 hover:text-white hover:bg-purple-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0 cursor-pointer"
+              title="Reload Full Out-of-the-Box Broadcast Demo Content"
+              id="header-reset-demo-btn"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+              <span className="hidden md:inline">Reset Demo</span>
+            </button>
+          )}
+
           {/* 1-Click Channel Presets Button */}
           {onOpenPresets && (
             <button
               onClick={onOpenPresets}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-amber-300 hover:text-white hover:bg-amber-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2 sm:px-2.5 py-1.5 text-amber-300 hover:text-white hover:bg-amber-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0 cursor-pointer"
               title="1-Click Broadcast Channel Archetype Presets"
+              id="header-presets-btn"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <span className="hidden sm:inline">Presets</span>
             </button>
           )}
@@ -265,38 +300,44 @@ export default function Header({
           {onOpenHotkeys && (
             <button
               onClick={onOpenHotkeys}
-              className="flex items-center gap-1.5 rounded-lg bg-sky-500/10 border border-sky-500/30 px-2.5 py-1.5 text-sky-300 hover:text-white hover:bg-sky-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0"
+              className="flex items-center gap-1.5 rounded-lg bg-sky-500/10 border border-sky-500/30 px-2 sm:px-2.5 py-1.5 text-sky-300 hover:text-white hover:bg-sky-500/20 text-[10px] sm:text-xs transition-all shadow-sm font-semibold shrink-0 cursor-pointer"
               title="Studio Keyboard Hotkeys (Press ?)"
+              id="header-hotkeys-btn"
             >
-              <Keyboard className="h-3.5 w-3.5 text-sky-400" />
+              <Keyboard className="h-3.5 w-3.5 text-sky-400 shrink-0" />
               <span className="hidden sm:inline">Hotkeys</span>
               <kbd className="hidden md:inline px-1 py-0.5 bg-slate-950/80 border border-slate-700/80 rounded font-mono text-[9px] text-sky-400 font-bold">?</kbd>
             </button>
           )}
 
+          {/* Master Clock - Fluid compact digital clock placed directly beside the keyboard shortcut button on the same row */}
+          <div className="rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 sm:px-2.5 sm:py-1.5 font-mono text-white text-[10px] sm:text-xs flex items-center gap-1.5 shrink-0 shadow-inner" id="header-master-clock">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping shrink-0"></span>
+            <span className="tabular-nums whitespace-nowrap">{time || "00:00:00"} <span className="hidden xs:inline">UTC</span></span>
+          </div>
+
           {/* Alarm Indicator */}
           {unresolvedAlerts.length > 0 ? (
-            <div className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-rose-400 animate-pulse shrink-0 text-[10px] sm:text-xs">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="font-semibold">{unresolvedAlerts.length} {t('alertsCount')}</span>
-            </div>
+            <button
+              onClick={() => setActiveTab('scheduler')}
+              className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 px-2 sm:px-2.5 py-1.5 text-rose-400 hover:bg-rose-500/20 animate-pulse shrink-0 text-[10px] sm:text-xs transition cursor-pointer"
+              title="Click to view and resolve active diagnostic alerts"
+              id="header-alerts-btn"
+            >
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span className="font-semibold">{unresolvedAlerts.length} <span className="hidden xs:inline">{t('alertsCount')}</span></span>
+            </button>
           ) : (
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2 sm:px-2.5 py-1.5 text-emerald-400 shrink-0 text-[10px] sm:text-xs">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
               <span className="hidden xs:inline">{t('broadcastSafe')}</span>
             </div>
           )}
-
-          {/* Master Clock */}
-          <div className="rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 font-mono text-white text-[11px] sm:text-xs flex items-center gap-1.5 shrink-0 shadow-inner">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping"></span>
-            <span>{time || "00:00:00"} UTC</span>
-          </div>
         </div>
       </div>
 
       {/* Secondary Operational Telemetry Bar */}
-      <div className="mx-auto max-w-7xl flex overflow-x-auto flex-nowrap items-center justify-between gap-2.5 text-xs pb-0.5 scroll-smooth no-scrollbar select-none" id="header-status-counters">
+      <div className="mx-auto max-w-7xl w-full max-w-full flex overflow-x-auto flex-nowrap items-center justify-between gap-2 sm:gap-2.5 text-xs pb-1 scroll-smooth no-scrollbar select-none" id="header-status-counters">
         <div className="flex items-center gap-2">
           {/* RBAC Role Selector Dropdown */}
           <div className="flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-slate-300 text-[10px] sm:text-xs shrink-0">

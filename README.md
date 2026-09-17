@@ -92,6 +92,25 @@ CastPilot bridges the gap between uncompressed IP television standards and flexi
 * **Dynamic Yield Localization**: Instantly detects and displays ad yield metrics, forecasted revenues, and average CPM rates scaled to the broadcaster's physical location and local timezone.
 * **Multi-Currency Converter**: Support for manual conversion or automatic geolocation detection across USD, EUR, GBP, JPY, AUD, CAD, INR, SGD, CHF, CNY, ZAR, BRL, and AED.
 
+### 9. 📱 Mobile Dual-Camera Ingestion & Live Interview Field Caster
+* **Simultaneous Dual-Lens Capture**: Ingests front (host/reporter) and rear (subject/interviewee) smartphone camera streams simultaneously via browser WebRTC with real-time resolution, FPS, and millisecond latency telemetry.
+* **Shared Microphone Audio DSP Engine**: Clones the single mobile hardware mic with Web Audio API Acoustic Echo Cancellation (AEC), Noise Suppression, Automatic Gain Control (AGC), master gain trim (0-200%), and stereo VU peak metering.
+* **4 Broadcast Interview Compositor Layouts**:
+  * **50/50 Split Screen**: Side-by-side balanced framing with custom lower-third nameplates and roles.
+  * **Picture-in-Picture (PiP)**: Full-screen rear view with 4-corner floating host inset (Top-Right, Top-Left, Bottom-Right, Bottom-Left) and scalable size (15%-40%).
+  * **Studio Frame**: Broadcast television letterbox frame with channel logo bug and live on-air tally indicator.
+  * **9:16 Vertical Social**: Vertical format for live simulcasting to TikTok, Instagram Reels, and YouTube Shorts.
+* **Hardware-Aware Single-ISP Sensor Flip**: Automatic fallback with 1-tap instant sensor switching and sub-frame crossfade for devices restricted to single active camera sensors.
+* **Wireless Companion Mobile Caster**: Generates direct WebRTC QR code and 4-digit PIN for wireless secondary mobile pairing.
+* **Direct Air Routing**: 1-click live punch to Program (PGM) or Preview (PVW), plus direct assignment to Master Control **CAM 9 (MOBILE)**.
+
+### 10. 🎥 Multi-Camera Studio, NDI Routing & PTZ Robotics
+* **4-to-8 Studio Camera Matrix**: Seamless switching between multiple NDI and SDI studio sources with live tally signaling (Red PGM / Green PVW).
+* **Robotic PTZ Camera Joystick**: Virtual joystick for remote Pan, Tilt, and Zoom control with presets (Wide, Host, Guest, Overhead).
+* **AI Auto-Framing Keyer**: Real-time microphone audio tracking automatically frames speakers and cuts camera angles.
+* **Instant Replay Engine**: 1-click 15-second buffer replay at 0.5x slow motion with on-air replay bug.
+* **Intercom & IFB Talkback Matrix**: Integrated two-way director-to-talent communication channels.
+
 ---
 
 ## 📡 COGNITIVE PROTOCOLS & DATA FLOW
@@ -116,6 +135,12 @@ CastPilot bridges the gap between uncompressed IP television standards and flexi
 +------------------------+      +-------------+-------------+      +------------+-------------+
 |   OBS HTML5 Overlay    +<-----+     PTP IEEE 1588 Sync    +<-----+  Cryptographic As-Run    |
 |   (?overlay=true)      |      |   (ST 2059-2 Genlock)     |      |   (SHA-256 Audit Logs)   |
++------------------------+      +-------------+-------------+      +------------+-------------+
+                                              |
+                                              v
++------------------------+      +-------------+-------------+      +--------------------------+
+| Mobile Dual-Cam Studio +----->+ WebRTC Interview Compositor+---->+ Master Control PGM / CAM9|
+| (Front + Back Lenses)  |      | (Split/PiP/Studio/9:16)   |      | (Live Broadcast Out)     |
 +------------------------+      +---------------------------+      +--------------------------+
 ```
 

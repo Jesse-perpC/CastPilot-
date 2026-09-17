@@ -12,6 +12,7 @@
    - [4.1 Playout Control Room (The Main Video Switcher)](#41-playout-control-room)
    - [4.2 TV Schedule & Lineup Manager](#42-tv-schedule--lineup-manager)
    - [4.3 Multi-Camera Studio (NDI, PTZ & Replays)](#43-multi-camera-studio)
+     - [4.3.1 Mobile Dual-Camera & Live Interview Studio (Front + Back Cameras)](#431-mobile-dual-camera--live-interview-studio)
    - [4.4 Scriptwriting & Hardware Teleprompter](#44-scriptwriting--hardware-teleprompter)
    - [4.5 Audience Graphics, Tickers & Live Polls](#45-audience-graphics-tickers--live-polls)
    - [4.6 Media Asset Manager (MAM & Video Library)](#46-media-asset-manager)
@@ -121,6 +122,8 @@ The header bar stays at the top of your screen at all times. Here is what every 
    - Emulates the government Emergency Alert System required for public broadcast stations. Clicking **"Trigger EAS Alert"** sounds the authentic dual-frequency alert siren (853 Hz & 960 Hz) and displays a full-screen red warning banner with emergency voice narration.
 6. **Insert Commercial (SCTE-35 Splice)**:
    - Click this to manually inject a 30-second, 60-second, or 120-second commercial break into the stream. Downstream platforms (like Roku or Pluto TV) will immediately replace your screen with personalized localized ads for each viewer.
+7. **Mobile Dual-Cam Ingestion & Switcher Crosspoint (CAM 9)**:
+   - Monitor on-the-ground mobile field interviews in real time. Switch the Playout monitor header mode to **"📱 Dual-Cam Interview"** or select **CAM 9 (MOBILE)** on the broadcast switcher crosspoint matrix to cut mobile interview coverage live to Program with one tap.
 
 ---
 
@@ -159,6 +162,34 @@ The header bar stays at the top of your screen at all times. Here is what every 
    - Perfect for sports or dramatic moments! Click **"REPLAY"** to immediately cue up the last 15 seconds at 0.5x slow-motion with a professional on-screen "INSTANT REPLAY" graphic bug.
 6. **Intercom / IFB Talkback Matrix**:
    - Lets the director in the control room whisper instructions into the presenter's earpiece (IFB) without the viewers hearing anything on the main broadcast.
+
+---
+
+### 4.3.1 Mobile Dual-Camera & Live Interview Studio (Front + Back Cameras)
+
+**What this is**: Turn any modern mobile phone or tablet into an all-in-one broadcast interview rig. A solo roving reporter or mobile creator can conduct two-person live interviews anywhere in the field without carrying extra cameras, capture cards, or bulky audio mixers.
+
+#### Key Features & Workflows Explained Simply:
+1. **Simultaneous Dual-Lens Ingestion (Front + Back Cameras)**:
+   - Tap **"Start Dual-Lens Capture"**. The system requests browser camera access and captures both the **Front Camera** (framing the reporter/interviewer) and the **Back Camera** (framing the subject/interviewee) at the same time.
+   - Real-time telemetry badges display stream resolution (e.g. 1080p), framerate (30/60 FPS), and millisecond latency.
+2. **Single-Device Shared Microphone Audio Processing**:
+   - Mobile devices have a single shared hardware microphone for browser WebRTC. CastPilot routes this single mic feed through an internal **Web Audio API DSP audio processing pipeline**:
+     - **Acoustic Echo Cancellation (AEC)** prevents speaker feedback and howl.
+     - **Noise Suppression & High-Pass Filtering** eliminates background wind, street traffic, and HVAC rumble.
+     - **Automatic Gain Control (AGC)** balances speech levels between the interviewer holding the phone and the guest standing opposite.
+     - **Master Gain Trim & Live VU Meter**: Adjust volume from 0% to 200% with real-time stereo peak visualizers.
+3. **4 Broadcast Interview Compositor Layouts**:
+   - **50/50 Split Screen**: Places the host and guest side-by-side with crisp dividing borders and editable lower-third nameplates (e.g. *"Jesse Lepota | Lead Reporter"* and *"Sarah Jenkins | Guest Scientist"*).
+   - **Picture-in-Picture (PiP)**: Shows the guest or scenery full screen on the rear camera while floating the reporter's front camera in any corner (Top-Right, Top-Left, Bottom-Right, Bottom-Left) with adjustable inset scale (15% to 40%).
+   - **Studio Frame**: Centers the dual shot inside a cinematic broadcast border with station logo bug and live tally indicators.
+   - **9:16 Vertical Social**: Vertical orientation tailored for live streaming to TikTok Live, Instagram Reels, and YouTube Shorts.
+4. **Hardware-Aware Single-ISP Sensor Flip Fallback**:
+   - Certain smartphone chipsets (single Image Signal Processor / ISP) do not allow the operating system to power both physical camera sensors concurrently. If your device detects this constraint, CastPilot automatically enables the **1-Tap Sensor Flip**: smoothly toggling between host and subject with a sub-frame crossfade transition.
+5. **Wireless Companion Mobile Caster (QR Code & PIN)**:
+   - Need two physically separate phones for wide and close-up angles? Click **"Wireless Companion Caster"** to generate a direct WebRTC QR code and 4-digit PIN. Scanning the code with any secondary phone connects it as an auxiliary wireless video feed without cables or apps!
+6. **Direct Routing to Air (PGM / PVW / CAM 9)**:
+   - Punch the composited interview feed live to **Program (PGM)** or stage it on **Preview (PVW)** with one click. In the Playout MCR, it is also addressable directly as **CAM 9 (MOBILE)**.
 
 ---
 
@@ -354,10 +385,23 @@ CastPilot offers dedicated **Standalone Popout Viewports** engineered specifical
 | **As-Run Log** | The official legal proof-of-performance log documenting every program and commercial that actually played on air. |
 | **IFB (Interrupted Foldback)** | The little earpiece worn by TV anchors so the control room director can talk directly into their ear. |
 | **Tally** | The small red light on top of a camera that turns on when that camera is live on air. |
+| **Mobile Dual-Cam** | Capturing front (host) and back (subject) smartphone cameras simultaneously with shared single-device audio routing. |
+| **PiP (Picture-in-Picture)** | Floating a smaller camera window over a primary background video feed. |
+| **50/50 Split Screen** | Side-by-side interview layout displaying host and guest with equal prominence and lower-third identification. |
+| **WebRTC Field Caster** | Sub-second ultra-low latency audio/video streaming directly from browser to master control over cellular or Wi-Fi. |
 
 ---
 
 ## 9. Frequently Asked Questions (FAQ)
+
+#### Q: How do I broadcast a live interview using both my phone's front and back cameras?
+**A**: Open the **Multi-Cam Ingestion** tab and switch to **"📱 Mobile Dual-Cam & Interview"** (or in Playout MCR, toggle the monitor mode to **"📱 Dual-Cam Interview"**). Tap **"Start Dual-Lens Capture"** to turn on both cameras. Pick an interview compositor (Split Screen, PiP, Studio Frame, or 9:16 Vertical), adjust the shared microphone gain, and click **"Punch to Program (PGM)"** or select **CAM 9** on the switcher.
+
+#### Q: What if my phone's camera hardware only lets one camera turn on at a time?
+**A**: Certain mobile processors (single-ISP hardware architectures) prevent simultaneous physical lens activation. CastPilot detects this constraint and gives you a 1-tap **"Sensor Flip"** button with a smooth sub-frame crossfade transition between host and subject. Alternatively, use the **Wireless Companion Caster** button to pair a second phone via QR code.
+
+#### Q: How does microphone audio work when two people are speaking into one phone?
+**A**: CastPilot uses an in-browser Web Audio API DSP pipeline. It clones your device's physical microphone across both camera channels, applying acoustic echo cancellation (AEC), noise reduction, and automatic gain control (AGC) so both the interviewer and the interviewee sound clean and balanced.
 
 #### Q: Do I need expensive broadcast hardware to use CastPilot?
 **A**: No! CastPilot runs entirely in modern web browsers (Chrome, Edge, Safari, Firefox). You can schedule channels, run teleprompters, generate AI scripts, and syndicate streams from any laptop, desktop PC, or tablet.
